@@ -34,6 +34,9 @@ final class StubProtocol: URLProtocol {
             )
             return respond(302, headers: ["Location": "https://elsewhere.example/api/oauth/usage"])
         }
+        if spec.first == "someone-else" {
+            return respond(200, body: url.path().hasSuffix("profile") ? Self.otherProfileBody : Self.usageBody)
+        }
         let status = Int(spec.first ?? "") ?? 500
         let headers = spec.count > 1 ? ["Retry-After": String(spec[1])] : [:]
         respond(status, headers: headers, body: url.path().hasSuffix("profile") ? Self.profileBody : Self.usageBody)
@@ -48,6 +51,7 @@ final class StubProtocol: URLProtocol {
 
     static let usageBody = #"{"five_hour":{"utilization":12,"resets_at":null}}"#
     static let profileBody = #"{"account":{"email":"stub@example.com"}}"#
+    static let otherProfileBody = #"{"account":{"uuid":"bbbbbbbb-0000-0000-0000-000000000002","email":"other@example.com"}}"#
 }
 
 @Suite struct UsageClientTests {

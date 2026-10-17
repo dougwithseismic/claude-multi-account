@@ -1,0 +1,5 @@
+[
+  { "letter": "A", "label": "Claude A", "color": "#2F7BF5", "hotkey": "1" },
+  { "letter": "B", "label": "Claude B", "color": "#F5822F", "hotkey": "2" },
+  { "letter": "C", "label": "Claude C", "color": "#2FB36B", "hotkey": "3" }
+]

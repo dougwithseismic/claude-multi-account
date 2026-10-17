@@ -7,10 +7,13 @@ let package = Package(
     products: [
         .library(name: "UsageCore", targets: ["UsageCore"]),
         .executable(name: "claude-usage", targets: ["claude-usage"]),
+        .executable(name: "ClaudeNotch", targets: ["ClaudeNotch"]),
     ],
     targets: [
         .target(name: "UsageCore"),
         .executableTarget(name: "claude-usage", dependencies: ["UsageCore"]),
+        .executableTarget(name: "ClaudeNotch", dependencies: ["UsageCore"]),
         .testTarget(name: "UsageCoreTests", dependencies: ["UsageCore"]),
+        .testTarget(name: "ClaudeNotchTests", dependencies: ["ClaudeNotch"]),
     ]
 )
