@@ -77,15 +77,26 @@ struct PeekLine: View {
                 Text(plan).font(.system(size: 11)).foregroundStyle(.secondary)
             }
         case .alert(.near(let window)):
-            Label(resetText(window, now: now), systemImage: "exclamationmark.triangle.fill")
+            Label { reset(window) } icon: { Image(systemName: "exclamationmark.triangle.fill") }
                 .font(.system(size: 11)).foregroundStyle(.orange)
         case .alert(.out(let window)):
-            Label(resetText(window, now: now), systemImage: "xmark.octagon.fill")
+            Label { reset(window) } icon: { Image(systemName: "xmark.octagon.fill") }
                 .font(.system(size: 11)).foregroundStyle(AccountStyle.limitRed)
         case .alert(.back):
             Label("ready again", systemImage: "checkmark.circle.fill")
                 .font(.system(size: 11, weight: .medium)).foregroundStyle(AccountStyle.backGreen)
         }
+    }
+}
+
+extension PeekLine {
+    /// The countdown, ticking through its last minutes, with the clock beside it. Kept
+    /// whole: a long title gives way first.
+    private func reset(_ window: UsageWindow) -> some View {
+        Countdown(target: window.resetsAt, now: now) { date in
+            Text(resetTextWithClock(window, now: date)).monospacedDigit().lineLimit(1)
+        }
+        .fixedSize()
     }
 }
 

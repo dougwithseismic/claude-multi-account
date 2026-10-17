@@ -124,8 +124,8 @@ final class NotchController {
         let layout = NotchLayout.make(shape, ringCount: ringCount)
         self.layout = layout
 
-        rings.contentView = FirstClickHostingView(rootView: RingsView(model: model, hasNotch: layout.hasNotch))
-        rings.setFrame(layout.rings, display: true)
+        rings.contentView = FirstClickHostingView(rootView: RingsView(model: model, hasNotch: layout.hasNotch, state: state))
+        rings.setFrame(layout.ringsWindow, display: true)
         rings.orderFrontRegardless()
 
         state.peekSize = layout.peek.size

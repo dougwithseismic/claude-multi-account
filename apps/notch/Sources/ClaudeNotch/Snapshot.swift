@@ -4,7 +4,7 @@ import UsageCore
 
 /// `--snapshot <file.png>`: once every account has been read (or after 30 seconds),
 /// renders the notch in each of its states with the live numbers to a PNG and quits: the
-/// rings, two peeks, the open panel and its settings page. For checking the rows without
+/// rings (and every copy out), three peeks, the open panel and its settings page. For checking the rows without
 /// screen-recording permission. With `--demo` it also shows the panel with details, as
 /// holding ⌥ does; the live numbers' emails stay out of the file.
 @MainActor
@@ -51,12 +51,14 @@ private struct Board: View {
     var body: some View {
         HStack(alignment: .top, spacing: 28) {
             VStack(alignment: .leading, spacing: 28) {
-                tile("Closed") { closed }
+                tile("Closed") { closed(model) }
+                tile("Closed, every copy out") { closed(allOut) }
                 if let letter = model.lastUsed ?? model.copies.first?.id {
                     tile("Peek after a ⌥⌘ switch") { peek(Peek(letter: letter, kind: .switched)) }
                 }
                 if let letter = model.copies.first?.id {
                     tile("Peek near a limit") { peek(Peek(letter: letter, kind: .alert(.near(Self.nearWindow)))) }
+                    tile("Peek at a limit") { peek(Peek(letter: letter, kind: .alert(.out(Self.outWindow)))) }
                 }
                 tile("Open") { panel(state()) }
             }
@@ -100,17 +102,18 @@ private struct Board: View {
         return state
     }
 
-    private var rings: some View {
-        RingsView(model: model, hasNotch: layout.hasNotch).frame(width: layout.rings.width, height: layout.rings.height)
+    private func rings(_ model: AccountsModel, state: NotchState? = nil) -> some View {
+        RingsView(model: model, hasNotch: layout.hasNotch, state: state)
+            .frame(width: layout.ringsWindow.width, height: layout.ringsWindow.height)
     }
 
-    private var closed: some View {
+    private func closed(_ model: AccountsModel) -> some View {
         let notch = NotchLayout.local(layout.notch, in: panelRect), ringsAt = NotchLayout.local(layout.rings, in: panelRect)
         return ZStack(alignment: .topLeading) {
             if layout.hasNotch {
                 NotchShape(flare: 0, bottomRadius: 9).fill(.black).frame(width: notch.width, height: notch.height).offset(x: notch.minX)
             }
-            rings.offset(x: ringsAt.minX)
+            rings(model).offset(x: ringsAt.minX)
         }
         .frame(width: PanelContent.width, height: notch.height, alignment: .topLeading)
         .padding(.horizontal, NotchLayout.margin)
@@ -125,17 +128,37 @@ private struct Board: View {
         let ringsAt = NotchLayout.local(layout.rings, in: layout.peek)
         return PeekStage(model: model, state: state)
             .frame(width: layout.peek.width + 2 * NotchLayout.margin, height: layout.peek.height + NotchLayout.margin)
-            .overlay(alignment: .topLeading) { rings.offset(x: NotchLayout.margin + ringsAt.minX) }
+            .overlay(alignment: .topLeading) { rings(model, state: state).offset(x: NotchLayout.margin + ringsAt.minX) }
     }
 
     private func panel(_ state: NotchState) -> some View {
         let ringsAt = NotchLayout.local(layout.rings, in: panelRect)
         return PanelStage(model: model, state: state, preferences: preferences, actions: PanelActions())
             .fixedSize()
-            .overlay(alignment: .topLeading) { rings.offset(x: NotchLayout.margin + ringsAt.minX) }
+            .overlay(alignment: .topLeading) { rings(model, state: state).offset(x: NotchLayout.margin + ringsAt.minX) }
+    }
+
+    /// The live copies, every one out of its 5-hour window and back one after another,
+    /// the first in its last minutes.
+    private var allOut: AccountsModel {
+        let now = Date()
+        let backIn: [TimeInterval] = [2 * 3600 + 41 * 60, 4 * 60 + 12, 3600 + 30 * 60]
+        let accounts = model.profiles.enumerated().map { index, profile in
+            var account = AccountsModel.Account(profile: profile, organization: "out")
+            account.report = UsageReport(windows: [
+                UsageWindow(label: "5-hour", percentUsed: 100, resetsAt: now.addingTimeInterval(backIn[index % backIn.count] + Double(index / backIn.count) * 600)),
+                UsageWindow(label: "Weekly · all models", percentUsed: 48, resetsAt: now.addingTimeInterval(3 * 86400)),
+            ], extraUsage: nil)
+            return account
+        }
+        let out = AccountsModel(reader: nil)
+        out.show(profiles: model.profiles, accounts: accounts)
+        out.lastUsed = model.lastUsed
+        return out
     }
 
     static let nearWindow = UsageWindow(label: "5-hour", percentUsed: 91, resetsAt: Date().addingTimeInterval(48 * 60))
+    static let outWindow = UsageWindow(label: "5-hour", percentUsed: 100, resetsAt: Date().addingTimeInterval(2 * 3600 + 41 * 60))
 
     /// A 14-inch MacBook Pro: 1512×982 points, a 38pt notch.
     static let macBook = ScreenShape(

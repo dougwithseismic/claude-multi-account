@@ -376,22 +376,26 @@ struct AccountDetail: View {
     }
 }
 
+/// A window's bar, how much is used, and its reset as a countdown, or by the clock while
+/// the row is hovered. At 100% the bar drains with the wait instead.
 struct WindowRow: View {
     let window: UsageWindow
     let color: Color
     let now: Date
     var delay: Double = 0
+    @Environment(\.rowHovered) private var hovered
 
     var body: some View {
         let percent = window.percentUsed
         let full = percent >= 100
+        let wait = waitFraction(window, now: now)
         HStack(spacing: 8) {
             Text(shortLabel(window))
                 .frame(width: 84, alignment: .leading)
                 .foregroundStyle(.secondary)
             UsageBar(
-                fraction: percent / 100, color: percent >= 90 ? AccountStyle.limitRed : color,
-                pace: full ? nil : elapsedFraction(window, now: now), delay: delay
+                fraction: wait ?? percent / 100, color: percent >= 90 ? AccountStyle.limitRed : color,
+                waiting: wait != nil, pace: full ? nil : elapsedFraction(window, now: now), delay: delay
             )
             Text("\(Int(percent.rounded()))%")
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
@@ -399,10 +403,17 @@ struct WindowRow: View {
                 .contentTransition(.numericText(value: percent))
                 .frame(width: 36, alignment: .trailing)
                 .foregroundStyle(full ? AccountStyle.limitRed : .primary)
-            Text(resetText(window, now: now))
-                .monospacedDigit()
-                .frame(width: 122, alignment: .trailing)
-                .foregroundStyle(full ? AccountStyle.limitRed : .secondary)
+            Countdown(target: window.resetsAt, now: now) { date in
+                let text = resetText(window, now: date, clock: hovered)
+                Text(text)
+                    .monospacedDigit()
+                    // "resets tomorrow 9:00 AM" shrinks a little rather than losing its end.
+                    .minimumScaleFactor(0.85)
+                    .contentTransition(.numericText(countsDown: true))
+                    .animation(.smooth(duration: 0.2), value: text)
+            }
+            .frame(width: 122, alignment: .trailing)
+            .foregroundStyle(full ? AccountStyle.limitRed : .secondary)
         }
         .font(.system(size: 11))
         .lineLimit(1)
@@ -411,9 +422,11 @@ struct WindowRow: View {
 
 /// How much of a window is used, filling from empty as the panel opens. The tick marks
 /// how far through the window it is: a bar past its tick is going faster than an even pace.
+/// `waiting`, it's the wait left at 100% instead, drawn fainter.
 struct UsageBar: View {
     let fraction: Double
     let color: Color
+    var waiting = false
     var pace: Double?
     var delay: Double = 0
     @Environment(\.revealed) private var revealed
@@ -425,7 +438,10 @@ struct UsageBar: View {
             ZStack(alignment: .leading) {
                 Capsule().fill(.white.opacity(0.1))
                 Capsule()
-                    .fill(LinearGradient(colors: [color.opacity(0.7), color], startPoint: .leading, endPoint: .trailing))
+                    .fill(LinearGradient(
+                        colors: waiting ? [color.opacity(0.3), color.opacity(0.6)] : [color.opacity(0.7), color],
+                        startPoint: .leading, endPoint: .trailing
+                    ))
                     .frame(width: shown > 0 ? max(width * shown, height) : 0)
                 if let pace {
                     Capsule()

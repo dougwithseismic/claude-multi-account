@@ -55,17 +55,21 @@ struct MorphShape: Shape {
 // MARK: - Collapsed: one ring per copy
 
 /// The outer ring is the 5-hour window, the inner one the fullest weekly window, both for
-/// the organization the copy is working in. A cross replaces the inner ring when a weekly
-/// window is at 100%: out for the week.
+/// the organization the copy is working in. At 100% the outer ring turns into the wait:
+/// red, unwinding to the reset. A cross replaces the inner ring when a weekly window is at
+/// 100%: out for the week.
 struct RingView: View {
     let letter: String
     let account: AccountsModel.Account?
+    var now = Date()
 
     var body: some View {
         let report = account?.report
+        let wait = report?.fiveHour.flatMap { waitFraction($0, now: now) }
         RingGlyph(
             color: AccountStyle.of(letter).color,
-            fiveHour: (report?.fiveHour?.percentUsed ?? 0) / 100,
+            fiveHour: wait ?? (report?.fiveHour?.percentUsed ?? 0) / 100,
+            fiveHourOut: wait != nil,
             weekly: (report?.weeklyPeak?.percentUsed ?? 0) / 100,
             dim: report == nil || account?.isStale == true
         )
@@ -74,12 +78,14 @@ struct RingView: View {
 
 struct RingGlyph: View {
     let color: Color
+    /// Used, or with `fiveHourOut` the wait left.
     let fiveHour: Double
+    var fiveHourOut = false
     let weekly: Double
     var dim = false
 
     var body: some View {
-        let outerColor = fiveHour >= 0.9 ? AccountStyle.limitRed : color
+        let outerColor = fiveHourOut || fiveHour >= 0.9 ? AccountStyle.limitRed : color
         ZStack {
             Circle().stroke(color.opacity(0.28), lineWidth: 2.2)
             Circle().trim(from: 0, to: min(fiveHour, 1))
@@ -106,39 +112,97 @@ struct RingGlyph: View {
 }
 
 /// The rings beside the notch, with a dot under the copy in front (or used last) that
-/// slides to the next one on a switch.
+/// slides to the next one on a switch. When every copy is out, the one back first and how
+/// long it has left sit beside them, while the notch is closed.
 struct RingsView: View {
     let model: AccountsModel
     let hasNotch: Bool
+    /// Nil draws the notch closed.
+    var state: NotchState?
     @Namespace private var namespace
 
     var body: some View {
-        let rings = HStack(spacing: NotchLayout.ringSpacing) {
-            ForEach(model.copies) { copy in
-                RingView(letter: copy.id, account: copy.active)
-                    .overlay(alignment: .bottom) {
-                        // A pill is too short for the dot.
-                        if hasNotch, model.lastUsed == copy.id {
-                            Circle().fill(AccountStyle.of(copy.id).color)
-                                .frame(width: 3, height: 3)
-                                .matchedGeometryEffect(id: "current", in: namespace)
-                                .offset(y: 6)
+        // Often enough for an unwinding ring; a countdown in its last minutes keeps its own time.
+        TimelineView(.periodic(from: .now, by: 30)) { context in
+            content(now: context.date)
+        }
+    }
+
+    @ViewBuilder private func content(now: Date) -> some View {
+        let closed = state.map { !$0.isOpen && !$0.peekShown } ?? true
+        let back = closed ? model.soonestBack : nil
+        let line = HStack(spacing: 8) {
+            HStack(spacing: NotchLayout.ringSpacing) {
+                ForEach(model.copies) { copy in
+                    RingView(letter: copy.id, account: copy.active, now: now)
+                        .overlay(alignment: .bottom) {
+                            // A pill is too short for the dot.
+                            if hasNotch, model.lastUsed == copy.id {
+                                Circle().fill(AccountStyle.of(copy.id).color)
+                                    .frame(width: 3, height: 3)
+                                    .matchedGeometryEffect(id: "current", in: namespace)
+                                    .offset(y: 6)
+                            }
                         }
-                    }
+                }
+            }
+            .animation(.spring(response: 0.45, dampingFraction: 0.72), value: model.lastUsed)
+            if let back {
+                SoonestBack(letter: back.letter, at: back.at, now: now)
+                    .transition(.opacity.combined(with: .offset(x: -6)))
             }
         }
-        .animation(.spring(response: 0.45, dampingFraction: 0.72), value: model.lastUsed)
+        .animation(.spring(response: 0.42, dampingFraction: 0.82), value: back?.letter)
         if hasNotch {
-            rings
+            line
                 .padding(.leading, NotchLayout.overlap + NotchLayout.ringPadding)
                 .padding(.trailing, NotchLayout.ringPadding + NotchLayout.flare)
                 .frame(maxHeight: .infinity)
                 .background(NotchShape(bottomRadius: 10, leftSide: false).fill(.black))
+                .frame(maxWidth: .infinity, alignment: .leading)
         } else {
-            rings
+            line
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(NotchShape(bottomRadius: 10).fill(.black))
         }
+    }
+}
+
+/// "C 4:12": the copy back first when every copy is out, and how long until it is.
+struct SoonestBack: View {
+    let letter: String
+    let at: Date
+    let now: Date
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(letter).foregroundStyle(AccountStyle.of(letter).color)
+            Countdown(target: at, now: now) { date in
+                let text = countdown(at.timeIntervalSince(date))
+                Text(text)
+                    .monospacedDigit()
+                    .contentTransition(.numericText(countsDown: true))
+                    .animation(.smooth(duration: 0.2), value: text)
+            }
+            .foregroundStyle(.white.opacity(0.9))
+        }
+        .font(.system(size: 11, weight: .semibold, design: .rounded))
+        .lineLimit(1)
+        .fixedSize()
+    }
+}
+
+extension AccountsModel {
+    /// Every copy is out in the organization it works in: the one back first, and when.
+    /// Nil while any copy can still be used, or isn't read yet.
+    var soonestBack: (letter: String, at: Date)? {
+        var soonest: (letter: String, at: Date)?
+        for copy in copies {
+            guard let report = copy.active?.report, report.isOut else { return nil }
+            guard let at = report.backAt else { continue }
+            if soonest.map({ at < $0.at }) ?? true { soonest = (copy.id, at) }
+        }
+        return soonest
     }
 }
 
@@ -186,16 +250,43 @@ struct Reveal: ViewModifier {
 
 // MARK: - Wording
 
-/// "resets in 2h 10m" within a day, "resets Sat 14:00" beyond, "out until Sat 14:00" at
-/// 100%. A 5-hour window that hasn't started has no reset time.
-func resetText(_ window: UsageWindow, now: Date) -> String {
+/// "back in 2h 41m" at 100%, "resets in 3d 4h" below it; by the clock instead ("back at
+/// 16:19", "resets Mon 09:00") when `clock` is set, as it is while the row is hovered.
+/// A 5-hour window that hasn't started has no reset time.
+func resetText(_ window: UsageWindow, now: Date, clock: Bool = false) -> String {
     guard let reset = window.resetsAt else {
         return window.label == "5-hour" && window.percentUsed == 0 ? "not started" : ""
     }
-    let when = reset.formatted(.dateTime.weekday(.abbreviated).hour().minute())
-    if window.percentUsed >= 100 { return "out until \(when)" }
+    let verb = window.percentUsed >= 100 ? "back" : "resets"
+    if clock { return "\(verb) \(clockText(reset, now: now, atToday: true))" }
     let left = reset.timeIntervalSince(now)
-    return left < 24 * 3600 ? "resets in \(UsageFormat.duration(left))" : "resets \(when)"
+    // Past the reset, before the next read has caught up with it.
+    return left > 0 ? "\(verb) in \(countdown(left))" : "\(verb) now"
+}
+
+/// Time left: "2d 4h", "2h 41m", "41m", then minutes and seconds ("4:12") for the last
+/// ten minutes, when it's worth watching.
+func countdown(_ seconds: TimeInterval) -> String {
+    guard seconds > 0 else { return "now" }
+    guard seconds < countdownSecondsFrom else { return UsageFormat.duration(seconds) }
+    let s = Int(seconds)
+    return "\(s / 60):" + String(format: "%02d", s % 60)
+}
+
+/// Under this many seconds left, a countdown shows seconds and ticks every second.
+let countdownSecondsFrom: TimeInterval = 10 * 60
+
+/// A reset by the clock: "16:19" today ("at 16:19" with `atToday`), "tomorrow 09:00", "Mon
+/// 09:00" within the week, "26 Oct 09:00" beyond. A weekday a week out would read as today's.
+func clockText(_ date: Date, now: Date, atToday: Bool = false, calendar: Calendar = .current) -> String {
+    let time = date.formatted(.dateTime.hour().minute())
+    let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: now), to: calendar.startOfDay(for: date)).day ?? 0
+    switch days {
+    case ...0: return atToday ? "at \(time)" : time
+    case 1: return "tomorrow \(time)"
+    case 2...6: return "\(date.formatted(.dateTime.weekday(.abbreviated))) \(time)"
+    default: return "\(date.formatted(.dateTime.day().month(.abbreviated))) \(time)"
+    }
 }
 
 /// "Weekly" for the all-models window; the others keep their model.
@@ -203,14 +294,65 @@ func shortLabel(_ window: UsageWindow) -> String {
     window.label.replacingOccurrences(of: " · all models", with: "")
 }
 
+/// How long a window lasts, when it's known.
+func windowLength(_ window: UsageWindow) -> TimeInterval? {
+    window.label == "5-hour" ? 5 * 3600 : window.label.hasPrefix("Weekly") ? 7 * 86400 : nil
+}
+
 /// How far through its window a limit is, 0–1: where an even pace would have the bar.
 /// Nil when the window hasn't started or its length isn't known.
 func elapsedFraction(_ window: UsageWindow, now: Date) -> Double? {
-    guard let reset = window.resetsAt else { return nil }
-    let length: TimeInterval = window.label == "5-hour" ? 5 * 3600 : window.label.hasPrefix("Weekly") ? 7 * 86400 : 0
+    guard let reset = window.resetsAt, let length = windowLength(window) else { return nil }
     let left = reset.timeIntervalSince(now)
-    guard length > 0, left > 0, left <= length else { return nil }
+    guard left > 0, left <= length else { return nil }
     return 1 - left / length
+}
+
+/// How much of the wait is left for a window at 100%, 1 down to 0 at its reset: its bar
+/// and ring drain as the time passes. Nil below 100%, or when the wait can't be told.
+func waitFraction(_ window: UsageWindow, now: Date) -> Double? {
+    guard window.percentUsed >= 100, let reset = window.resetsAt, let length = windowLength(window) else { return nil }
+    return min(max(reset.timeIntervalSince(now) / length, 0), 1)
+}
+
+/// The countdown and the clock together, for a peek, which can't be hovered: "back in
+/// 2h 41m · 16:19".
+func resetTextWithClock(_ window: UsageWindow, now: Date) -> String {
+    let text = resetText(window, now: now)
+    guard let reset = window.resetsAt else { return text }
+    return "\(text) · \(clockText(reset, now: now))"
+}
+
+extension UsageReport {
+    /// A window is at 100%: nothing more until it resets.
+    var isOut: Bool { windows.contains { $0.percentUsed >= 100 } }
+
+    /// When every window at 100% has reset. Nil when none is, or one's reset isn't known.
+    var backAt: Date? {
+        let out = windows.filter { $0.percentUsed >= 100 }
+        let resets = out.compactMap(\.resetsAt)
+        guard !out.isEmpty, resets.count == out.count else { return nil }
+        return resets.max()
+    }
+}
+
+/// Text that counts down to `target`: redrawn every second from ten minutes out, when its
+/// countdown shows seconds; otherwise with the view around it.
+struct Countdown<Content: View>: View {
+    let target: Date?
+    let now: Date
+    @ViewBuilder let content: (Date) -> Content
+
+    var body: some View {
+        if let target, target.timeIntervalSince(now) < countdownSecondsFrom + 60, target.timeIntervalSince(now) > -5 {
+            // On the target's own seconds, a hair before each one turns, so every second shows once.
+            TimelineView(.periodic(from: target.addingTimeInterval(-(countdownSecondsFrom + 60.02)), by: 1)) { context in
+                content(context.date)
+            }
+        } else {
+            content(now)
+        }
+    }
 }
 
 func age(_ date: Date, now: Date) -> String {

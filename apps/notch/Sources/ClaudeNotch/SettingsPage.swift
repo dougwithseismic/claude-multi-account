@@ -223,13 +223,13 @@ private struct Legend: View {
                 RingGlyph(color: AccountStyle.of("A").color, fiveHour: 0.62, weekly: 0.35)
                     .scaleEffect(1.25)
                     .frame(width: 44)
-                Text("Beside the notch, one ring per copy. Outer: the 5-hour window. Inner: the fullest weekly window, a red cross when it's used up. The dot is the copy in front.")
+                Text("Beside the notch, one ring per copy. Outer: the 5-hour window, which turns red and unwinds until it's back once it's used up. Inner: the fullest weekly window, a red cross when it's used up. The dot is the copy in front.")
             }
             HStack(alignment: .top, spacing: 12) {
                 UsageBar(fraction: 0.55, color: AccountStyle.of("B").color, pace: 0.4)
                     .frame(width: 44)
                     .padding(.top, 5)
-                Text("The tick on a bar marks how far through its window it is. A bar past its tick is going faster than an even pace.")
+                Text("The tick on a bar marks how far through its window it is. A bar past its tick is going faster than an even pace. A used-up bar drains until it's back. Hover a row for the time it resets.")
             }
         }
         .font(.system(size: 10.5))

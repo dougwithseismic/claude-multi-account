@@ -33,6 +33,8 @@ struct NotchLayout: Equatable {
     /// The concave curve where the black shapes meet the menu bar's top edge.
     static let flare: CGFloat = 6
     static let pillSize = CGSize(width: 168, height: 24)
+    /// Room right of the rings for the countdown that shows when every copy is out.
+    static let countdownRoom: CGFloat = 72
 
     /// The cutout, or the pill drawn in its place on a screen without one.
     let notch: CGRect
@@ -40,6 +42,12 @@ struct NotchLayout: Equatable {
     /// The rings' window: beside the notch, or the pill itself.
     let rings: CGRect
     let screenFrame: CGRect
+
+    /// The rings' window: the rings, and room beside them for the countdown when every
+    /// copy is out. The window takes no clicks, so the empty room is harmless.
+    var ringsWindow: CGRect {
+        hasNotch ? CGRect(x: rings.minX, y: rings.minY, width: rings.width + Self.countdownRoom, height: rings.height) : rings
+    }
 
     /// Hovering here opens the panel: the cutout itself, not the strip below it. Reaches
     /// a point above the screen so the topmost row of pixels counts.
