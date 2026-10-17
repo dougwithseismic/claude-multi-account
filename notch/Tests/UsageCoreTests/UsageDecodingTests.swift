@@ -62,19 +62,35 @@ import Testing
 
     @Test func decodesASparseProfile() throws {
         let p = try UsageDecoding.profile(from: Data(#"{"account":null,"organization":{"uuid":null}}"#.utf8))
-        #expect(p == AccountProfile(email: nil, accountUUID: nil, organizationUUID: nil, rateLimitTier: nil))
+        #expect(p == AccountProfile(
+            email: nil, accountUUID: nil, organizationUUID: nil, organizationName: nil, organizationType: nil, rateLimitTier: nil
+        ))
         #expect(throws: UsageError.unexpectedResponse) { try UsageDecoding.profile(from: Data("<html>".utf8)) }
     }
 
     @Test func refusesResponsesWithNoWindows() {
         #expect(throws: UsageError.unexpectedResponse) { try UsageDecoding.report(from: Data(#"{"error":"x"}"#.utf8)) }
         #expect(throws: UsageError.unexpectedResponse) { try UsageDecoding.report(from: Data("<html>".utf8)) }
+        // A window that changed shape isn't "no limits".
+        #expect(throws: UsageError.unexpectedResponse) {
+            try UsageDecoding.report(from: Data(#"{"five_hour":"soon","seven_day":null}"#.utf8))
+        }
+    }
+
+    @Test func aPlanWithNoLimitsIsAnEmptyReport() throws {
+        let body = #"{"five_hour":null,"seven_day":null,"seven_day_opus":null,"limits":[],"extra_usage":null}"#
+        let report = try UsageDecoding.report(from: Data(body.utf8))
+        #expect(report.windows.isEmpty)
+        #expect(report.weeklyPeak == nil)
     }
 
     @Test func decodesProfile() throws {
-        let body = #"{"account":{"uuid":"u1","email":"me@example.com","has_claude_max":true},"organization":{"uuid":"o1","rate_limit_tier":"default_claude_max_20x"}}"#
+        let body = #"{"account":{"uuid":"u1","email":"me@example.com","has_claude_max":true},"organization":{"uuid":"o1","name":"Acme","organization_type":"claude_team","rate_limit_tier":"default_claude_max_20x"}}"#
         let p = try UsageDecoding.profile(from: Data(body.utf8))
-        #expect(p == AccountProfile(email: "me@example.com", accountUUID: "u1", organizationUUID: "o1", rateLimitTier: "default_claude_max_20x"))
+        #expect(p == AccountProfile(
+            email: "me@example.com", accountUUID: "u1", organizationUUID: "o1", organizationName: "Acme",
+            organizationType: "claude_team", rateLimitTier: "default_claude_max_20x"
+        ))
     }
 
     @Test func parsesDates() {

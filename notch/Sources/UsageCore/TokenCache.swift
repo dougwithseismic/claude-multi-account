@@ -36,6 +36,12 @@ public enum TokenSelection: Sendable, Equatable {
     case none
 }
 
+/// The login a copy holds for one organization.
+public struct OrganizationLogin: Sendable, Equatable {
+    public let organization: String
+    public let selection: TokenSelection
+}
+
 /// The cache maps keys like `<clientId>:<orgUuid>:https://api.anthropic.com:<scopes>`,
 /// sometimes prefixed `acct:<userUuid>|`, to `{ token, refreshToken, expiresAt (ms), … }`.
 /// Selection follows openusage, which mirrors how the desktop app resolves its own login.
@@ -54,18 +60,39 @@ public enum TokenCache {
         var sortKey: String { ([clientID, organization] + scopes).joined(separator: " ") }
     }
 
+    /// The best login across every organization: the one Claude itself would use when
+    /// nothing says which organization it's working in.
     public static func select(decrypted: Data, accountUUID: String?, now: Date = Date()) throws -> TokenSelection {
+        best(of: try entries(decrypted, accountUUID: accountUUID), now: now)
+    }
+
+    /// The best login for each organization the account belongs to. One account can be in
+    /// several (a personal Max plan and a Team, say), each with its own limits.
+    public static func logins(decrypted: Data, accountUUID: String?, now: Date = Date()) throws -> [OrganizationLogin] {
+        let all = try entries(decrypted, accountUUID: accountUUID)
+        return Set(all.map(\.key.organization)).sorted().compactMap { organization in
+            let selection = best(of: all.filter { $0.key.organization == organization }, now: now)
+            return selection == .none ? nil : OrganizationLogin(organization: organization, selection: selection)
+        }
+    }
+
+    /// The cache's entries that can read usage, sorted so equal ranks resolve the same way
+    /// on every run (dictionary order is random per process).
+    static func entries(_ decrypted: Data, accountUUID: String?) throws -> [(key: Key, value: Any)] {
         // A wrong key can slip past the padding check and give garbage, so bad JSON means
         // the same as a failed decrypt.
         guard let cache = (try? JSONSerialization.jsonObject(with: decrypted)) as? [String: Any] else {
             throw UsageError.unreadableTokenCache
         }
+        return normalized(cache, accountUUID: accountUUID)
+            .filter { $0.key.scopes.contains(usageScope) }
+            .sorted { $0.key.sortKey < $1.key.sortKey }
+    }
+
+    static func best(of entries: [(key: Key, value: Any)], now: Date) -> TokenSelection {
         var latestExpired: Date?
         var best: (rank: (Int, Int, Int, Double), token: AccessToken)?
-
-        // Sorted so equal ranks resolve the same way on every run; dictionary order is random per process.
-        let entries = normalized(cache, accountUUID: accountUUID).sorted { $0.key.sortKey < $1.key.sortKey }
-        for (key, raw) in entries where key.scopes.contains(usageScope) {
+        for (key, raw) in entries {
             guard let entry = raw as? [String: Any],
                   let token = entry["token"] as? String, !token.isEmpty,
                   let expiresMs = (entry["expiresAt"] as? NSNumber)?.doubleValue, expiresMs.isFinite

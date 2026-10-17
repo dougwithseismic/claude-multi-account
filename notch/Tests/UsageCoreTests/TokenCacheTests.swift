@@ -148,7 +148,10 @@ import Testing
         let result = try Self.select([Self.key(Self.prod, "user:profile"): Self.entry("sk-ant-oat01-secret", expiresIn: 9000)])
         guard case .usable(let token) = result else { Issue.record("not usable"); return }
         let profile = Profile(letter: "B", dataDirectory: URL(filePath: "/tmp"))
-        let snapshot = AccountSnapshot(profile: profile, token: token, account: nil, usage: .failure(.notSignedIn), fetchedAt: Self.now)
+        let snapshot = AccountSnapshot(
+            profile: profile, organization: Self.org, isActive: true, token: token, account: nil,
+            usage: .failure(.notSignedIn), fetchedAt: Self.now
+        )
         var dumped = ""
         dump(snapshot, to: &dumped)
         for text in ["\(token)", String(reflecting: token), "\(result)", String(reflecting: result), "\(snapshot)", dumped] {

@@ -9,6 +9,10 @@ public enum UsageError: Error, Equatable, Sendable {
     case unreadableTokenCache
     /// Every token has expired; that copy of Claude has to run to renew its own.
     case tokenExpired(Date)
+    /// The copy is working in an organization it holds no login for yet.
+    case noLogin
+    /// A leftover login for an account this copy is no longer signed in to.
+    case otherAccount
     /// 401/403: the token was revoked or the copy signed out.
     case unauthorized
     case rateLimited(retryAfter: Date?)
@@ -29,6 +33,8 @@ extension UsageError: CustomStringConvertible {
         case .unknownEncryption: "Claude's login is stored in a format this doesn't know"
         case .unreadableTokenCache: "Can't decrypt Claude's login"
         case .tokenExpired: "Login expired; open this Claude to renew it"
+        case .noLogin: "No login for this organization yet; use it in this Claude to create one"
+        case .otherAccount: "Left over from an account this Claude is no longer signed in to"
         case .unauthorized: "Login no longer valid; open this Claude to renew it"
         case .rateLimited(let until):
             until.map { "Rate-limited until \($0.formatted(date: .omitted, time: .shortened))" } ?? "Rate-limited"

@@ -6,6 +6,12 @@ public struct UsageWindow: Sendable, Equatable, Codable {
     /// 0–100.
     public let percentUsed: Double
     public let resetsAt: Date?
+
+    public init(label: String, percentUsed: Double, resetsAt: Date?) {
+        self.label = label
+        self.percentUsed = percentUsed
+        self.resetsAt = resetsAt
+    }
 }
 
 public struct ExtraUsage: Sendable, Equatable, Codable {
@@ -21,18 +27,32 @@ public struct UsageReport: Sendable, Equatable, Codable {
     public let windows: [UsageWindow]
     public let extraUsage: ExtraUsage?
 
+    public init(windows: [UsageWindow], extraUsage: ExtraUsage?) {
+        self.windows = windows
+        self.extraUsage = extraUsage
+    }
+
     public var fiveHour: UsageWindow? { windows.first { $0.label == UsageReport.fiveHourLabel } }
     public var weekly: UsageWindow? { windows.first { $0.label == UsageReport.weeklyLabel } }
+    /// The fullest weekly window, all models or one model. A Team plan can have no
+    /// all-models window, so this is what says an account is out for the week.
+    public var weeklyPeak: UsageWindow? {
+        windows.filter { $0.label.hasPrefix(UsageReport.weeklyPrefix) }.max { $0.percentUsed < $1.percentUsed }
+    }
 
     static let fiveHourLabel = "5-hour"
     static let weeklyLabel = "Weekly · all models"
+    static let weeklyPrefix = "Weekly"
 }
 
-/// `GET /api/oauth/profile`: who the token belongs to.
+/// `GET /api/oauth/profile`: who the token belongs to, and in which organization.
 public struct AccountProfile: Sendable, Equatable, Codable {
     public let email: String?
     public let accountUUID: String?
     public let organizationUUID: String?
+    public let organizationName: String?
+    /// "claude_max", "claude_pro", "claude_team", "claude_enterprise", …
+    public let organizationType: String?
     public let rateLimitTier: String?
 }
 
@@ -102,7 +122,7 @@ enum UsageDecoding {
         } else {
             windows += named
         }
-        if windows.isEmpty { throw UsageError.unexpectedResponse }
+        if windows.isEmpty && !reportsNoLimits(data) { throw UsageError.unexpectedResponse }
 
         let extra = r.extra_usage?.value.map {
             ExtraUsage(
@@ -116,9 +136,22 @@ enum UsageDecoding {
         return UsageReport(windows: windows, extraUsage: extra)
     }
 
+    /// A plan with no limits to show (a free plan, say) answers with the usual fields set
+    /// to null. Anything else without a window is a response this doesn't understand.
+    static func reportsNoLimits(_ data: Data) -> Bool {
+        guard let root = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return false }
+        let known = ["five_hour", "seven_day", "seven_day_opus", "seven_day_sonnet", "limits"].compactMap { root[$0] }
+        return !known.isEmpty && known.allSatisfy { $0 is NSNull || ($0 as? [Any])?.isEmpty == true }
+    }
+
     struct ProfileResponse: Decodable {
         struct Account: Decodable { let uuid: String?; let email: String? }
-        struct Organization: Decodable { let uuid: String?; let rate_limit_tier: String? }
+        struct Organization: Decodable {
+            let uuid: String?
+            let name: String?
+            let organization_type: String?
+            let rate_limit_tier: String?
+        }
         let account: Account?
         let organization: Organization?
     }
@@ -129,7 +162,8 @@ enum UsageDecoding {
         }
         return AccountProfile(
             email: r.account?.email, accountUUID: r.account?.uuid,
-            organizationUUID: r.organization?.uuid, rateLimitTier: r.organization?.rate_limit_tier
+            organizationUUID: r.organization?.uuid, organizationName: r.organization?.name,
+            organizationType: r.organization?.organization_type, rateLimitTier: r.organization?.rate_limit_tier
         )
     }
 

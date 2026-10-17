@@ -54,7 +54,13 @@ public enum SafeStorage {
 
     /// Decrypts a base64 "v10" value from config.json.
     public static func decrypt(base64: String, key: Data) throws -> Data {
-        guard let blob = Data(base64Encoded: base64), blob.count > 3 else { throw UsageError.unreadableTokenCache }
+        guard let blob = Data(base64Encoded: base64) else { throw UsageError.unreadableTokenCache }
+        return try decrypt(blob, key: key)
+    }
+
+    /// Decrypts a raw "v10" value, as Chromium stores cookies.
+    public static func decrypt(_ blob: Data, key: Data) throws -> Data {
+        guard blob.count > 3 else { throw UsageError.unreadableTokenCache }
         guard blob.prefix(3) == Data("v10".utf8) else { throw UsageError.unknownEncryption }
         return try crypt(CCOperation(kCCDecrypt), blob.dropFirst(3), key: key)
     }

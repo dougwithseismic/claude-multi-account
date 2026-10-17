@@ -31,7 +31,7 @@ public struct Profile: Sendable, Equatable {
         .sorted { $0.letter < $1.letter }
     }
 
-    static func letter(forFolder name: String) -> String? {
+    public static func letter(forFolder name: String) -> String? {
         if name == "Claude" { return "A" }
         guard name.hasPrefix("Claude-") else { return nil }
         let suffix = name.dropFirst("Claude-".count)
