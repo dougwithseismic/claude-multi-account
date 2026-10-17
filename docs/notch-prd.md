@@ -115,15 +115,19 @@ Build a ~200-line `NSPanel` rather than use DynamicNotchKit. DynamicNotchKit has
 - Level `.statusBar + 1`, and override `constrainFrameRect` to return the frame unchanged so AppKit doesn't push the panel below the menu bar.
 - `collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]`.
 - `canBecomeKey` and `canBecomeMain` return false; clicking a row runs the launcher without the panel taking focus.
-- Never set `ignoresMouseEvents`. Left alone, transparent pixels pass clicks through; setting it to `false` turns that off for good.
+- Never set `ignoresMouseEvents` on the panel. Left alone, transparent pixels pass clicks through; setting it to `false` turns that off for good.
+- Three windows: the rings on top (`ignoresMouseEvents = true`, so clicks reach the menu bar under them), the panel under them, and the peek, which also ignores the mouse. The panel's black grows out from under the rings, so they stay put as it opens.
+- `animationBehavior = .none`: the views animate in and out themselves, and AppKit's zoom on ordering out would add a second shrink after the fold.
 - No Dock icon: `LSUIElement = YES` and `NSApp.setActivationPolicy(.accessory)` at launch.
 
 ### Hover
 
 Poll `NSEvent.mouseLocation` on a timer in `.common` run-loop mode (every 0.05s), as both small apps do; tracking areas are unreliable on non-activating panels that resize.
 
-- **Trigger:** the notch cutout itself, not the strip below it, so reaching for a tab doesn't open the panel.
-- **Timing:** open after 0.08s inside; close 0.35s after the pointer leaves the open panel.
+- **Trigger:** the notch cutout itself, not the strip below it, so reaching for a tab doesn't open the panel. A showing peek counts too, once the pointer has left it and come back.
+- **Resting, not passing:** faster than 500 pt/s the pointer is crossing the menu bar, not reaching for the notch, so the wait starts once it slows down.
+- **Timing:** open after 0.08s at rest inside; close 0.35s after the pointer leaves the open panel.
+- **Click:** a click on the notch (a global `leftMouseDown` monitor, which needs no permission) opens it at once. Set to open on click only, resting does nothing and a second click closes it.
 - **Mouse button down:** never open while a mouse button is held (dragging).
 
 ### States per row
@@ -233,13 +237,26 @@ Run on 2026-10-17 against all three profiles:
 - **Links:** the app declares `claude://`, takes the default handler at launch and 5 s after any Claude copy starts, and passes each link to the copy used last (else the first running, else it starts Claude). The link travels as a `GURL` Apple event sent to that process, as Hammerspoon sent it. macOS asks once whether the app may control Claude.
 - **Logging:** failures and a startup line go to the unified log, subsystem `com.godzillaaa.claude-notch`.
 
-Checked live after installing: ⌥⌘1/2/3 registered, the running copies identified as A, B and C, and `claude://` taken from Claude. Pressing the hotkeys, the outline following a window, and a sign-in link reaching the right copy still need trying by hand.
+Checked live after installing: ⌥⌘1/2/3 registered, the running copies identified as A, B and C, and `claude://` taken from Claude. The outline following a window and a sign-in link reaching the right copy still need trying by hand.
+
+## What the UX revamp built
+
+- **One shape.** The panel's black is one animatable shape (`MorphShape`: a rect and a corner radius) that springs out of the notch, or out of the peek showing at the time, and folds back into it. The content is masked by the same shape, so nothing pokes out mid-spring. Opening is a spring with a little bounce (response 0.42, damping 0.78); closing is critically damped and quicker (0.3). The window is sized from the content's fitting size plus margins for the shadow and the spring, grows at once and shrinks only after the shape has finished moving.
+- **Motion.** Rows slide in one after another as it opens and bars fill from empty; numbers roll; the settings page swaps in with a blur; the dot under the rings slides to the copy switched to; the refresh button spins while reading. A trackpad tick on opening by hover (off in settings).
+- **Privacy by default.** Rows show the profile name and plan, never the email or a Team's name, until the eye is clicked or ⌥ is held on its own for 0.15 s (`OptionReveal`). ⌥ with ⌘, ⌃ or ⇧ never reveals, so pressing a ⌥⌘ hotkey over the open panel doesn't flash the emails. A label in profiles.json that is an email is treated the same way. Screen sharing isn't detected; the default is simply private.
+- **Peeks.** A strip under the notch, in its own click-through window: after a ⌥⌘ switch (1.8 s, the copy's name, its 5-hour and weekly numbers and ring), and when the organization a copy is working in crosses a line between two reads (5 s): the 5-hour window passing 90%, any window reaching 100%, or one at 100% resetting. The first read never alerts, and other organizations don't either. No peeks while the panel is open or an app is full screen. Resting on a peek opens the panel from it, unless the peek appeared under the pointer.
+- **Settings page** behind the gear, in the panel, with its own switches (AppKit's want a key window this panel never is): show emails and team names, open on hover or click, limit alerts, switch peeks, haptics, open at login, profiles.json Edit and Reload, a legend for the rings and bars, the version and Quit. Stored in `UserDefaults`.
+- **Pace.** A tick on each 5-hour and weekly bar at how far through its window it is.
+- **Footer.** "Updated" is the age of the oldest successful read, so one failing row doesn't make the panel look stale; failing rows show their own age.
+- **Demo.** `--demo` reads nothing (no reader, no profile discovery), keeps its settings in their own defaults suite, says so in the footer, and its hotkeys and rows only move which made-up copy is current. Before this it read the real Keychain whenever the panel opened, and Refresh replaced the made-up copies with the real ones.
+
+Checked live: the hotkeys fire (synthetic ⌥⌘ presses in the demo, logged per press); hover opens 0.2 s after the pointer arrives, the panel stays open while it rests and folds 0.65 s after it leaves; the open and close were recorded and checked frame by frame.
 
 ## Open questions
 
-1. Does the per-account email from `/api/oauth/profile` replace the "Claude A/B/C" labels everywhere, or sit under them? Answered: the email in the panel, the letter on the badge and rings, the colour on the outline. The `label` in profiles.json shows only when there's no email yet. Messages name the launcher ("Open Claude B"), not the label.
+1. Does the per-account email from `/api/oauth/profile` replace the "Claude A/B/C" labels everywhere, or sit under them? Answered: the `label` from profiles.json in the panel by default, and the email in its place once details are shown (the eye, or holding ⌥). The letter is on the badge and rings, the colour on the outline. Messages name the launcher ("Open Claude B"), not the label.
 2. Should the ring show the 5-hour window or "whichever limit is closest"? Proposed: the 5-hour window, with the weekly cross.
-3. Is a notification wanted when an exhausted account comes back? Proposed: later, off by default.
+3. Is a notification wanted when an exhausted account comes back? Answered: a peek under the notch ("ready again") rather than a notification, on by default with the other limit alerts.
 4. Signing: is ad hoc enough for Keychain Always Allow to stick, or do we need a development certificate? Answered: "Always Allow" is tied to the binary's signature, and an ad hoc signature changes with every build, so each rebuild asks again (the first run after each of two builds waited about 4.7 s on the prompt; later runs took 0.3 s). So `scripts/build-app.sh` signs the app with a certificate: `$CODESIGN_IDENTITY`, else the first code-signing identity in the login Keychain (on this Mac a local self-signed one), else ad hoc with a warning. The designated requirement is then the bundle ID plus that certificate, which stays the same across rebuilds.
 
 ## Prior art

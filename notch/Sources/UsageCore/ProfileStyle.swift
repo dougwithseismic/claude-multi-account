@@ -59,6 +59,21 @@ public struct ProfileStyle: Sendable, Equatable {
         return styles.isEmpty ? nil : styles
     }
 
+    /// `styles` as the file is written: one profile to a line, like the template in the repo.
+    public static func template(_ styles: [ProfileStyle]) -> String {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .withoutEscapingSlashes
+        func json(_ string: String) -> String {
+            (try? encoder.encode(string)).map { String(decoding: $0, as: UTF8.self) } ?? "\"\""
+        }
+        let lines = styles.map { style in
+            var fields = [("letter", style.letter), ("label", style.label), ("color", style.color)]
+            if let hotkey = style.hotkey { fields.append(("hotkey", hotkey)) }
+            return "  { \(fields.map { "\"\($0.0)\": \(json($0.1))" }.joined(separator: ", ")) }"
+        }
+        return "[\n\(lines.joined(separator: ",\n"))\n]\n"
+    }
+
     /// The style for `letter` in `styles`, or a plain grey one.
     public static func of(_ letter: String, in styles: [ProfileStyle]) -> ProfileStyle {
         styles.first { $0.letter == letter } ?? plain(letter)

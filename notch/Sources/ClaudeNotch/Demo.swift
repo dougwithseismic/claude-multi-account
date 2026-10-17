@@ -6,6 +6,9 @@ import UsageCore
 /// state can be looked at (`--demo --pin`) or rendered (`--demo --snapshot file.png`).
 @MainActor
 enum Demo {
+    /// Where the demo keeps its settings, apart from the app's.
+    static let defaultsSuite = "com.godzillaaa.claude-notch.demo"
+
     static func fill(_ model: AccountsModel, now: Date = Date()) {
         func profile(_ letter: String) -> Profile {
             Profile(letter: letter, dataDirectory: URL(filePath: "/dev/null/Claude-\(letter)"))
@@ -72,5 +75,16 @@ enum Demo {
             profiles: ["A", "B", "C", "D", "E", "F"].map(profile), accounts: accounts,
             keychainProblem: .keychain(errSecAuthFailed)
         )
+    }
+
+    /// A switch peek and then an alert soon after launch, to see both without waiting.
+    static func peeks(_ controller: NotchController) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.5))
+            controller.peek(Peek(letter: "B", kind: .switched))
+            try? await Task.sleep(for: .seconds(3.5))
+            let window = UsageWindow(label: "5-hour", percentUsed: 91, resetsAt: Date().addingTimeInterval(48 * 60))
+            controller.peek(Peek(letter: "A", kind: .alert(.near(window))))
+        }
     }
 }

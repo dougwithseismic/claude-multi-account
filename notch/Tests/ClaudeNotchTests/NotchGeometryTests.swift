@@ -60,3 +60,29 @@ let macBook = ScreenShape(
     #expect(layout.notch == CGRect(x: 1512 + 1280 - 84, y: 1440 - 24, width: 168, height: 24))
     #expect(layout.rings == layout.notch)
 }
+
+@Test func aPeekIsCentredOnTheNotchAndReachesPastTheRings() {
+    let layout = NotchLayout.make(macBook, ringCount: 3)
+    #expect(layout.peek.midX == layout.notch.midX)
+    #expect(layout.peek.maxY == 982)
+    #expect(layout.peek.height == 38 + NotchLayout.peekLine)
+    #expect(layout.peek.maxX >= layout.rings.maxX)
+    // Six copies make the rings wider: the peek widens with them.
+    let six = NotchLayout.make(macBook, ringCount: 6)
+    #expect(six.peek.maxX >= six.rings.maxX && six.peek.width > layout.peek.width)
+}
+
+@Test func theWindowLeavesRoomRoundThePanel() {
+    let panel = CGRect(x: 100, y: 600, width: 460, height: 382)
+    let frame = NotchLayout.stageFrame(panel: panel)
+    #expect(frame.maxY == panel.maxY)
+    #expect(frame.minX == panel.minX - NotchLayout.margin && frame.maxX == panel.maxX + NotchLayout.margin)
+    #expect(frame.minY == panel.minY - NotchLayout.margin)
+}
+
+@Test func theNotchInThePanelsOwnCoordinates() {
+    let layout = NotchLayout.make(macBook, ringCount: 3)
+    let panel = layout.panelFrame(contentSize: CGSize(width: 460, height: 300))
+    let notch = NotchLayout.local(layout.notch, in: panel)
+    #expect(notch == CGRect(x: 137.5, y: 0, width: 185, height: 38))
+}

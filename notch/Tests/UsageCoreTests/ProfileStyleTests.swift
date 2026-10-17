@@ -62,5 +62,15 @@ import Testing
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
             .appending(path: "files/profiles.json")
         #expect(ProfileStyle.parse(try Data(contentsOf: template)) == ProfileStyle.defaults)
+        // The settings page's Edit writes the file out the same way.
+        #expect(ProfileStyle.template(ProfileStyle.defaults) == (try String(contentsOf: template, encoding: .utf8)))
+    }
+
+    @Test func aWrittenFileReadsBackTheSame() {
+        let styles = [
+            ProfileStyle(letter: "A", label: "Work \"main\"", color: "#2F7BF5", hotkey: "1"),
+            ProfileStyle(letter: "D", label: "me@example.com / test", color: "#B3B3B3", hotkey: nil),
+        ]
+        #expect(ProfileStyle.parse(Data(ProfileStyle.template(styles).utf8)) == styles)
     }
 }

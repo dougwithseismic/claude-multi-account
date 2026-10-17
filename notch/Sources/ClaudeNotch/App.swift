@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UsageCore
 
 // Claude Notch: every Claude account's 5-hour and weekly limits at the MacBook notch, plus
 // what Hammerspoon used to do for the copies: ⌥⌘ hotkeys, the coloured window outline and
@@ -39,7 +40,8 @@ enum ClaudeNotchApp {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let options: Options
-    let model = AccountsModel()
+    let model: AccountsModel
+    let preferences: Preferences
     let copies = ClaudeCopies()
     let hotkeys = Hotkeys()
     let outline = Outline()
@@ -48,11 +50,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     init(options: Options) {
         self.options = options
+        // The demo's accounts are made up: it reads nothing, and its settings are its own.
+        model = AccountsModel(reader: options.demo ? nil : AccountReader())
+        preferences = Preferences(defaults: options.demo ? UserDefaults(suiteName: Demo.defaultsSuite)! : .standard)
         super.init()
         controller = NotchController(
-            model: model, pinned: options.pinned, forcePill: options.noNotch,
-            open: { [weak self] letter in self?.switchTo(letter) }
+            model: model, preferences: preferences, pinned: options.pinned, forcePill: options.noNotch,
+            actions: PanelActions(
+                open: { [weak self] letter in self?.switchTo(letter) },
+                refresh: { [weak self] in self?.model.refresh() },
+                editProfiles: { Self.editProfiles() },
+                reloadProfiles: { [weak self] in self?.reloadProfiles() },
+                quit: { NSApp.terminate(nil) }
+            )
         )
+        controller.state.isDemo = options.demo
+        model.onAlert = { [weak self] letter, alert in
+            self?.controller.peek(Peek(letter: letter, kind: .alert(alert)))
+        }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -73,10 +88,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             model.start()
         }
         if let path = options.snapshot {
-            Snapshot.write(model, to: path, hasNotch: !options.noNotch)
+            Snapshot.write(model, preferences: preferences, to: path, hasNotch: !options.noNotch, showDetails: options.demo)
             return
         }
         controller.start()
+        if options.demo { Demo.peeks(controller) }
 
         let center = NotificationCenter.default
         observers.append(center.addObserver(
@@ -96,6 +112,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         })
 
+        registerHotkeys()
         guard !options.demo else { return }
         startCopies()
         Links.claim()
@@ -129,18 +146,52 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         copies.start()
+        log.notice("running copies \(self.copies.runningLetters, privacy: .public)")
+    }
 
+    private func registerHotkeys() {
         let bindings = AccountStyle.styles.compactMap { style -> (key: String, action: () -> Void)? in
             guard let key = style.hotkey else { return nil }
-            return (key: key, action: { [weak self] in self?.switchTo(style.letter) })
+            return (key: key, action: { [weak self] in
+                log.notice("⌥⌘\(key, privacy: .public) switches to \(style.letter, privacy: .public)")
+                self?.switchTo(style.letter)
+                self?.controller.peek(Peek(letter: style.letter, kind: .switched))
+            })
         }
         let taken = hotkeys.register(bindings)
         if !taken.isEmpty { complain("couldn't register ⌥⌘\(taken.joined(separator: ", ⌥⌘")); another app may have them") }
         let keys = bindings.map(\.key).filter { !taken.contains($0) }.map { "⌥⌘\($0)" }.joined(separator: " ")
-        log.notice("hotkeys \(keys, privacy: .public); running copies \(self.copies.runningLetters, privacy: .public)")
+        log.notice("hotkeys \(keys, privacy: .public)")
     }
 
+    /// The demo's copies are made up: a switch only moves which one is current.
     private func switchTo(_ letter: String) {
-        Launcher.switchTo(letter, copies: options.demo ? nil : copies)
+        if options.demo {
+            model.lastUsed = letter
+        } else {
+            Launcher.switchTo(letter, copies: copies)
+        }
+    }
+
+    /// Opens profiles.json, writing out the profiles in use first if there's no file yet.
+    private static func editProfiles() {
+        let file = ProfileStyle.file
+        if !FileManager.default.fileExists(atPath: file.path(percentEncoded: false)) {
+            do {
+                try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try ProfileStyle.template(AccountStyle.styles).write(to: file, atomically: true, encoding: .utf8)
+            } catch {
+                complain("couldn't write \(file.path(percentEncoded: false)): \(error.localizedDescription)")
+                return
+            }
+        }
+        if !NSWorkspace.shared.open(file) { NSWorkspace.shared.activateFileViewerSelecting([file]) }
+    }
+
+    /// Reads profiles.json again: names, colours and hotkeys.
+    private func reloadProfiles() {
+        AccountStyle.styles = ProfileStyle.load()
+        registerHotkeys()
+        controller.reload()
     }
 }

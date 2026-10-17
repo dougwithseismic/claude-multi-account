@@ -1,6 +1,5 @@
 import Foundation
 import ServiceManagement
-import SwiftUI
 
 /// Starting at login, through macOS's own login items (System Settings → General → Login Items).
 @MainActor
@@ -23,7 +22,7 @@ enum LoginItem {
     }
 
     /// The first launch from an Applications folder turns it on; after that it's left to
-    /// the toggle in the panel. Not from a build folder, which would be the wrong copy.
+    /// the switch on the settings page. Not from a build folder, which would be the wrong copy.
     static func enableOnFirstLaunch() {
         guard !UserDefaults.standard.bool(forKey: decidedKey), isInstalled else { return }
         set(true)
@@ -35,16 +34,5 @@ enum LoginItem {
         }
         let folders = [URL(filePath: "/Applications"), FileManager.default.homeDirectoryForCurrentUser.appending(path: "Applications")]
         return folders.map(path).contains(path(Bundle.main.bundleURL.deletingLastPathComponent()))
-    }
-}
-
-struct LoginItemToggle: View {
-    @State private var on = LoginItem.isEnabled
-
-    var body: some View {
-        Button { on = LoginItem.set(!on) } label: {
-            Label("Open at login", systemImage: on ? "checkmark.square.fill" : "square")
-        }
-        .buttonStyle(.plain)
     }
 }

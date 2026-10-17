@@ -50,11 +50,14 @@ final class AccountsModel {
     var paused = false
     /// The copy in front, or used last: where claude:// links go.
     var lastUsed: String?
+    /// Reading now, for the refresh button's spin.
+    private(set) var polling = false
     /// Called after each update, so the panel can resize to its content.
     @ObservationIgnored var onChange: (() -> Void)?
+    /// Called when a copy's organization in use crosses a line between two reads.
+    @ObservationIgnored var onAlert: ((String, LimitAlert) -> Void)?
 
     @ObservationIgnored private let reader: AccountReader?
-    @ObservationIgnored private var polling = false
     @ObservationIgnored private var timer: Timer?
 
     var copies: [Copy] {
@@ -78,8 +81,10 @@ final class AccountsModel {
         pollDue()
     }
 
-    /// Picks up profiles added or removed since the last look, keeping what's known.
+    /// Picks up profiles added or removed since the last look, keeping what's known. A
+    /// model without a reader (the demo, tests) keeps the profiles it was shown.
     func discover() {
+        guard reader != nil else { return }
         profiles = Profile.discover()
         accounts.removeAll { account in !profiles.contains(account.profile) }
     }
@@ -125,6 +130,11 @@ final class AccountsModel {
     /// After waking, read everything not backing off.
     func wake(now: Date = Date()) {
         paused = false
+        refresh(now: now)
+    }
+
+    /// Reads everything not backing off from a 429, now.
+    func refresh(now: Date = Date()) {
         discover()
         for i in accounts.indices where accounts[i].rateLimits == 0 {
             accounts[i].nextPoll = min(accounts[i].nextPoll, now)
@@ -174,6 +184,7 @@ final class AccountsModel {
     }
 
     func apply(_ snapshots: [AccountSnapshot]) {
+        var alerts: [(String, LimitAlert)] = []
         for (index, snapshot) in snapshots.enumerated() {
             guard let i = accounts.firstIndex(where: {
                 $0.profile == snapshot.profile && $0.organization == snapshot.organization
@@ -192,6 +203,9 @@ final class AccountsModel {
             let next = at.addingTimeInterval(PollPlan.interval + PollPlan.stagger(index: index, count: snapshots.count))
             switch snapshot.usage {
             case .success(let report):
+                if account.isActive, let alert = LimitAlert.between(account.report, report) {
+                    alerts.append((account.letter, alert))
+                }
                 account.report = report
                 account.reportAt = at
                 account.error = nil
@@ -212,6 +226,7 @@ final class AccountsModel {
             accounts[i] = account
         }
         onChange?()
+        for (letter, alert) in alerts { onAlert?(letter, alert) }
     }
 
     /// By letter, the organization in use first.

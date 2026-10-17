@@ -71,6 +71,30 @@ struct NotchLayout: Equatable {
         let x = min(max(notch.midX - width / 2, screenFrame.minX), screenFrame.maxX - width)
         return CGRect(x: x, y: screenFrame.maxY - contentSize.height, width: width, height: contentSize.height)
     }
+
+    /// Room round the open panel for its shadow and the spring's overshoot.
+    static let margin: CGFloat = 36
+    /// The line a peek adds under the notch.
+    static let peekLine: CGFloat = 30
+
+    /// A peek: the notch widened evenly on both sides, past the rings, with a line under it.
+    var peek: CGRect {
+        let wings = max(92, rings.maxX - notch.maxX + 8)
+        return CGRect(
+            x: notch.minX - wings, y: notch.minY - Self.peekLine,
+            width: notch.width + 2 * wings, height: notch.height + Self.peekLine
+        )
+    }
+
+    /// The window round a panel: the panel plus the margin at the sides and below.
+    static func stageFrame(panel: CGRect) -> CGRect {
+        CGRect(x: panel.minX - margin, y: panel.minY - margin, width: panel.width + 2 * margin, height: panel.height + margin)
+    }
+
+    /// A screen rect in a panel's own coordinates (origin top-left, y down).
+    static func local(_ rect: CGRect, in panel: CGRect) -> CGRect {
+        CGRect(x: rect.minX - panel.minX, y: panel.maxY - rect.maxY, width: rect.width, height: rect.height)
+    }
 }
 
 extension NSScreen {
