@@ -1,0 +1,137 @@
+.cards {
+  display: flex;
+  justify-content: center;
+  padding: 196px 0;
+  overflow: hidden;
+}
+
+.cards__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 96px;
+  width: 100%;
+}
+
+.cards__title {
+  max-width: 700px;
+  text-align: center;
+}
+
+/* Three cards joined into one strip: one 1px seam between neighbours. */
+.cards__row {
+  display: flex;
+  width: 100%;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 32px;
+  background: var(--bg);
+  transition: background-color 0.2s ease;
+}
+
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--line);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.card:first-child {
+  border-radius: 16px 0 0 16px;
+}
+
+.card:last-child {
+  border-radius: 0 16px 16px 0;
+}
+
+.card:not(:first-child, :last-child)::after {
+  border-inline-width: 0;
+}
+
+.card:hover {
+  background: var(--raise);
+}
+
+.card:hover .card__btn {
+  background: var(--glass);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: -2px;
+}
+
+.card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.card__art {
+  width: 114px;
+  height: 114px;
+}
+
+.card__art path {
+  fill: none;
+  stroke: var(--logo);
+  stroke-width: 2;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 0;
+}
+
+/* Measured on the reference: the whole stroke draws on in 2s, eased at both ends. */
+.card__art[data-draw="armed"] path {
+  stroke-dashoffset: 1;
+}
+
+.card__art[data-draw="drawn"] path {
+  transition: stroke-dashoffset 2s cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 40px;
+}
+
+@media (max-width: 1023.98px) {
+  .cards__row {
+    flex-direction: column;
+  }
+
+  .card:first-child {
+    border-radius: 8px 8px 0 0;
+  }
+
+  .card:last-child {
+    border-radius: 0 0 8px 8px;
+  }
+
+  .card:not(:first-child, :last-child)::after {
+    border-inline-width: 1px;
+    border-block-width: 0;
+  }
+}
+
+@media (max-width: 809.98px) {
+  .cards {
+    padding: 96px 0;
+  }
+
+  .cards__container {
+    gap: 64px;
+  }
+}

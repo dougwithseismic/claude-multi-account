@@ -1,0 +1,70 @@
+.manifesto {
+  display: flex;
+  justify-content: center;
+  padding: 200px 0;
+}
+
+.manifesto__text {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  width: 100%;
+  max-width: 860px;
+  padding-inline: var(--gutter);
+}
+
+/* As measured on the reference: a wrapping row of words, 3.6px between lines and 4.8px
+ * between words, so a line holding an icon taller than the text grows to fit it. */
+.manifesto__p {
+  --fs: 36px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3.6px 4.8px;
+}
+
+.manifesto__word,
+.manifesto__glyph {
+  display: block;
+  color: #fff;
+  /* Each word lights as the scroll passes it. Without the script, --p is unset: lit. */
+  opacity: calc(0.2 + 0.8 * clamp(0, var(--p, 1) * var(--n) - var(--i), 1));
+}
+
+.manifesto__word {
+  font-family: var(--sans);
+  font-size: var(--fs);
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+.manifesto__glyph {
+  width: 36px;
+  height: 36px;
+  margin: 0 4px;
+}
+
+.manifesto__glyph svg {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 1023.98px) {
+  .manifesto {
+    padding: 248px 0;
+  }
+
+  .manifesto__p {
+    --fs: 32px;
+  }
+}
+
+@media (max-width: 809.98px) {
+  .manifesto {
+    padding: 96px 0;
+  }
+
+  .manifesto__p {
+    --fs: 24px;
+  }
+}

@@ -1,0 +1,226 @@
+.hero {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 196px 0 96px;
+}
+
+.hero__container {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+}
+
+.hero__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px;
+}
+
+.hero__title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  max-width: 800px;
+  text-align: center;
+}
+
+.hero__lead {
+  max-width: 600px;
+}
+
+/* The badge, with a highlight that sweeps across its text. */
+.badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 64px;
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  animation: rise 0.4s linear 0.4s both;
+}
+
+.badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--glass);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.badge__icon {
+  width: 12px;
+  height: 12px;
+  color: var(--fg);
+}
+
+.badge__text {
+  position: relative;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 500;
+  color: var(--fg-dim);
+  white-space: nowrap;
+}
+
+.badge__shine {
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  background:
+    linear-gradient(90deg, transparent 0 41%, var(--fg) 50%, transparent 59% 100%) 200% 50% / 200%
+    200% no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shine 4.5s linear infinite;
+}
+
+@keyframes shine {
+  0%,
+  33.333% {
+    background-position-x: 200%;
+  }
+
+  100% {
+    background-position-x: -100%;
+  }
+}
+
+/* Each word of the heading rises in on its own delay. */
+.hero__h1 .word {
+  display: inline-block;
+  animation: rise 0.7s linear both;
+  animation-delay: calc(0.15s + var(--i) * 0.05s);
+}
+
+.hero__buttons {
+  animation: rise 0.5s linear 0.5s both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0.001;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Background art: three of the app's rings, huge and slowly turning. */
+.hero__art {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 718px;
+  overflow: hidden;
+  opacity: 0.5;
+  pointer-events: none;
+  -webkit-mask: linear-gradient(to bottom, #000 55%, transparent);
+  mask: linear-gradient(to bottom, #000 55%, transparent);
+}
+
+.hero__orbit {
+  position: absolute;
+  border-radius: 50%;
+  -webkit-mask: radial-gradient(
+    closest-side,
+    transparent calc(100% - var(--w)),
+    #000 calc(100% - var(--w) + 1px),
+    #000 99%,
+    transparent
+  );
+  mask: radial-gradient(
+    closest-side,
+    transparent calc(100% - var(--w)),
+    #000 calc(100% - var(--w) + 1px),
+    #000 99%,
+    transparent
+  );
+  filter: blur(var(--blur, 6px));
+  animation: orbit var(--t) linear infinite;
+}
+
+.hero__orbit--a {
+  --w: 120px;
+  --t: 60s;
+  width: 1300px;
+  height: 1300px;
+  top: -820px;
+  left: 38%;
+  background: conic-gradient(
+    from 200deg,
+    transparent 0 18%,
+    #2f7bf5 38%,
+    #9cc4ff 46%,
+    #2f7bf5 54%,
+    transparent 72% 100%
+  );
+}
+
+.hero__orbit--b {
+  --w: 80px;
+  --t: 80s;
+  --blur: 8px;
+  width: 1000px;
+  height: 1000px;
+  top: -560px;
+  left: 4%;
+  background: conic-gradient(
+    from 90deg,
+    transparent 0 24%,
+    #f5822f 42%,
+    #ffd2a8 48%,
+    #f5822f 56%,
+    transparent 70% 100%
+  );
+  animation-direction: reverse;
+}
+
+.hero__orbit--c {
+  --w: 60px;
+  --t: 70s;
+  --blur: 5px;
+  width: 760px;
+  height: 760px;
+  top: -300px;
+  left: 56%;
+  background: conic-gradient(
+    from 300deg,
+    transparent 0 30%,
+    #2fb36b 46%,
+    #b6f5d0 52%,
+    #2fb36b 58%,
+    transparent 74% 100%
+  );
+}
+
+.hero__glow {
+  position: absolute;
+  inset: -200px 10% auto;
+  height: 520px;
+  background: radial-gradient(closest-side, rgba(47, 123, 245, 0.35), transparent);
+  filter: blur(40px);
+}
+
+@keyframes orbit {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (max-width: 809.98px) {
+  .hero {
+    flex-direction: column;
+    align-items: center;
+    padding: 124px 0 64px;
+  }
+}

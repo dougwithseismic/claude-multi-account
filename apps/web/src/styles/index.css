@@ -1,0 +1,23 @@
+/* Fonts are self-hosted from Fontsource (SIL Open Font License 1.1). */
+@import "@fontsource/geist/400.css";
+@import "@fontsource/geist/500.css";
+@import "@fontsource/geist/600.css";
+@import "@fontsource/source-serif-4/500-italic.css";
+@import "@fontsource/space-grotesk/700.css";
+
+@import "./base.css";
+@import "./notch.css";
+@import "./sections/nav.css";
+@import "./sections/hero.css";
+@import "./sections/platforms.css";
+@import "./sections/manifesto.css";
+@import "./sections/cards.css";
+@import "./sections/walkthrough.css";
+@import "./sections/grid.css";
+@import "./sections/facts.css";
+@import "./sections/copies.css";
+@import "./sections/details.css";
+@import "./sections/goals.css";
+@import "./sections/faq.css";
+@import "./sections/cta.css";
+@import "./sections/footer.css";

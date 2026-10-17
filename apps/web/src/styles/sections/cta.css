@@ -1,0 +1,151 @@
+.cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 500px;
+  padding: 300px 0 200px;
+  overflow: hidden;
+}
+
+.cta__container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px;
+}
+
+.cta__title {
+  text-align: center;
+}
+
+/* Rises in once in full view, half a second after it arrives. */
+.cta__buttons[data-reveal="armed"] {
+  opacity: 0.001;
+  transform: translateY(10px);
+}
+
+.cta__buttons[data-reveal="shown"] {
+  animation: rise 0.5s linear 0.5s both;
+}
+
+/* Original art in place of the template's video: the app's rings, drawn as huge arcs
+ * that cross behind the heading, in the three profile colours. */
+.cta__art {
+  position: absolute;
+  inset: 60px 0 -60px;
+  opacity: 0.5;
+  pointer-events: none;
+  -webkit-mask: linear-gradient(to bottom, transparent, #000 25% 55%, transparent 85%);
+  mask: linear-gradient(to bottom, transparent, #000 25% 55%, transparent 85%);
+}
+
+.cta__ring {
+  position: absolute;
+  left: 50%;
+  border-radius: 50%;
+  -webkit-mask: radial-gradient(
+    closest-side,
+    transparent calc(100% - var(--w)),
+    #000 calc(100% - var(--w) + 1px),
+    #000 99%,
+    transparent
+  );
+  mask: radial-gradient(
+    closest-side,
+    transparent calc(100% - var(--w)),
+    #000 calc(100% - var(--w) + 1px),
+    #000 99%,
+    transparent
+  );
+  filter: blur(var(--blur, 6px));
+  /* Each arc's colour runs across the ring's top, brightest at its middle. */
+  background: conic-gradient(
+    from -60deg,
+    transparent,
+    var(--c) 8%,
+    var(--hi) 16.7%,
+    var(--c) 25%,
+    transparent 33.3%
+  );
+  animation: cta-sway var(--t) ease-in-out infinite alternate;
+}
+
+.cta__ring--a {
+  --w: 56px;
+  --t: 14s;
+  --c: #2f7bf5;
+  --hi: #9cc4ff;
+  width: 2600px;
+  height: 2600px;
+  top: 140px;
+  margin-left: -1300px;
+  rotate: -4deg;
+}
+
+.cta__ring--b {
+  --w: 26px;
+  --t: 17s;
+  --blur: 4px;
+  --c: #f5822f;
+  --hi: #ffd2a8;
+  width: 2200px;
+  height: 2200px;
+  top: 210px;
+  margin-left: -1400px;
+  rotate: 8deg;
+  animation-direction: alternate-reverse;
+}
+
+.cta__ring--c {
+  --w: 14px;
+  --t: 12s;
+  --blur: 3px;
+  --c: #2fb36b;
+  --hi: #b6f5d0;
+  width: 1900px;
+  height: 1900px;
+  top: 270px;
+  margin-left: -700px;
+  rotate: -10deg;
+}
+
+@keyframes cta-sway {
+  from {
+    transform: rotate(-3deg);
+  }
+
+  to {
+    transform: rotate(3deg);
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .cta__title {
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 809.98px) {
+  .cta__title {
+    font-size: 36px;
+  }
+
+  .cta__art {
+    inset: 100px 0 auto;
+    height: 390px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta__ring {
+    animation: none;
+  }
+
+  .cta__buttons[data-reveal] {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}

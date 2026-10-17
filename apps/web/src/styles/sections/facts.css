@@ -1,0 +1,150 @@
+.facts {
+  display: flex;
+  justify-content: center;
+  padding: 196px 0;
+}
+
+.facts__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 148px;
+  width: 100%;
+}
+
+.facts__title {
+  max-width: 700px;
+  text-align: center;
+}
+
+.facts__list {
+  display: flex;
+  flex-direction: column;
+  gap: 264px;
+  width: 100%;
+}
+
+/* Text and picture side by side, swapping sides on the second row. */
+.fact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 64px;
+}
+
+.fact:nth-child(even) {
+  flex-direction: row-reverse;
+}
+
+.fact__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 48px;
+  max-width: 530px;
+}
+
+.fact__head {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.fact__stats {
+  display: flex;
+  gap: 100px;
+}
+
+.fact__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.fact__value {
+  display: grid;
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.fact__value > span {
+  grid-area: 1 / 1;
+  text-align: center;
+}
+
+.fact__value-room {
+  visibility: hidden;
+}
+
+.fact__label {
+  color: var(--fg-dim);
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.fact__media {
+  flex: none;
+  width: 564px;
+  max-width: 100%;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+@media (max-width: 1439.98px) {
+  .fact__media {
+    width: auto;
+    flex: 1 1 0;
+    max-width: 564px;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .facts__container {
+    gap: 148px;
+  }
+
+  .fact,
+  .fact:nth-child(even) {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 64px;
+  }
+
+  .fact__text {
+    max-width: none;
+  }
+
+  .fact__media {
+    flex: none;
+    width: 100%;
+    max-width: none;
+    aspect-ratio: auto;
+    height: 564px;
+  }
+}
+
+@media (max-width: 809.98px) {
+  .facts {
+    padding: 96px 0;
+  }
+
+  .facts__container {
+    gap: 96px;
+  }
+
+  .facts__list {
+    gap: 164px;
+  }
+
+  .fact__media {
+    height: auto;
+    aspect-ratio: 1;
+  }
+}

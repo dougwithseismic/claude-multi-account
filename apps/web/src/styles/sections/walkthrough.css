@@ -1,0 +1,132 @@
+.walk {
+  display: flex;
+  justify-content: center;
+  padding: 300px 0;
+}
+
+.walk__container {
+  display: flex;
+  align-items: flex-start;
+  gap: 148px;
+  width: 100%;
+}
+
+.walk__content {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 500px;
+  min-width: 0;
+  padding: 143px 0 160px;
+}
+
+.walk__item {
+  scroll-margin-top: 30vh;
+}
+
+.walk__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 48px;
+}
+
+.walk__head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.walk__pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--tint);
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.walk__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 530px;
+}
+
+/* The scene sticks while the steps scroll past it. */
+.walk__media {
+  position: sticky;
+  top: 187px;
+  flex: 1 1 0;
+  min-width: 0;
+  aspect-ratio: 586 / 564;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.walk__scene {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+/* Measured: the next scene is there at once, under the last, which fades out in 0.4s. */
+.walk__scene.is-active {
+  opacity: 1;
+}
+
+.walk__scene.is-leaving {
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.walk__inline {
+  display: none;
+}
+
+@media (max-width: 1439.98px) {
+  .walk__content {
+    padding: 113px 0;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .walk__container {
+    gap: 64px;
+  }
+
+  .walk__content {
+    padding: 77px 0;
+  }
+}
+
+@media (max-width: 809.98px) {
+  .walk {
+    padding: 124px 0;
+  }
+
+  .walk__media {
+    display: none;
+  }
+
+  .walk__content {
+    gap: 124px;
+    padding: 0;
+  }
+
+  .walk__item {
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+    scroll-margin-top: 80px;
+  }
+
+  .walk__inline {
+    display: block;
+    aspect-ratio: 586 / 564;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+}

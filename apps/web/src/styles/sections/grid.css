@@ -1,0 +1,115 @@
+.grid {
+  display: flex;
+  justify-content: center;
+  padding: 196px 0;
+}
+
+.grid__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 96px;
+  max-width: 1200px;
+}
+
+.grid__title {
+  max-width: 700px;
+  text-align: center;
+}
+
+.grid__list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+}
+
+/* Every cell draws its top and left edge; the right column and the bottom row close the
+ * frame, so no two lines ever double up. */
+.grid__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 40px;
+}
+
+.grid__item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 0 solid var(--line);
+  border-width: 1px 0 0 1px;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.grid__item:nth-child(even)::after {
+  border-right-width: 1px;
+}
+
+.grid__item:nth-last-child(-n + 2)::after {
+  border-bottom-width: 1px;
+}
+
+.grid__item:nth-child(1) {
+  border-radius: 16px 0 0;
+}
+
+.grid__item:nth-child(2) {
+  border-radius: 0 16px 0 0;
+}
+
+.grid__item:nth-last-child(2) {
+  border-radius: 0 0 0 16px;
+}
+
+.grid__item:last-child {
+  border-radius: 0 0 16px;
+}
+
+.grid__icon {
+  color: var(--fg);
+}
+
+.grid__name {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+@media (max-width: 1023.98px) {
+  .grid__list {
+    grid-template-columns: 1fr;
+  }
+
+  .grid__item::after,
+  .grid__item:nth-last-child(2)::after {
+    border-width: 1px 1px 0;
+  }
+
+  .grid__item:last-child::after {
+    border-width: 1px;
+  }
+
+  .grid__item:nth-child(n) {
+    border-radius: 0;
+  }
+
+  .grid__item:first-child {
+    border-radius: 16px 16px 0 0;
+  }
+
+  .grid__item:last-child {
+    border-radius: 0 0 16px 16px;
+  }
+}
+
+@media (max-width: 809.98px) {
+  .grid {
+    padding: 96px 0;
+  }
+
+  .grid__container {
+    gap: 64px;
+  }
+}

@@ -1,0 +1,245 @@
+/* Goals: one quote at a time, on a six-second bar. */
+.goals {
+  padding: 196px 0;
+  overflow: hidden;
+}
+
+.goals__container {
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+  max-width: 800px;
+}
+
+/* Every slide sits in the same cell, so the tallest sets the height and nothing jumps. */
+.goals__stage {
+  display: grid;
+}
+
+.goals__slide {
+  display: flex;
+  grid-area: 1 / 1;
+  flex-direction: column;
+  gap: 64px;
+}
+
+.goals__slide:not([data-active]) {
+  visibility: hidden;
+}
+
+/* Room for the reference's three lines (four on a phone), so the author never moves. */
+.goals__quote {
+  min-height: calc(3 * 1.2em);
+}
+
+.goals__author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.goals__avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 64px;
+  background: linear-gradient(145deg, #f0a585, #d97757 55%, #b2533a);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.goals__profile {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.goals__name {
+  color: #fff;
+  font-weight: 500;
+}
+
+.goals__role {
+  color: var(--fg-dim);
+}
+
+/* The reference's two springs, sampled frame by frame: the quote sharpens and rises 10px
+ * over a second; the author drops 150px, overshoots 1.5% and settles in 0.6s. */
+.goals.has-cycled .goals__slide[data-active] .goals__quote {
+  animation: goals-quote 1s
+    linear(
+      0,
+      0.005 1.7%,
+      0.026 3.4%,
+      0.061 5%,
+      0.105 6.7%,
+      0.157 8.4%,
+      0.211 10%,
+      0.268 11.7%,
+      0.324 13.4%,
+      0.379 15%,
+      0.433 16.7%,
+      0.483 18.4%,
+      0.531 20%,
+      0.575 21.7%,
+      0.617 23.4%,
+      0.655 25%,
+      0.69 26.7%,
+      0.722 28.3%,
+      0.752 30%,
+      0.802 33.3%,
+      0.843 36.7%,
+      0.877 40%,
+      0.903 43.4%,
+      0.924 46.7%,
+      0.941 50%,
+      0.96 55%,
+      0.973 60%,
+      0.982 65%,
+      0.988 70%,
+      0.992 75%,
+      0.994 80%,
+      0.996 85%,
+      0.998 90%,
+      1
+    )
+    both;
+}
+
+.goals.has-cycled .goals__slide[data-active] .goals__author {
+  animation: goals-author 0.6s
+    linear(
+      0,
+      0.0315 2.8%,
+      0.0987 5.7%,
+      0.2115 8.3%,
+      0.2864 11.2%,
+      0.3941 14%,
+      0.4978 16.7%,
+      0.5881 19.5%,
+      0.6787 22.3%,
+      0.7484 25%,
+      0.8078 27.8%,
+      0.8657 30.7%,
+      0.9047 33.3%,
+      0.9358 36.2%,
+      0.9601 39%,
+      0.9785 41.7%,
+      0.9928 44.5%,
+      1.0026 47.2%,
+      1.0094 50%,
+      1.0129 52.8%,
+      1.0147 55.5%,
+      1.0152 58.3%,
+      1.0147 61.2%,
+      1.0136 64%,
+      1.0123 66.7%,
+      1.0107 69.5%,
+      1.0091 72.3%,
+      1.0076 75%,
+      1.0061 77.8%,
+      1.0048 80.7%,
+      1.0038 83.3%,
+      1.0028 86.2%,
+      1.0021 88.8%,
+      1.0014 91.7%,
+      1.001 94.5%,
+      1.0006 97.3%,
+      1
+    )
+    both;
+}
+
+@keyframes goals-quote {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    translate: 0 10px;
+  }
+}
+
+@keyframes goals-author {
+  from {
+    opacity: 0;
+    translate: 0 -150px;
+  }
+}
+
+.goals__bars {
+  display: flex;
+  justify-content: center;
+}
+
+.goals__slot {
+  padding: 8px 4px;
+}
+
+.goals__slot:first-child {
+  padding-left: 8px;
+}
+
+.goals__slot:last-child {
+  padding-right: 8px;
+}
+
+.goals__track {
+  position: relative;
+  display: block;
+  width: 28px;
+  height: 6px;
+}
+
+.goals__track::before,
+.goals__fill {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  border-radius: 99px;
+}
+
+.goals__track::before {
+  width: 100%;
+  background: var(--glass-strong);
+}
+
+.goals__fill {
+  width: 100%;
+  background: var(--fg-dim);
+  animation: goals-fill 6s linear both paused;
+}
+
+.goals.is-playing .goals__fill {
+  animation-play-state: running;
+}
+
+.goals:hover .goals__fill,
+.goals:focus-within .goals__fill {
+  animation-play-state: paused;
+}
+
+.goals.is-still .goals__fill {
+  animation: none;
+}
+
+@keyframes goals-fill {
+  from {
+    width: 0;
+  }
+}
+
+@media (max-width: 809.98px) {
+  .goals {
+    padding: 96px 0;
+  }
+
+  .goals__quote {
+    min-height: calc(4 * 1.2em);
+  }
+}

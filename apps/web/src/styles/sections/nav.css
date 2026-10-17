@@ -1,0 +1,181 @@
+.nav {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 10;
+}
+
+.nav__bar {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+  padding-block: 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+}
+
+.logo__word {
+  font-family: var(--display);
+  font-size: 17px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 4px;
+  border-radius: 64px;
+}
+
+.nav__link {
+  display: block;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--fg-dim);
+  transition: color 0.2s ease;
+}
+
+.nav__link:hover {
+  color: var(--fg);
+}
+
+.nav__burger {
+  display: none;
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 64px;
+  background: var(--fg);
+}
+
+.nav__burger span {
+  position: absolute;
+  left: 11px;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(2, 10, 15);
+  transition:
+    transform 0.3s cubic-bezier(0.44, 0, 0.56, 1),
+    opacity 0.2s ease;
+}
+
+.nav__burger span:nth-child(1) {
+  top: 13px;
+}
+
+.nav__burger span:nth-child(2) {
+  top: 19px;
+}
+
+.nav__burger span:nth-child(3) {
+  top: 25px;
+}
+
+.nav.is-open .nav__burger span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.nav.is-open .nav__burger span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav.is-open .nav__burger span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.nav__sheet {
+  display: none;
+}
+
+/* Shown only on phones, where the bar is fixed. */
+.nav__backing {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  height: 72px;
+  background: var(--bg);
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+  pointer-events: none;
+}
+
+@media (max-width: 809.98px) {
+  .nav {
+    position: fixed;
+  }
+
+  .nav.is-scrolled .nav__backing {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .nav__links,
+  .nav__cta {
+    display: none;
+  }
+
+  .nav__burger {
+    display: block;
+  }
+
+  .nav__sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+    padding: 120px var(--gutter) 40px;
+    background: var(--bg);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.3s ease,
+      visibility 0s linear 0.3s;
+  }
+
+  .nav.is-open .nav__sheet {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease;
+  }
+
+  .nav__sheet-links {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .nav__sheet-links li {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity 0.4s ease,
+      transform 0.4s ease;
+  }
+
+  .nav.is-open .nav__sheet-links li {
+    opacity: 1;
+    transform: none;
+  }
+
+  .nav__sheet-links a {
+    display: block;
+    font-size: 18px;
+    line-height: 1.4;
+    font-weight: 500;
+    color: var(--fg);
+  }
+}

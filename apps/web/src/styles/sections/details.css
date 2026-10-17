@@ -1,0 +1,576 @@
+/* Details: a row of cards. Arrows slide it on desktop; below 1024 it scrolls. */
+.details {
+  padding: 300px 0;
+  overflow: hidden;
+}
+
+.details__container {
+  display: flex;
+  flex-direction: column;
+  gap: 96px;
+}
+
+.details__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.details__title {
+  flex: 1 0 0;
+  max-width: 700px;
+}
+
+.details__arrows {
+  display: flex;
+  flex: 1 0 0;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.details__arrow {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 64px;
+  background: var(--glass);
+  color: var(--fg);
+  transition: background-color 0.2s ease;
+}
+
+.details__arrow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--glass);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.details__arrow:hover {
+  background: var(--glass-strong);
+}
+
+.details__arrow:disabled {
+  background: transparent;
+  cursor: default;
+}
+
+.details__track {
+  display: flex;
+  gap: 16px;
+  width: max-content;
+  transform: translateX(var(--x, 0));
+  /* The reference's spring, sampled frame by frame: it overshoots by 4% and settles. */
+  transition: transform 0.52s
+    linear(
+      0,
+      0.344 10.2%,
+      0.672 20.2%,
+      0.936 30.1%,
+      1.039 40.1%,
+      1.038 50.1%,
+      1.017 59.9%,
+      1.004 70.1%,
+      0.9986 80%,
+      0.998 90%,
+      1
+    );
+}
+
+.details__card {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 318px;
+  height: 400px;
+  padding: 24px;
+  border-radius: 16px;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.364s
+    linear(
+      0,
+      0.045 3.8%,
+      0.16 8.2%,
+      0.315 13.2%,
+      0.46 17.6%,
+      0.605 22.3%,
+      0.725 26.9%,
+      0.82 31.3%,
+      0.89 35.7%,
+      0.945 40.4%,
+      0.985 45.1%,
+      1.01 49.5%,
+      1.02 54.1%,
+      1.025 58.8%,
+      1.03 63.5%,
+      1.025 67.9%,
+      1.02 72.5%,
+      1.015 81.6%,
+      1.01 86.3%,
+      1.005 90.7%,
+      1
+    );
+}
+
+@media (hover: hover) {
+  .details__card:hover {
+    transform: scale(1.02);
+  }
+}
+
+.details__card .da {
+  position: absolute;
+  inset: 0;
+}
+
+.details__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.4), transparent 45%), rgb(0 0 0 / 0.3);
+}
+
+.details__plus {
+  position: absolute;
+  top: 12px;
+  right: 12.6px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 64px;
+  background: var(--glass-strong);
+  color: var(--fg);
+}
+
+.details__text {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.details__name {
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+@media (max-width: 1023.98px) {
+  .details {
+    padding: 196px 0;
+  }
+
+  .details__container {
+    gap: 48px;
+  }
+
+  .details__arrows {
+    display: none;
+  }
+
+  /* A tenth wider than the column, so the cards run under the gutters as they scroll. */
+  .details__wrapper {
+    width: 110%;
+    margin-inline: -5%;
+    padding: 24px 40px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .details__wrapper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .details__track {
+    transform: none;
+  }
+}
+
+@media (max-width: 809.98px) {
+  .details {
+    padding: 96px 0;
+  }
+
+  .details__wrapper {
+    padding-inline: 19px;
+  }
+}
+
+/* The card art: the app's own pieces, at its sizes in points, scaled up. */
+.da-place {
+  position: absolute;
+}
+
+.da-panel {
+  border-radius: 18px;
+  background: #000;
+  color: #fff;
+  font-family: var(--mac);
+  font-size: 11px;
+  line-height: normal;
+  letter-spacing: 0;
+  box-shadow: 0 14px 32px rgb(0 0 0 / 0.35);
+}
+
+.da-panel .nm-row {
+  margin: 8px 8px 0;
+}
+
+.da-row__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgb(235 235 245 / 0.6);
+}
+
+.da-footer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 16px 9px;
+  color: rgb(235 235 245 / 0.3);
+  font-size: 10px;
+}
+
+/* ⌥, held down. */
+.da-key {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 72px;
+  height: 66px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: linear-gradient(to bottom, #f6f6f8, #dedee4);
+  color: #2c2c30;
+  font-family: var(--mac);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 1px 0 #a9a9b2,
+    0 12px 24px rgb(0 0 0 / 0.3);
+  translate: 0 2px;
+}
+
+.da-key__glyph {
+  align-self: flex-end;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.da-key__name {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.da-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 11px 12px 13px;
+  border-radius: 14px;
+}
+
+.da-bars__item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.da-bars__head {
+  display: flex;
+  justify-content: space-between;
+  color: rgb(235 235 245 / 0.6);
+}
+
+.da-bars__head b {
+  color: #fff;
+  font-family: var(--mac-rounded);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.da-bars .nm-bar {
+  flex: none;
+}
+
+.da-tile {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border-radius: 40px;
+  background: #000;
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.35);
+}
+
+.da-tile .nm-ring {
+  width: 104px;
+  height: 104px;
+}
+
+.da-menubar {
+  position: absolute;
+  inset: 0 0 auto;
+  background: rgb(255 255 255 / 0.16);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+}
+
+.da-back {
+  display: inline-flex;
+  gap: 4px;
+  color: rgb(255 255 255 / 0.9);
+  font-family: var(--mac-rounded);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* An external display, with its menu bar and the pill at the top of its screen. */
+.da-display {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 260px;
+}
+
+.da-display__screen {
+  position: relative;
+  width: 260px;
+  height: 166px;
+  overflow: hidden;
+  border: 6px solid #0b0b0c;
+  border-radius: 12px;
+  background:
+    radial-gradient(70% 60% at 20% 10%, #ffe2bf 0%, transparent 70%),
+    linear-gradient(160deg, #ffc58a 0%, #f08a3c 60%, #c9561a 100%);
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.35);
+}
+
+.da-display__stand {
+  width: 96px;
+  height: 34px;
+  background:
+    linear-gradient(#1a1a1c, #1a1a1c) 50% 0 / 44px 28px no-repeat,
+    linear-gradient(#232326, #0f0f10) 50% 100% / 96px 6px no-repeat;
+  border-radius: 0 0 4px 4px;
+}
+
+.da-pill {
+  width: 180px;
+}
+
+.da-pill .nm-line {
+  justify-content: center;
+  height: 24px;
+}
+
+/* A trackpad, tilted away, with the tick spreading out from a fingertip. */
+.da-pad {
+  position: absolute;
+  width: 240px;
+  height: 160px;
+  border-radius: 18px;
+  background: linear-gradient(to bottom, rgb(255 255 255 / 0.34), rgb(255 255 255 / 0.16));
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.6),
+    0 24px 40px rgb(0 0 0 / 0.25);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transform: perspective(700px) rotateX(34deg);
+}
+
+.da-pad__touch {
+  position: absolute;
+  top: 54%;
+  left: 52%;
+}
+
+.da-pad__touch::before,
+.da-pad__touch i {
+  content: "";
+  position: absolute;
+  top: -13px;
+  left: -13px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+
+.da-pad__touch::before {
+  background: rgb(255 255 255 / 0.85);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+}
+
+.da-pad__touch i {
+  border: 2px solid rgb(255 255 255 / 0.9);
+  opacity: 0;
+  animation: da-ripple 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.da-pad__touch i:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.da-pad__touch i:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@keyframes da-ripple {
+  0% {
+    opacity: 0.9;
+    scale: 1;
+  }
+
+  45%,
+  100% {
+    opacity: 0;
+    scale: 4.2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .da-pad__touch i {
+    animation: none;
+    opacity: 0.5;
+  }
+
+  .da-pad__touch i:nth-child(2) {
+    opacity: 0.3;
+    scale: 2;
+  }
+
+  .da-pad__touch i:nth-child(3) {
+    opacity: 0.15;
+    scale: 3;
+  }
+}
+
+.da-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+}
+
+.da-settings__title {
+  padding: 0 10px;
+  color: rgb(235 235 245 / 0.3);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.da-settings__group {
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.04);
+}
+
+.da-settings__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+}
+
+.da-settings__label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.da-settings__label span {
+  color: rgb(235 235 245 / 0.6);
+  font-size: 10.5px;
+  font-weight: 400;
+}
+
+.da-settings__pills {
+  display: flex;
+  gap: 6px;
+}
+
+.da-pill-button {
+  display: grid;
+  place-items: center;
+  height: 22px;
+  padding: 0 10px;
+  border-radius: 99px;
+  background: rgb(255 255 255 / 0.1);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* The app's switch, on, in its accent. */
+.da-switch {
+  display: flex;
+  flex: none;
+  justify-content: flex-end;
+  width: 30px;
+  height: 18px;
+  padding: 2px;
+  border-radius: 99px;
+  background: #d97757;
+}
+
+.da-switch i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0.5px 1px rgb(0 0 0 / 0.3);
+}
+
+/* One Claude.app, updated, and every copy below it. */
+.da-update {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 220px;
+}
+
+.da-update__app {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 22px;
+  background: #000;
+  color: #fff;
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.35);
+}
+
+.da-update__lines {
+  width: 220px;
+  height: 64px;
+  fill: none;
+  stroke: rgb(255 255 255 / 0.55);
+  stroke-width: 2;
+  stroke-dasharray: 4 5;
+}
+
+.da-update__copies {
+  display: flex;
+  gap: 28px;
+}
+
+.da-update__copies .nm-badge {
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.3);
+}

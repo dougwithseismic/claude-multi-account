@@ -1,0 +1,143 @@
+.copies {
+  display: flex;
+  justify-content: center;
+  padding: 248px 0 132px;
+  overflow: hidden;
+}
+
+.copies__container {
+  display: flex;
+  align-items: center;
+  gap: 124px;
+  max-width: 1200px;
+}
+
+.copies__text {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 1 0 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 48px;
+}
+
+.copies__head {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 530px;
+}
+
+.copies__ticker {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: flex-end;
+  gap: 24px;
+  height: 416px;
+}
+
+/* A black ellipse with a clear middle, so the tiles fade out towards its edge. */
+.copies__fade {
+  position: absolute;
+  z-index: 1;
+  left: -235px;
+  top: -368px;
+  width: 877px;
+  height: 1037px;
+  border-radius: 100%;
+  background: radial-gradient(31.5305% 29.718% at 50% 51.1931%, transparent 45.5%, #000 100%);
+  pointer-events: none;
+}
+
+.copies__col {
+  flex: none;
+  width: 84px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(transparent, #000 25%, #000 75%, transparent);
+  mask-image: linear-gradient(transparent, #000 25%, #000 75%, transparent);
+}
+
+.copies__track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: copies-up linear infinite;
+  will-change: transform;
+}
+
+.copies__track--down {
+  animation-name: copies-down;
+}
+
+@keyframes copies-up {
+  to {
+    transform: translateY(var(--travel));
+  }
+}
+
+@keyframes copies-down {
+  from {
+    transform: translateY(var(--travel));
+  }
+}
+
+.copies__group {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.copies__tile {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+}
+
+.copies__tile .nm-ring {
+  width: 44px;
+  height: 44px;
+  padding: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copies__track {
+    animation: none;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .copies__container {
+    flex-direction: column;
+    gap: 64px;
+  }
+
+  .copies__text {
+    align-self: stretch;
+  }
+
+  .copies__ticker {
+    order: -1;
+  }
+}
+
+@media (max-width: 809.98px) {
+  .copies {
+    padding: 96px 0;
+  }
+
+  .copies__ticker {
+    align-self: stretch;
+    justify-content: center;
+    height: 500px;
+  }
+
+  .copies__fade {
+    width: 819px;
+    height: 1121px;
+  }
+}
