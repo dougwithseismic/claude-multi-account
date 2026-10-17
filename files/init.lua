@@ -1,13 +1,18 @@
 require("hs.ipc") -- lets the `hs` command line tool talk to Hammerspoon
 
--- Claude A / B: two Claude desktop instances, one per account (Claude B runs with
--- --user-data-dir=~/Library/Application Support/Claude-B). Shows which one is in
--- front in the menu bar, outlines its window in that account's colour, and
--- switches with ⌥⌘1 / ⌥⌘2. Rename the labels to the accounts' emails if you like.
+-- Claude A / B / C: Claude desktop instances, one per account (A uses the normal
+-- data folder, the others run with --user-data-dir=~/Library/Application Support/Claude-<letter>).
+-- Shows which one is in front in the menu bar, outlines its window in that
+-- account's colour, and switches with ⌥⌘1 / ⌥⌘2 / ⌥⌘3. Rename the labels to the
+-- accounts' emails if you like. To add another, give it a line here and a launcher.
 local PROFILES = {
   A = { label = "Claude A", color = { hex = "#2F7BF5" }, key = "1" },
   B = { label = "Claude B", color = { hex = "#F5822F" }, key = "2" },
+  C = { label = "Claude C", color = { hex = "#2FB36B" }, key = "3" },
 }
+local ORDER = {}
+for p in pairs(PROFILES) do table.insert(ORDER, p) end
+table.sort(ORDER)
 local BUNDLE = "com.anthropic.claudefordesktop"
 local HOME = os.getenv("HOME")
 
@@ -19,7 +24,7 @@ local function profileOf(app)
   local pid = app:pid()
   if S.profileByPid[pid] == nil then
     local cmd = hs.execute("ps -o command= -p " .. pid) or ""
-    S.profileByPid[pid] = cmd:find("Claude%-B") and "B" or "A"
+    S.profileByPid[pid] = cmd:match("Application Support/Claude%-(%u)") or "A"
   end
   return S.profileByPid[pid]
 end
@@ -30,10 +35,23 @@ local function runningApp(p)
   end
 end
 
+-- macOS sometimes ignores activating one of several copies of the same app, so
+-- focus its window directly and try again until it is in front.
+local function bringForward(app, tries)
+  local win = app:mainWindow() or app:allWindows()[1]
+  if win then win:focus() else app:activate(true) end
+  if tries > 1 then
+    hs.timer.doAfter(0.3, function()
+      local front = hs.application.frontmostApplication()
+      if not front or front:pid() ~= app:pid() then bringForward(app, tries - 1) end
+    end)
+  end
+end
+
 local function switchTo(p)
   local app = runningApp(p)
   if app then
-    app:activate(true)
+    bringForward(app, 5)
   else
     hs.task.new(HOME .. "/Applications/Claude " .. p .. ".app/Contents/Resources/claude-profile.sh", nil, { p }):start()
   end
@@ -45,7 +63,8 @@ end
 -- and calls this, so a link goes to the Claude used last.
 
 function S.openURL(url)
-  local app = runningApp(S.last or "A") or runningApp("A") or runningApp("B")
+  local app = runningApp(S.last or "A")
+  for _, p in ipairs(ORDER) do app = app or runningApp(p) end
   if not app then
     hs.execute("open -b " .. BUNDLE .. " '" .. url:gsub("'", "'\\''") .. "'")
     return "launched"
@@ -80,7 +99,7 @@ end
 
 S.bar:setMenu(function()
   local items = {}
-  for _, p in ipairs({ "A", "B" }) do
+  for _, p in ipairs(ORDER) do
     local cfg = PROFILES[p]
     table.insert(items, {
       title = "Switch to " .. cfg.label .. "  (⌥⌘" .. cfg.key .. ")",
