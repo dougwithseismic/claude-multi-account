@@ -14,7 +14,7 @@ When you're done you have:
 
 Claude.app itself is never modified, so it stays signed and keeps updating as normal.
 
-The scripts are in `files/` and the app is in `notch/`. Run every command from this folder:
+The scripts are in `files/` and the app is in `apps/notch/`. Run every command from this folder:
 
 ```bash
 cd ~/Documents/WEB_PROJECTS/tools/claude-multi-account
@@ -75,7 +75,7 @@ From now on, never open `/Applications/Claude.app` directly while a copy is runn
 ## 3. Install Claude Notch
 
 ```bash
-notch/scripts/build-app.sh --install
+apps/notch/scripts/build-app.sh --install
 ```
 
 This builds the app, copies it to `~/Applications/Claude Notch.app` and opens it. It has no Dock icon; quit it from its panel. Then:
@@ -121,20 +121,20 @@ Without the file the app uses these. **Edit** under Profiles in its settings ope
 
 ### `claude-usage`
 
-The same numbers in the terminal. `build-app.sh` builds it into `notch/build/claude-usage`:
+The same numbers in the terminal. `build-app.sh` builds it into `apps/notch/build/claude-usage`:
 
 ```bash
-notch/build/claude-usage
+apps/notch/build/claude-usage
 ```
 
-Its first run asks for Keychain access too. Add `--json` for machine-readable output, `--only B,C` to choose accounts, or `--verbose` to see where each copy's organization in use was read from. Run the tests with `cd notch && swift test`.
+Its first run asks for Keychain access too. Add `--json` for machine-readable output, `--only B,C` to choose accounts, or `--verbose` to see where each copy's organization in use was read from. Run the tests with `cd apps/notch && swift test`.
 
 ### Checking it
 
 The app's binary takes a few options for checking it by eye:
 
 ```bash
-notch/build/"Claude Notch.app"/Contents/MacOS/ClaudeNotch --demo --pin
+apps/notch/build/"Claude Notch.app"/Contents/MacOS/ClaudeNotch --demo --pin
 ```
 
 - `--demo` shows six made-up copies (A to F) in every state (out for the week, rate-limited, login expired, signed out, Keychain refused, and so on) instead of yours, then shows a switch peek and a limit alert. It reads nothing, keeps its settings apart from the app's, and leaves the outline and links to the running app. Its ⌥⌘ keys and rows only move which made-up copy is current, and the keys work only while the app itself isn't running;
@@ -215,4 +215,4 @@ With Claude Notch gone, macOS hands `claude://` links to Claude itself again.
 | --- | --- | --- |
 | `files/claude-profile.sh` | inside each launcher app | Brings a copy to the front, or starts it |
 | `files/profiles.json` | `~/.config/claude-multi-account/profiles.json` | Each copy's label, colour and hotkey |
-| `notch/` | `~/Applications/Claude Notch.app` | The app (limits, hotkeys, outline, links) and the `claude-usage` command |
+| `apps/notch/` | `~/Applications/Claude Notch.app` | The app (limits, hotkeys, outline, links) and the `claude-usage` command |

@@ -1,0 +1,12 @@
+{
+  "name": "@claude-notch/notch",
+  "private": true,
+  "description": "Claude Notch, the macOS app, and the claude-usage command (Swift package)",
+  "scripts": {
+    "build": "swift build -c release",
+    "test": "swift test",
+    "app": "scripts/build-app.sh",
+    "install-app": "scripts/build-app.sh --install",
+    "demo": "build/'Claude Notch.app'/Contents/MacOS/ClaudeNotch --demo --pin"
+  }
+}

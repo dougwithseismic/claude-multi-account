@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Builds "Claude Notch.app" and the claude-usage command into notch/build/ and signs both.
+# Builds "Claude Notch.app" and the claude-usage command into apps/notch/build/ and signs both.
 # With --install, also replaces ~/Applications/Claude Notch.app with it and opens it.
 #
 # Keychain "Always Allow" is tied to the app's signature. An ad hoc signature changes

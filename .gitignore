@@ -1,5 +1,24 @@
 .DS_Store
+node_modules/
+dist/
+.output/
+.turbo/
+.tanstack/
+.vinxi/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+
+# Swift
 .build/
 .swiftpm/
 Package.resolved
-notch/build/
+apps/notch/build/
+
+# Carbon-copy recon and capture output
+docs/parity/
+apps/web/test-results/
+
+# Claude Code session marker
+.claude/.carbon-copy-active

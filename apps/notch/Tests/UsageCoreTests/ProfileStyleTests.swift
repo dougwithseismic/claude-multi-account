@@ -58,8 +58,10 @@ import Testing
     }
 
     @Test func theTemplateInTheRepoIsTheDefaults() throws {
+        // From apps/notch/Tests/UsageCoreTests up to the repo.
         let template = URL(filePath: #filePath)
-            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
             .appending(path: "files/profiles.json")
         #expect(ProfileStyle.parse(try Data(contentsOf: template)) == ProfileStyle.defaults)
         // The settings page's Edit writes the file out the same way.
