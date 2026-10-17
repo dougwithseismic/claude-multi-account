@@ -35,11 +35,21 @@ local function runningApp(p)
   end
 end
 
+-- Closing the last window leaves Claude running with none. Send it the "reopen"
+-- event a Dock click sends, which makes it open a new window.
+local function reopen(app)
+  hs.osascript.javascript(string.format([[
+    ObjC.import('Foundation');
+    var target = $.NSAppleEventDescriptor.descriptorWithProcessIdentifier(%d);
+    $.NSAppleEventDescriptor.appleEventWithEventClassEventIDTargetDescriptorReturnIDTransactionID(0x61657674, 0x72617070, target, -1, 0).sendEventWithOptionsTimeoutError(1, 5, null);
+  ]], app:pid()))
+end
+
 -- macOS sometimes ignores activating one of several copies of the same app, so
 -- focus its window directly and try again until it is in front.
 local function bringForward(app, tries)
   local win = app:mainWindow() or app:allWindows()[1]
-  if win then win:focus() else app:activate(true) end
+  if win then win:focus() else reopen(app); app:activate(true) end
   if tries > 1 then
     hs.timer.doAfter(0.3, function()
       local front = hs.application.frontmostApplication()

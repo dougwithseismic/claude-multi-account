@@ -132,6 +132,7 @@ Optional: give the two copies different themes (Settings → Appearance), for ex
 ## Day to day
 
 - **⌥⌘1**, **⌥⌘2** and **⌥⌘3** switch to A, B and C, or click the menu bar label and choose from the menu.
+- Closing a Claude window doesn't quit that copy: it keeps running with no window, as Mac apps do. The hotkeys and launchers handle this by sending it the same "reopen" message a Dock click sends, so a new window appears. To really quit a copy, press ⌘Q in it.
 - "●" means that Claude is in front. A grey "○" means you're in another app, and it shows the Claude you used last, which is where the next `claude://` link will go.
 - **Claude in Chrome:** there's one Chrome and one extension, and the connection to it belongs to your Mac user rather than to a Claude account. So every copy can use the same Chrome; just don't have two driving it at the same time.
 - **Built-in browser pane:** this is separate per copy, so each copy has its own site logins there.
