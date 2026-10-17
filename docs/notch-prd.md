@@ -1,6 +1,6 @@
 # PRD: Claude usage in the notch
 
-Status: draft, 2026-10-17. Nothing built yet.
+Status: milestone 1 built, 2026-10-17 (`notch/`: UsageCore and the `claude-usage` CLI). Milestones 2–4 not started.
 
 ## Problem
 
@@ -71,7 +71,7 @@ Refreshing a token rotates its refresh token, so the Claude copy that owns it is
 
 So when an account's access token has expired (because that copy has been closed for a while), its row says **"Open Claude B to update"** and keeps the last numbers greyed with their age. Clicking the row opens that copy, it refreshes its own token, and the next poll works.
 
-How long the desktop app's access tokens last is unverified. Measure it in the first milestone.
+Measured in milestone 1: the desktop app's access tokens last about 30 days (all three profiles showed 26–30 days left), so this state will be rare.
 
 ### Polling and rate limits
 
@@ -171,12 +171,22 @@ Unit tests (XCTest via `swift test`) cover decryption against a fixture encrypte
 | Terms of service | Using the OAuth token outside Claude's own apps | The same read-only usage check many popular tools make; no inference calls. Note it, accept it for personal use |
 | macOS notch quirks (full-screen title bars, Mission Control overlap, long-sleep disappearance) | Cosmetic glitches | Known from boring.notch issues; re-order on wake; test on the real machine |
 
+## What milestone 1 found
+
+Run on 2026-10-17 against all three profiles:
+
+- **Reading works:** one Keychain prompt for the CLI, then all three logins decrypted and both endpoints answered in under 5 seconds. A's numbers matched Claude's own usage card for that account (5-hour reset time and weekly 100%).
+- **Logins last about 30 days**, not hours.
+- **Plans differ:** A and B (Max) have 5-hour, weekly all-models and weekly Fable windows. C (Team) has 5-hour and weekly Fable only, with no all-models weekly window. The UI must not assume a weekly all-models window exists. For a Team account, the cross on the ring follows whichever weekly window is at 100%.
+- **A 5-hour window that hasn't started** comes back with no reset time (B showed 0% with no reset). Show "not started" rather than a blank.
+- **A wrong key isn't always caught at decryption:** it can pass the padding check and give garbage. Bad JSON after decrypting is treated the same as a failed decrypt.
+
 ## Open questions
 
 1. Does the per-account email from `/api/oauth/profile` replace the "Claude A/B/C" labels everywhere, or sit under them? Proposed: show the email in the panel and keep the letter on the rings and outline.
 2. Should the ring show the 5-hour window or "whichever limit is closest"? Proposed: the 5-hour window, with the weekly cross.
 3. Is a notification wanted when an exhausted account comes back? Proposed: later, off by default.
-4. Signing: is ad hoc enough for Keychain Always Allow to stick, or do we need a development certificate? Answered in milestone 1.
+4. Signing: is ad hoc enough for Keychain Always Allow to stick, or do we need a development certificate? Answered: "Always Allow" is tied to the binary's signature, and an ad hoc signature changes with every build, so each rebuild asks again (the first run after each of two builds waited about 4.7 s on the prompt; later runs took 0.3 s). The app in milestone 2 needs a stable signature (a local development certificate) so the prompt doesn't come back on every build.
 
 ## Prior art
 

@@ -138,6 +138,16 @@ Optional: give the two copies different themes (Settings → Appearance), for ex
 - **Built-in browser pane:** this is separate per copy, so each copy has its own site logins there.
 - All copies write to the same log, `~/Library/Logs/Claude/main.log`.
 
+## Each account's limits (`claude-usage`)
+
+`notch/` holds the start of a notch app that shows every account's 5-hour and weekly limits ([PRD](docs/notch-prd.md)). Its first piece is a command that prints them:
+
+```bash
+cd notch && swift build -c release && .build/release/claude-usage
+```
+
+The first run asks for Keychain access to "Claude Safe Storage". Click Always Allow: it reads the key each Claude copy uses to encrypt its own login. It only reads. It never refreshes a login or changes Claude's files, and its only network calls are the usage and profile checks Claude Code's `/usage` makes. Add `--json` for machine-readable output, or `--only B,C` to choose accounts. Run the tests with `swift test`.
+
 ## Updates
 
 Claude.app isn't modified, so it updates itself as normal, and every copy runs the same updated app. When an update installs, quit and reopen **all** the copies. Otherwise any that didn't restart keeps running the old version.
