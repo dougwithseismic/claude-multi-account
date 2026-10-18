@@ -119,7 +119,7 @@ The same numbers in the terminal. `install.sh` builds it into the repository at 
 ~/claude-multi-account/apps/notch/build/claude-usage
 ```
 
-Its first run asks for Keychain access too. Add `--json` for machine-readable output, `--only B,C` to choose accounts, or `--verbose` to see where each copy's organization in use was read from.
+Its first run asks for Keychain access too. Add `--json` for machine-readable output, `--only B,C` to choose accounts, or `--verbose` to see where each copy's organization in use was read from. `--signed-in` only lists the copies that have a login, without the Keychain or the network; `install.sh` uses it.
 
 ## How it works
 
@@ -143,7 +143,7 @@ apps/notch/build/"Claude Notch.app"/Contents/MacOS/ClaudeNotch --demo --pin
 - `--no-notch` draws the pill used on screens without a notch;
 - `--snapshot <file.png>` renders the rings and the open panel to a picture and quits.
 
-Without `--demo` or `--snapshot`, a second copy quits at once if Claude Notch is already running. `apps/notch/scripts/build-app.sh` builds the app and `claude-usage` on their own; add `--install` to install and open the app.
+Without `--demo` or `--snapshot`, a second copy quits at once if Claude Notch is already running. `apps/notch/scripts/build-app.sh` builds the app and `claude-usage` on their own; add `--install` to install and open the app, or `--uninstall` to quit and remove it.
 
 What went wrong, if anything, is in the system log:
 

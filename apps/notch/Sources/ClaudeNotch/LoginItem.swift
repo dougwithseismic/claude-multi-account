@@ -21,12 +21,10 @@ enum LoginItem {
         return isEnabled
     }
 
-    /// For `install.sh --uninstall` (`--remove-login-item`): takes it out of login items, if it's there.
+    /// For `build-app.sh --uninstall` (`--remove-login-item`): takes it out of login items, if it's there.
     static func remove() {
         guard [.enabled, .requiresApproval].contains(SMAppService.mainApp.status) else { return }
-        do { try SMAppService.mainApp.unregister() } catch {
-            complain("couldn't remove the login item: \(error.localizedDescription)")
-        }
+        set(false)
     }
 
     /// The first launch from an Applications folder turns it on; after that it's left to

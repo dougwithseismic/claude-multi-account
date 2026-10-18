@@ -1,11 +1,12 @@
 import Foundation
 import UsageCore
 
-// claude-usage [--json] [--verbose] [--only B,C]
+// claude-usage [--json] [--verbose] [--only B,C] [--signed-in]
 // Prints each Claude profile's limits, read from that copy's own login.
+// --signed-in only prints the letters of the copies that have a login, for install.sh.
 // Exits 0 when at least one account's usage was read, 1 when none was, 2 on bad arguments.
 
-let usageLine = "usage: claude-usage [--json] [--verbose] [--only A,B,…]"
+let usageLine = "usage: claude-usage [--json] [--verbose] [--only A,B,…] [--signed-in]"
 
 func badArguments(_ message: String) -> Never {
     FileHandle.standardError.write(Data("claude-usage: \(message)\n\(usageLine)\n".utf8))
@@ -15,6 +16,7 @@ func badArguments(_ message: String) -> Never {
 var json = false
 var verbose = false
 var only: Set<String>?
+var signedIn = false
 var arguments = CommandLine.arguments.dropFirst()
 while let argument = arguments.popFirst() {
     switch argument {
@@ -32,6 +34,8 @@ while let argument = arguments.popFirst() {
             badArguments("--only takes profile letters, like --only B,C")
         }
         only = Set(letters)
+    case "--signed-in":
+        signedIn = true
     default:
         badArguments("unknown argument \(argument)")
     }
@@ -39,6 +43,11 @@ while let argument = arguments.popFirst() {
 
 var profiles = Profile.discover()
 if let only { profiles = profiles.filter { only.contains($0.letter) } }
+if signedIn {
+    // From config.json alone: no Keychain, no network.
+    print(profiles.filter { (try? ProfileConfig.read($0))?.encryptedTokenCache != nil }.map(\.letter).joined(separator: " "))
+    exit(0)
+}
 guard !profiles.isEmpty else {
     let message = only == nil
         ? "No Claude profiles found in ~/Library/Application Support"
