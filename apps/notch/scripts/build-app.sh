@@ -1,6 +1,7 @@
 #!/bin/zsh
 # Builds "Claude Notch.app" and the claude-usage command into apps/notch/build/ and signs both.
 # With --install, also replaces ~/Applications/Claude Notch.app with it and opens it.
+# With --uninstall, builds nothing: quits the installed app and removes it.
 #
 # Keychain "Always Allow" is tied to the app's signature. An ad hoc signature changes
 # with every build, so macOS would ask again after each one; a certificate's doesn't.
@@ -8,6 +9,21 @@
 # Keychain, else ad hoc (with a warning).
 set -euo pipefail
 cd "${0:A:h}/.."
+
+DEST="$HOME/Applications/Claude Notch.app"
+LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+
+if [[ ${1:-} == --uninstall ]]; then
+  pkill -x ClaudeNotch && sleep 1 || true
+  # Only the app can take itself out of login items.
+  if [[ -x "$DEST/Contents/MacOS/ClaudeNotch" ]]; then "$DEST/Contents/MacOS/ClaudeNotch" --remove-login-item; fi
+  # With it gone, macOS hands claude:// links back to Claude.
+  "$LSREGISTER" -u "$DEST" 2>/dev/null || true
+  rm -rf "$DEST"
+  defaults delete com.godzillaaa.claude-notch 2>/dev/null || true
+  echo "Removed $DEST"
+  exit
+fi
 
 swift build -c release --product ClaudeNotch
 swift build -c release --product claude-usage
@@ -55,8 +71,6 @@ codesign --force --sign "$IDENTITY" --identifier com.godzillaaa.claude-usage bui
 echo "Built $PWD/$APP and $PWD/build/claude-usage"
 
 if [[ ${1:-} == --install ]]; then
-  DEST="$HOME/Applications/Claude Notch.app"
-  LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
   pkill -x ClaudeNotch && sleep 1 || true
   mkdir -p "$HOME/Applications"
   rm -rf "$DEST"

@@ -7,7 +7,8 @@ import UsageCore
 // passing claude:// links to the copy used last.
 //
 // `--pin` keeps the panel open; `--snapshot <file.png>` renders it and quits; `--demo` shows
-// made-up accounts in every state; `--no-notch` draws the pill used on screens without one.
+// made-up accounts in every state; `--no-notch` draws the pill used on screens without one;
+// `--remove-login-item` takes the app out of login items and quits, for `build-app.sh --uninstall`.
 
 struct Options {
     var pinned = false
@@ -27,6 +28,10 @@ struct Options {
 @MainActor
 enum ClaudeNotchApp {
     static func main() {
+        if CommandLine.arguments.contains("--remove-login-item") {
+            LoginItem.remove()
+            return
+        }
         let app = NSApplication.shared
         let delegate = AppDelegate(options: Options(CommandLine.arguments))
         app.delegate = delegate
