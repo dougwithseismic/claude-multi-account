@@ -1,6 +1,6 @@
 # Several Claude accounts side by side on a Mac
 
-Run the Claude desktop app two or more times, each copy signed in to a different account, and always know which one you're in. This guide sets up three (A, B and C); add more the same way.
+Run the Claude desktop app two or more times, each copy signed in to a different account, and always know which one you're in. It sets up three (A, B and C) unless you ask for more.
 
 When you're done you have:
 
@@ -14,79 +14,64 @@ When you're done you have:
 
 Claude.app itself is never modified, so it stays signed and keeps updating as normal.
 
-The scripts are in `files/` and the app is in `apps/notch/`. Run every command from this folder:
+## Install
+
+You need macOS 26 or later, the [Claude desktop app](https://claude.ai/download) in `/Applications`, and Apple's Command Line Tools (`xcode-select --install`) or Xcode.
 
 ```bash
-cd ~/Documents/WEB_PROJECTS/tools/claude-multi-account
+git clone https://github.com/dougwithseismic/claude-multi-account.git ~/claude-multi-account
 ```
-
-## How it works
-
-Claude is an Electron app. Electron keeps everything for one account (login cookies, settings, window state) in a single data folder, `~/Library/Application Support/Claude`. If you start Claude with `--user-data-dir=<another folder>`, that copy runs separately with its own login.
-
-There are two catches, and the steps below deal with both:
-
-1. **Claude doesn't stop a duplicate.** Opening Claude again while a copy is already running on the same folder starts a second copy on that folder, and two copies on one folder can corrupt it. That's why you use the launchers in step 2, which bring an open copy to the front instead of starting another one.
-2. **macOS sends every `claude://` link to the copy that started first.** That includes the sign-in link, so on its own, signing in to B would try to sign A in instead. Claude Notch (step 3) takes those links and passes each one to the copy you used last.
-
-## 1. Make the data folders
-
-The launcher script creates these on first use, but you can make them yourself:
 
 ```bash
-for X in B C; do
-  mkdir -p "$HOME/Library/Application Support/Claude-$X"
-  chmod 700 "$HOME/Library/Application Support/Claude-$X"
-done
+~/claude-multi-account/install.sh
 ```
 
-Optional: copy over A's app preferences and DevTools setting. Don't copy `config.json`, because that's where A's login lives.
+Or point your coding agent at this repository and tell it to install it.
 
-```bash
-SRC="$HOME/Library/Application Support/Claude"
-for X in B C; do cp -p "$SRC/claude_desktop_config.json" "$SRC/developer_settings.json" "$HOME/Library/Application Support/Claude-$X/" 2>/dev/null; done
-```
+> **For AI agents:** run `./install.sh` from the repository root. It takes no input and is safe to run again. When it finishes, pass on the list it prints at the end: the Keychain prompt and signing in need the person at the keyboard.
 
-The MCP servers and skills the Code tab uses live in `~/.claude`, which both copies share, so there's nothing to copy for those. Transcripts and memory are shared too, which is useful, but don't run both accounts in the same git worktree at once.
+`install.sh` does four things, and prints what it's doing:
 
-## 2. Build the launchers
+1. **Data folders:** makes one for each extra copy, `~/Library/Application Support/Claude-B` and `Claude-C`. A new one starts with A's app preferences (`claude_desktop_config.json`, `developer_settings.json`) but never A's login.
+2. **Profiles:** writes `~/.config/claude-multi-account/profiles.json`, each copy's name, colour and hotkey, if you don't have one yet.
+3. **Launchers:** builds `Claude A.app`, `Claude B.app` and `Claude C.app` in `~/Applications`. Each brings its copy to the front if it's running and starts it if it isn't, so you can open them from Spotlight, Raycast or the Dock.
+4. **Claude Notch:** builds it, installs it as `~/Applications/Claude Notch.app` and opens it. It has no Dock icon; quit it from its panel.
 
-`files/claude-profile.sh A|B|C` brings that copy to the front if it's running and starts it if it isn't. A uses Claude's normal folder; any other letter X uses `Claude-X`. Wrap it in small apps so you can open them from Spotlight, Raycast or the Dock:
+Run it again after a `git pull` to update. It keeps your profiles.json, settings and logins.
 
-```bash
-ICON=/Applications/Claude.app/Contents/Resources/$(/usr/libexec/PlistBuddy -c "Print CFBundleIconFile" /Applications/Claude.app/Contents/Info.plist | sed 's/\.icns$//').icns
-mkdir -p ~/Applications
-for X in A B C; do
-  APP=~/Applications/"Claude $X.app"
-  echo "do shell script quoted form of (POSIX path of (path to me)) & \"Contents/Resources/claude-profile.sh $X\"" > /tmp/claude-$X.applescript
-  rm -rf "$APP"
-  osacompile -o "$APP" /tmp/claude-$X.applescript
-  install -m 755 files/claude-profile.sh "$APP/Contents/Resources/claude-profile.sh"
-  cp "$ICON" "$APP/Contents/Resources/applet.icns"
-  /usr/libexec/PlistBuddy -c "Add :LSUIElement bool true" "$APP/Contents/Info.plist"
-  codesign --force --deep -s - "$APP"
-done
-```
+From now on, never open `/Applications/Claude.app` directly while a copy is running: it would start a second copy on A's folder. Use ⌥⌘1, ⌥⌘2 and ⌥⌘3, or the Claude A, B and C launchers.
 
-`LSUIElement` stops the launchers showing up in the Dock; they quit as soon as they've done their job. Re-signing is needed because editing `Info.plist` breaks `osacompile`'s signature.
+### Allow Keychain access
 
-From now on, never open `/Applications/Claude.app` directly while a copy is running. Use the Claude A, B and C launchers.
+Claude Notch's first run asks for access to "Claude Safe Storage". Enter your login password and click **Always Allow**. Each Claude copy encrypts its own login with that key, and the app reads the login to check usage.
 
-## 3. Install Claude Notch
+The build is signed with your first code-signing certificate (or `CODESIGN_IDENTITY`), so later updates don't ask again. With no certificate it signs ad hoc, and every update asks again.
 
-```bash
-apps/notch/scripts/build-app.sh --install
-```
+### Sign in to B and C
 
-This builds the app, copies it to `~/Applications/Claude Notch.app` and opens it. It has no Dock icon; quit it from its panel. Then:
+Do this once for each extra copy, one at a time:
 
-1. **Keychain:** the first run asks for access to "Claude Safe Storage". Click **Always Allow** (it asks for your login password). Each Claude copy encrypts its own login with that key, and the app reads the login to check usage. The script signs the app with your first code-signing certificate (or `CODESIGN_IDENTITY`), so later rebuilds don't ask again. With no certificate it signs ad hoc, and every rebuild asks again.
-2. **Login:** the first run from `~/Applications` adds it to your login items (macOS shows a notification). Turn off **Open at login** in its settings (the gear at the top left of the panel) to stop that.
-3. **Links:** it takes `claude://` links when it starts, and again whenever a Claude copy starts, in case a Claude update took them back. The first link it passes on makes macOS ask whether "Claude Notch" may control "Claude". Click **Allow**.
+1. Open it (⌥⌘2 for B, ⌥⌘3 for C). Its window gets that copy's outline.
+2. Click sign in and finish in the browser.
+3. When the browser asks to open Claude, allow it. The login goes to the copy you opened. The first time, macOS asks whether "Claude Notch" may control "Claude": click **Allow**.
 
-Hotkeys, the outline and links need no Accessibility permission.
+Don't click into another Claude between steps 2 and 3, or that one becomes "last used" and receives the login. The notch panel's footer says which copy links go to.
 
-### What it shows
+Each copy stays signed in after that. Optional: give the copies different themes (Settings → Appearance), for example A in Light and B in Dark, so you can tell them apart at a glance.
+
+Claude Notch adds itself to your login items on its first run (macOS shows a notification). Turn off **Open at login** in its settings (the gear at the top left of the panel) to stop that. Hotkeys, the outline and links need no Accessibility permission.
+
+## Day to day
+
+- **⌥⌘1**, **⌥⌘2** and **⌥⌘3** switch to A, B and C, and a peek under the notch names the one you switched to. So does clicking a row in the notch panel.
+- Closing a Claude window doesn't quit that copy: it keeps running with no window, as Mac apps do. Switching handles this by sending it the same "reopen" message a Dock click sends, so a new window appears. To really quit a copy, press ⌘Q in it.
+- The outline shows which Claude you're typing into. When another app is in front, the next `claude://` link goes to the Claude you used last ("Links go to Claude B" in the panel).
+- **Claude in Chrome:** there's one Chrome and one extension, and the connection to it belongs to your Mac user rather than to a Claude account. So every copy can use the same Chrome; just don't have two driving it at the same time.
+- **Built-in browser pane:** this is separate per copy, so each copy has its own site logins there.
+- **Code tab:** the MCP servers and skills it uses live in `~/.claude`, which every copy shares. Transcripts and memory are shared too, which is useful, but don't run two accounts in the same git worktree at once.
+- All copies write to the same log, `~/Library/Logs/Claude/main.log`.
+
+## What Claude Notch shows
 
 By default it stays collapsed: one double ring per Claude copy just right of the notch, in that copy's colour. The outer ring is the 5-hour window and the inner one the fullest weekly window. A red cross means that account is out for the week. A dot under a ring marks the copy in front. The rings never take clicks, so the menu bar icons under them still work. On a screen without a notch the rings sit in a small black pill at the top centre.
 
@@ -100,14 +85,9 @@ Rest the pointer on the notch, or click it, and the panel grows out of it with o
 
 It reads every account at launch and then every 5 minutes, and backs off when Anthropic rate-limits the check. It only reads: it never refreshes a login or changes Claude's files. Its only network calls are the usage and profile checks Claude Code's `/usage` makes.
 
-### Names, colours and keys
+## Names, colours and keys
 
-`~/.config/claude-multi-account/profiles.json` sets each copy's label, colour and hotkey; `files/profiles.json` is the starting point:
-
-```bash
-mkdir -p ~/.config/claude-multi-account
-cp files/profiles.json ~/.config/claude-multi-account/profiles.json
-```
+`~/.config/claude-multi-account/profiles.json` sets each copy's label, colour and hotkey. `install.sh` writes it from `files/profiles.json`:
 
 ```json
 [
@@ -117,21 +97,42 @@ cp files/profiles.json ~/.config/claude-multi-account/profiles.json
 ]
 ```
 
-Without the file the app uses these. **Edit** under Profiles in its settings opens the file, writing these defaults out first if there's none, and **Reload** applies your changes. `claude-usage` reads it too.
+**Edit** under Profiles in Claude Notch's settings opens the file, and **Reload** applies your changes. `claude-usage` reads it too.
 
-### `claude-usage`
+## Add more copies
 
-The same numbers in the terminal. `build-app.sh` builds it into `apps/notch/build/claude-usage`:
+To go from three to four (A to D):
 
 ```bash
-apps/notch/build/claude-usage
+~/claude-multi-account/install.sh 4
 ```
 
-Its first run asks for Keychain access too. Add `--json` for machine-readable output, `--only B,C` to choose accounts, or `--verbose` to see where each copy's organization in use was read from. Run the tests with `cd apps/notch && swift test`.
+It adds D to profiles.json (purple, ⌥⌘4), makes its data folder and launcher, and restarts Claude Notch. Then open it with ⌥⌘4 and sign in as above. Its ring appears after its first start. Any number up to 26 works; copies after the ninth get no hotkey.
 
-### Checking it
+Each copy is a full Electron app, so expect roughly 0.5–1 GB of memory per open copy.
 
-The app's binary takes a few options for checking it by eye:
+## `claude-usage`
+
+The same numbers in the terminal. `install.sh` builds it into the repository at `apps/notch/build/claude-usage`:
+
+```bash
+~/claude-multi-account/apps/notch/build/claude-usage
+```
+
+Its first run asks for Keychain access too. Add `--json` for machine-readable output, `--only B,C` to choose accounts, or `--verbose` to see where each copy's organization in use was read from.
+
+## How it works
+
+Claude is an Electron app. Electron keeps everything for one account (login cookies, settings, window state) in a single data folder, `~/Library/Application Support/Claude`. If you start Claude with `--user-data-dir=<another folder>`, that copy runs separately with its own login.
+
+There are two catches:
+
+1. **Claude doesn't stop a duplicate.** Opening Claude again while a copy is already running on the same folder starts a second copy on that folder, and two copies on one folder can corrupt it. The launchers (`files/claude-profile.sh` inside each) bring an open copy to the front instead of starting another one.
+2. **macOS sends every `claude://` link to the copy that started first.** That includes the sign-in link, so on its own, signing in to B would try to sign A in instead. Claude Notch takes those links and passes each one to the copy you used last. It takes them when it starts, and again whenever a Claude copy starts, in case a Claude update took them back.
+
+## Checking it
+
+Run the tests from `apps/notch` with `swift test`. The app's binary takes a few options for checking it by eye:
 
 ```bash
 apps/notch/build/"Claude Notch.app"/Contents/MacOS/ClaudeNotch --demo --pin
@@ -142,7 +143,7 @@ apps/notch/build/"Claude Notch.app"/Contents/MacOS/ClaudeNotch --demo --pin
 - `--no-notch` draws the pill used on screens without a notch;
 - `--snapshot <file.png>` renders the rings and the open panel to a picture and quits.
 
-Without `--demo` or `--snapshot`, a second copy quits at once if Claude Notch is already running.
+Without `--demo` or `--snapshot`, a second copy quits at once if Claude Notch is already running. `apps/notch/scripts/build-app.sh` builds the app and `claude-usage` on their own; add `--install` to install and open the app.
 
 What went wrong, if anything, is in the system log:
 
@@ -150,28 +151,11 @@ What went wrong, if anything, is in the system log:
 log show --predicate 'subsystem == "com.godzillaaa.claude-notch"' --last 1h --info
 ```
 
-## 4. Sign in to B and C
+## Updates
 
-Do this once for each extra copy, one at a time:
+Claude.app isn't modified, so it updates itself as normal, and every copy runs the same updated app. When an update installs, quit and reopen **all** the copies. Otherwise any that didn't restart keeps running the old version.
 
-1. Open it (⌥⌘2 for B, ⌥⌘3 for C). Its window gets that copy's outline.
-2. Click sign in and finish in the browser.
-3. When the browser asks to open Claude, allow it. The login goes to the copy you opened.
-
-Don't click into another Claude between steps 2 and 3, or that one becomes "last used" and receives the login. The notch panel's footer says which copy links go to.
-
-Each copy stays signed in after that.
-
-Optional: give the copies different themes (Settings → Appearance), for example A in Light and B in Dark, so you can tell them apart at a glance.
-
-## Day to day
-
-- **⌥⌘1**, **⌥⌘2** and **⌥⌘3** switch to A, B and C, and a peek under the notch names the one you switched to. So does clicking a row in the notch panel.
-- Closing a Claude window doesn't quit that copy: it keeps running with no window, as Mac apps do. Switching handles this by sending it the same "reopen" message a Dock click sends, so a new window appears. To really quit a copy, press ⌘Q in it.
-- The outline shows which Claude you're typing into. When another app is in front, the next `claude://` link goes to the Claude you used last ("Links go to Claude B" in the panel).
-- **Claude in Chrome:** there's one Chrome and one extension, and the connection to it belongs to your Mac user rather than to a Claude account. So every copy can use the same Chrome; just don't have two driving it at the same time.
-- **Built-in browser pane:** this is separate per copy, so each copy has its own site logins there.
-- All copies write to the same log, `~/Library/Logs/Claude/main.log`.
+To update Claude Notch, `git pull` and run `install.sh` again.
 
 ## Moving from Hammerspoon
 
@@ -185,34 +169,19 @@ rm -rf ~/Applications/"Claude Link Router.app"
 
 Then open Claude Notch again so it takes the links back. If Hammerspoon has nothing else to do, uninstall it with `brew uninstall --cask hammerspoon`. The old `init.lua` and link router are in this repo's history (commit `a1fc8f6`).
 
-## Updates
-
-Claude.app isn't modified, so it updates itself as normal, and every copy runs the same updated app. When an update installs, quit and reopen **all** the copies. Otherwise any that didn't restart keeps running the old version.
-
-## Adding a fourth (D, E, …)
-
-1. Add a line to `~/.config/claude-multi-account/profiles.json`, for example `{ "letter": "D", "label": "Claude D", "color": "#B04FD6", "hotkey": "4" }`, then click **Reload** under Profiles in Claude Notch's settings.
-2. Build its launcher: run the loop in step 2 with `for X in D; do`.
-3. Open it with ⌥⌘4 and sign in as in step 4. Its ring appears once it has a data folder.
-
-Each copy is a full Electron app, so expect roughly 0.5–1 GB of memory per open copy.
-
-## Undo
-
-First turn off **Open at login** in Claude Notch's settings and click **Quit** at the bottom of them. Then:
+## Uninstall
 
 ```bash
-rm -rf ~/Applications/"Claude Notch.app" ~/.config/claude-multi-account
-rm -rf ~/Applications/"Claude A.app" ~/Applications/"Claude B.app" ~/Applications/"Claude C.app"
-rm -rf "$HOME/Library/Application Support/Claude-B" "$HOME/Library/Application Support/Claude-C"   # signs B and C out and deletes their settings
+~/claude-multi-account/install.sh --uninstall
 ```
 
-With Claude Notch gone, macOS hands `claude://` links to Claude itself again.
+This quits Claude Notch, takes it out of your login items and deletes it, deletes the launchers, profiles.json and the app's settings, and hands `claude://` links back to Claude. It leaves each extra copy's data folder, so those copies stay signed in if you install again, and prints the command that deletes them (which signs them out and deletes their settings).
 
 ## Files
 
 | File | Goes to | Does |
 | --- | --- | --- |
+| `install.sh` | | Sets everything up, adds copies, or takes it all out |
 | `files/claude-profile.sh` | inside each launcher app | Brings a copy to the front, or starts it |
 | `files/profiles.json` | `~/.config/claude-multi-account/profiles.json` | Each copy's label, colour and hotkey |
 | `apps/notch/` | `~/Applications/Claude Notch.app` | The app (limits, hotkeys, outline, links) and the `claude-usage` command |

@@ -21,6 +21,14 @@ enum LoginItem {
         return isEnabled
     }
 
+    /// For `install.sh --uninstall` (`--remove-login-item`): takes it out of login items, if it's there.
+    static func remove() {
+        guard [.enabled, .requiresApproval].contains(SMAppService.mainApp.status) else { return }
+        do { try SMAppService.mainApp.unregister() } catch {
+            complain("couldn't remove the login item: \(error.localizedDescription)")
+        }
+    }
+
     /// The first launch from an Applications folder turns it on; after that it's left to
     /// the switch on the settings page. Not from a build folder, which would be the wrong copy.
     static func enableOnFirstLaunch() {
