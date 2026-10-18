@@ -1,5 +1,4 @@
-/** Where the page's outbound links go. The repository is private for now, so these
- * only work for people with access until it (or a release) is public. */
+/** Where the page's outbound links go. */
 const repo = 'https://github.com/dougwithseismic/claude-multi-account'
 
 export const site = {

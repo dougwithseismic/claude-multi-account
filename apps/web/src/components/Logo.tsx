@@ -49,7 +49,7 @@ export function Mark({ size = 20 }: { size?: number }) {
 
 export function Logo() {
   return (
-    <a className="logo" href="/" aria-label="Claude Notch home">
+    <a className="logo" href={import.meta.env.BASE_URL} aria-label="Claude Notch home">
       <Mark />
       <span className="logo__word">Claude Notch</span>
     </a>
