@@ -1,6 +1,6 @@
 # PRD 05: Notch 0.5, pace, best account, status line and first run
 
-Status: not started.
+Status: shipped 2026-10-19.
 
 ## Goal
 
@@ -47,4 +47,14 @@ The Notch shows how much of each limit is used. It doesn't yet say what that mea
 
 ## Implementation notes
 
-(Filled in after shipping.)
+Shipped 2026-10-19 as 0.5 (5). 187 tests in 26 suites.
+
+- **Snapshot:** `SharedSnapshot` in UsageCore; the app writes it after each read and when the copy in front changes. A label that's an email is written as "Claude B". `CLAUDE_NOTCH_SNAPSHOT` points the CLI at another file. Installed on the author's Mac, the first read wrote it within seconds: folder 0700, file 0600, three copies (one Max 20x, two Team), no `@`, token or UUID in it.
+- **Status line:** `Code 41·63  ▸A 37·62  B 92·✕  C 12·30`. "Code" leads with the session's own `rate_limits` from stdin when Claude Code sends them. ✕ marks either window at 100%; figures are capped at 99. Copies on the right are dropped first when `COLUMNS` is narrow. About 7 ms a run on the author's Mac (16 ms in the builder's timing, 20 ms worst). stdin waits at most 100 ms for a first byte and 0.5 s in all.
+- **install.sh --statusline** builds `claude-usage` if it's older than 0.5, links it into `~/.local/bin`, and writes `statusLine` with `refreshInterval: 60` through `claude-usage --add-statusline`. The merge edits only where the key goes and re-parses the result; a trailing comma or any layout it can't follow leaves the file alone. Another status line exits 3 and is never replaced. `--uninstall` removes the link, our status line and the snapshot folder.
+- **`--best`** reads live when there's no snapshot from the last 15 minutes.
+- **Pace projection:** the 5% rule never changes the result (running out first needs more used than elapsed, which is already 10%), and a 60 s grace keeps an even pace from flickering.
+- **Welcome page:** 0.4 users see it once after updating. On the author's Mac it was dismissed with Got it within a minute of installing 0.5.
+- `install.sh --doctor`'s checks for 0.5 (opens at login, usage read in the last 15 minutes) pass on the author's Mac.
+- Docs: `/docs/status-line` is new; the panel, day to day, settings, sign-in, claude-usage, privacy (what the file holds), troubleshooting, install and updating pages, and the pacing and rings guides, cover 0.5.
+- Not checked by hand: pressing ⌥⌘0, the no-room peek, and the status line inside a live Claude Code session (run as a command with Claude Code's JSON on stdin instead).
