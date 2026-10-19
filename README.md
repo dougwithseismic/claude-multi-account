@@ -7,8 +7,8 @@ When you're done you have:
 - **Claude A**: your normal Claude, using the usual data folder.
 - **Claude B** and **Claude C**: extra copies, each with its own data folder (`Claude-B`, `Claude-C`), so each has its own login and settings.
 - **Claude Notch**, a small app of ours that:
-  - shows every account's 5-hour and weekly limits at the MacBook notch;
-  - switches to A, B or C with **⌥⌘1 / ⌥⌘2 / ⌥⌘3**, starting it if it's closed;
+  - shows every account's 5-hour and weekly limits at the MacBook notch, and when one will run out at the pace it's going;
+  - switches to A, B or C with **⌥⌘1 / ⌥⌘2 / ⌥⌘3**, starting it if it's closed, and to whichever has the most room with **⌥⌘0**;
   - draws an outline in that account's colour (blue, orange or green) round the window of whichever Claude is in front;
   - sends `claude://` links, including sign-in, to the Claude you used last instead of always to A.
 
@@ -36,12 +36,15 @@ Or point your coding agent at this repository and tell it to install it.
 
 > **For AI agents:** run `./install.sh` from the repository root. It takes no input and is safe to run again. When it finishes, pass on the list it prints at the end: the Keychain prompt and signing in need the person at the keyboard.
 
-`install.sh` does four things, and prints what it's doing:
+`install.sh` does five things, and prints what it's doing:
 
 1. **Data folders:** makes one for each extra copy, `~/Library/Application Support/Claude-B` and `Claude-C`. A new one starts with A's app preferences (`claude_desktop_config.json`, `developer_settings.json`) but never A's login.
 2. **Profiles:** writes `~/.config/claude-multi-account/profiles.json`, each copy's name, colour and hotkey, if you don't have one yet.
 3. **Launchers:** builds `Claude A.app`, `Claude B.app` and `Claude C.app` in `~/Applications`. Each brings its copy to the front if it's running and starts it if it isn't, so you can open them from Spotlight, Raycast or the Dock.
 4. **Claude Notch:** builds it, installs it as `~/Applications/Claude Notch.app` and opens it. It has no Dock icon; quit it from its panel.
+5. **`claude-usage`:** links the [command](#claude-usage) into `~/.local/bin` if you have that folder and nothing else there is called `claude-usage`.
+
+To put every copy's usage in Claude Code's status line as well, run `./install.sh --statusline` (see [below](#claude-codes-status-line)).
 
 Run it again after a `git pull` to update. It keeps your profiles.json, settings and logins.
 
@@ -67,9 +70,12 @@ Each copy stays signed in after that. Optional: give the copies different themes
 
 Claude Notch adds itself to your login items on its first run (macOS shows a notification). Turn off **Open at login** in its settings (the gear at the top left of the panel) to stop that. Hotkeys, the outline and links need no Accessibility permission.
 
+On its first run the panel opens by itself on a welcome page: how to read the rings and bars, and a checklist of what's left. It shows whether the Keychain allowed it, which copies are signed in (with a **Sign in** button that opens a copy, as clicking its row does), and the hotkeys. **Got it** folds it away for good. **Show the welcome page again** in its settings brings it back.
+
 ## Day to day
 
 - **⌥⌘1**, **⌥⌘2** and **⌥⌘3** switch to A, B and C, and a peek under the notch names the one you switched to. So does clicking a row in the notch panel.
+- **⌥⌘0** switches to the copy with the most room: of those read in the last 15 minutes and not out of any limit, the one whose fullest window (5-hour or weekly) is lowest. A tie goes to the earlier letter. When every copy is out, the peek says "No copy has room" and which copy is back first, and nothing switches. The panel's footer names the copy ("Most room: Claude C") when you have more than one. A profile whose own hotkey is `0` keeps it, and the switch in settings turns this off.
 - Closing a Claude window doesn't quit that copy: it keeps running with no window, as Mac apps do. Switching handles this by sending it the same "reopen" message a Dock click sends, so a new window appears. To really quit a copy, press ⌘Q in it.
 - The outline shows which Claude you're typing into. When another app is in front, the next `claude://` link goes to the Claude you used last ("Links go to Claude B" in the panel).
 - **Claude in Chrome:** there's one Chrome and one extension, and the connection to it belongs to your Mac user rather than to a Claude account. So every copy can use the same Chrome; just don't have two driving it at the same time.
@@ -83,13 +89,17 @@ By default it stays collapsed: one double ring per Claude copy just right of the
 
 Rest the pointer on the notch, or click it, and the panel grows out of it with one row per copy: its name, plan, each window's bar and when it resets. The white tick on a bar marks how far through its window it is, so a bar past its tick is going faster than an even pace. Click a row to switch to that Claude. Move away and the panel folds back into the notch.
 
+- **Pace:** when a window is going fast enough to run out before it resets, its row says when instead, in orange: "out ~15:40 at this pace". That's a straight line from what's used so far, so it waits until a tenth of the window has passed and 5% is used. At an even pace or slower, the row shows the reset as usual, and hovering the row always does.
+
 - **Privacy:** rows show the profile's name ("Claude B") and plan, not the email or a Team's name, so the panel can open in front of anyone. The eye at the top left shows them; holding ⌥ over the panel shows them until you let go.
 - **Peeks:** after a ⌥⌘ switch, a strip under the notch names the copy for a moment. When the copy in use passes 90% of its 5-hour limit, runs out of a limit, or gets one back, the strip says so for a few seconds. Peeks never take clicks and stay away while an app is full screen.
-- **Settings** (the gear): show emails and team names, open on hover or only on click, limit alerts, switch peeks, haptic feedback, open at login, and editing profiles.json.
+- **Settings** (the gear): show emails and team names, open on hover or only on click, limit alerts, switch peeks, ⌥⌘0, haptic feedback, open at login, and editing profiles.json. Under "Reading it": what the rings and bars mean, the welcome page again, and links to [how limits work](https://dougwithseismic.github.io/claude-multi-account/learn/how-limits-work/) and [what's new](https://dougwithseismic.github.io/claude-multi-account/changelog/).
 
 **Teams and other organizations:** one login can belong to several organizations, for example a personal Max plan and a Team. Each has its own limits. The row shows the one that copy is working in (whichever you last picked in Claude's account menu), and any other organization below it, marked "not in use". Claude renews only the login of the organization it's working in. So if another one's numbers go stale, switch that Claude to it once to update them. An organization you've never used in that copy (a free personal plan, say) has no login and isn't shown.
 
 It reads every account at launch and then every 5 minutes, and backs off when Anthropic rate-limits the check. It only reads: it never refreshes a login or changes Claude's files. Its only network calls are the usage and profile checks Claude Code's `/usage` makes.
+
+After each read it shares what it read in `~/Library/Caches/claude-multi-account/usage.json`, for `claude-usage --cached`, `--best` and the status line. The file holds each copy's letter, name, colour, plan, whether it's in front, how its last read went and its windows' percentages and resets, for the organization each copy is working in. It never holds a login, an email, an organization's name or an ID, and only you can read it (mode 0600).
 
 ## Names, colours and keys
 
@@ -119,13 +129,47 @@ Each copy is a full Electron app, so expect roughly 0.5–1 GB of memory per ope
 
 ## `claude-usage`
 
-The same numbers in the terminal. `install.sh` builds it into the repository at `apps/notch/build/claude-usage`:
+The same numbers in the terminal. `install.sh` builds it into the repository at `apps/notch/build/claude-usage`, and links it into `~/.local/bin` when you have that folder:
 
 ```bash
 ~/claude-multi-account/apps/notch/build/claude-usage
 ```
 
-Its first run asks for Keychain access too. Add `--json` for machine-readable output, `--only B,C` to choose accounts, or `--verbose` to see where each copy's organization in use was read from. `--signed-in` only lists the copies that have a login, without the Keychain or the network; `install.sh` uses it.
+On its own it reads every copy live, with each one's login, so its first run asks for Keychain access too. Add `--json` for machine-readable output, `--only B,C` to choose accounts, or `--verbose` to see where each copy's organization in use was read from. `--signed-in` only lists the copies that have a login, without the Keychain or the network; `install.sh` uses it.
+
+These read what Claude Notch read last instead, so they never touch the Keychain or the network:
+
+- `--cached` prints the same rows from Claude Notch's file (`--json` and `--only` work too). If there's no file, or Claude Notch hasn't read for 15 minutes, it says so and exits 1.
+- `--best` prints the letter of the copy with the most room, as ⌥⌘0 picks it, for scripts: `letter=$(claude-usage --best) && open ~/Applications/"Claude $letter.app"`. It exits 1 when no copy has room. Without a recent read from Claude Notch it reads live.
+- `--statusline` prints the one line for [Claude Code's status line](#claude-codes-status-line).
+
+`CLAUDE_NOTCH_SNAPSHOT=<file>` points all three at another file instead of `~/Library/Caches/claude-multi-account/usage.json`, for tests or a made-up file.
+
+## Claude Code's status line
+
+```bash
+~/claude-multi-account/install.sh --statusline
+```
+
+This adds every copy's usage to the line under Claude Code's prompt, from what Claude Notch read last:
+
+```text
+Code 41·63  ▸A 37·62  B 92·✕  C 12·30
+```
+
+Each copy shows its letter in its colour, then its 5-hour and fullest weekly window in percent. A figure turns red from 90%, and ✕ means that window is used up. ▸ marks the copy in front, and a copy whose numbers are old is dimmed. When Claude Code passes the session's own limits (Pro and Max plans, after the session's first answer), "Code" leads with them. In a narrow window the copies on the right go first. If Claude Notch isn't running, or hasn't read for 15 minutes, the line says so in grey.
+
+It writes this to `~/.claude/settings.json` (or `$CLAUDE_CONFIG_DIR/settings.json`), leaving the rest of the file as it was:
+
+```json
+"statusLine": {
+  "type": "command",
+  "command": "/Users/you/.local/bin/claude-usage --statusline",
+  "refreshInterval": 60
+}
+```
+
+The command is the `~/.local/bin` link, or the repository's `apps/notch/build/claude-usage` without one. If you already have a status line, it's left alone: `install.sh` prints it and the setting to use instead, to change by hand. `refreshInterval` runs it once a minute even while a session is idle, as Claude Notch's numbers change on their own. Add `--only A,B` to the command to show fewer copies.
 
 ## How it works
 
@@ -147,7 +191,10 @@ apps/notch/build/"Claude Notch.app"/Contents/MacOS/ClaudeNotch --demo --pin
 - `--demo` shows six made-up copies (A to F) in every state (out for the week, rate-limited, login expired, signed out, Keychain refused, and so on) instead of yours, then shows a switch peek and a limit alert. It reads nothing, keeps its settings apart from the app's, and leaves the outline and links to the running app. Its ⌥⌘ keys and rows only move which made-up copy is current, and the keys work only while the app itself isn't running;
 - `--pin` keeps the panel open;
 - `--no-notch` draws the pill used on screens without a notch;
-- `--snapshot <file.png>` renders the rings and the open panel to a picture and quits.
+- `--welcome` opens on the welcome page, as the first run does;
+- `--snapshot <file.png>` renders the rings, the peeks, the open panel and its settings to a picture and quits (with `--welcome`, the welcome page too).
+
+`--demo` never writes the usage file. To check `claude-usage --cached`, `--best` and `--statusline` without Claude Notch, point `CLAUDE_NOTCH_SNAPSHOT` at a file of your own.
 
 Without `--demo` or `--snapshot`, a second copy quits at once if Claude Notch is already running. `apps/notch/scripts/build-app.sh` builds the app and `claude-usage` on their own; add `--install` to install and open the app, or `--uninstall` to quit and remove it.
 
@@ -181,14 +228,14 @@ Then open Claude Notch again so it takes the links back. If Hammerspoon has noth
 ~/claude-multi-account/install.sh --uninstall
 ```
 
-This quits Claude Notch, takes it out of your login items and deletes it, deletes the launchers, profiles.json and the app's settings, and hands `claude://` links back to Claude. It leaves each extra copy's data folder, so those copies stay signed in if you install again, and prints the command that deletes them (which signs them out and deletes their settings).
+This quits Claude Notch, takes it out of your login items and deletes it, deletes the launchers, profiles.json, the app's settings and its usage file, and hands `claude://` links back to Claude. It removes the `~/.local/bin/claude-usage` link and Claude Code's status line only if they're the ones `install.sh` added. It leaves each extra copy's data folder, so those copies stay signed in if you install again, and prints the command that deletes them (which signs them out and deletes their settings).
 
 ## Files
 
 | File | Goes to | Does |
 | --- | --- | --- |
 | `bootstrap.sh` | served as the site's `/install.sh` | The one-line install: checks the Mac, clones or pulls this repository, runs `install.sh` |
-| `install.sh` | | Sets everything up, adds copies, or takes it all out; `--doctor` checks it all |
+| `install.sh` | | Sets everything up, adds copies or the status line, or takes it all out; `--doctor` checks it all |
 | `scripts/doctor.sh` | | `install.sh --doctor` |
 | `files/claude-profile.sh` | inside each launcher app | Brings a copy to the front, or starts it |
 | `files/profiles.json` | `~/.config/claude-multi-account/profiles.json` | Each copy's label, colour and hotkey |
