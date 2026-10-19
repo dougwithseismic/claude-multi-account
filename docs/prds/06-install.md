@@ -1,6 +1,6 @@
 # PRD 06: One-line install and `--doctor`
 
-Status: not started.
+Status: shipped 2026-10-19.
 
 ## Goal
 
@@ -22,4 +22,11 @@ Installing takes two commands today and assumes git and Apple's command line too
 
 ## Implementation notes
 
-(Filled in after shipping.)
+Shipped 2026-10-19.
+
+- `bootstrap.sh` at the root; `apps/web/plugins/root-files.ts` serves it at `/install.sh` in dev and copies it into the build, so there's one file. The Pages workflow also runs when it changes. Everything is inside `main`, called on the last line, so a cut-short download runs nothing.
+- A folder at `~/claude-multi-account` counts as ours if it's a git checkout with an executable `install.sh`, so forks and SSH clones work. With local changes it installs from them as they are, and says so, rather than stopping.
+- `--doctor` is `scripts/doctor.sh`, which `install.sh` hands over to. Three marks: ✓, ✗ (counts toward exit 1) and – for choices that are the user's (not opening at login, `claude-usage` not on the PATH). It reads profiles.json the way the app does (an entry without a capital letter is skipped, a bad colour is grey) and reports each case.
+- Opening at login comes from the app itself: `ClaudeNotch --login-item` prints `SMAppService.mainApp.status` and quits. The doctor only asks builds from 0.5 on, since older ones would start instead. The usage snapshot's age is checked from 0.5 on too (PRD 05 writes it).
+- Tested: on this Mac (exit 0); against an empty home with a broken profiles.json (each problem listed, exit 1); bootstrap piped into zsh for a fresh clone, an update, local changes, a folder that isn't a checkout, and missing Command Line Tools (stubbed).
+- Open: run the one line on a clean Mac once it's live.

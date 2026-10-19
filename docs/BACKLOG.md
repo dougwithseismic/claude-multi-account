@@ -11,7 +11,7 @@ Ordered. `[ ]` not started, `[~]` shipped up to a seam, `[x]` done. Each PRD is 
 | 03 | [Learn: guides to Claude's limits](prds/03-learn.md) | Education | [x] |
 | 04 | [Web tools: pace calculator and setup planner](prds/04-web-tools.md) | Tooling | [x] |
 | 05 | [Notch 0.5: pace, best account, status line, first run](prds/05-notch-05.md) | Both | [ ] |
-| 06 | [One-line install and `--doctor`](prds/06-install.md) | Tooling | [ ] |
+| 06 | [One-line install and `--doctor`](prds/06-install.md) | Tooling | [x] |
 | 07 | [Changelog and what's new](prds/07-changelog.md) | Both | [~] |
 | 08 | [Compare page and launch kit](prds/08-launch.md) | Education | [ ] |
 | 09 | Claude Code in the terminal, one login per copy (`CLAUDE_CONFIG_DIR`, now in Anthropic's docs) | Tooling | [ ] thin |

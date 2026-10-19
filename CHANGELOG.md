@@ -4,6 +4,11 @@ What changed for people who use Claude Notch, newest first. To update, `git pull
 
 ## Unreleased
 
+### Install
+
+- One line installs everything: `curl -fsSL https://dougwithseismic.github.io/claude-multi-account/install.sh | zsh`. It checks the Mac, opens the Command Line Tools installer if they're missing, gets the code into `~/claude-multi-account` or updates it (never over changes of your own), and runs `install.sh`. Add `-s -- 4` for four copies.
+- `./install.sh --doctor` checks the whole setup and changes nothing: macOS, Claude.app and Swift, profiles.json, each copy's folder, launcher and sign-in, a copy open twice, whether Claude Notch is up to date, running and opening at login, where sign-in links go, and the Keychain item. Each problem comes with how to fix it.
+
 ### Site
 
 - Docs: install, sign in, reading the panel, settings, profiles, `claude-usage`, troubleshooting, privacy, how it works and updating, on the site instead of the README.
