@@ -68,6 +68,9 @@ final class NotchController {
     private var peekArmed = true
     private var peekTask: Task<Void, Never>?
     private var shrinkTask: Task<Void, Never>?
+    /// The welcome page opened by itself and Got it hasn't been pressed: the panel opens on
+    /// it until it is.
+    private(set) var welcoming = false
 
     init(model: AccountsModel, preferences: Preferences, pinned: Bool, forcePill: Bool, actions: PanelActions) {
         self.model = model
@@ -77,6 +80,8 @@ final class NotchController {
         self.actions = actions
         let open = actions.open
         self.actions.open = { [weak self] letter in self?.switchTo(letter, open: open) }
+        self.actions.finishWelcome = { [weak self] in self?.finishWelcome() }
+        self.actions.showWelcome = { [weak self] in self?.showWelcome() }
         rings.ignoresMouseEvents = true
         rings.level = NSWindow.Level(rawValue: panel.level.rawValue + 1)
         peekWindow.ignoresMouseEvents = true
@@ -167,6 +172,9 @@ final class NotchController {
         let inPeek = state.peekShown && layout.peek.contains(mouse)
         if !inPeek { peekArmed = true }
         gate.hoverOpens = preferences.openOn == .hover
+        // Opened by itself, the welcome page stays until the pointer has been over it: then
+        // it folds when the pointer leaves, as if hovered open.
+        if welcoming, state.isOpen, !gate.isOpen, panelRect.contains(mouse) { _ = gate.openNow() }
         let changed = gate.update(
             inTrigger: layout.trigger.contains(mouse) || (inPeek && peekArmed),
             inPanel: state.isOpen && panelRect.contains(mouse),
@@ -216,8 +224,33 @@ final class NotchController {
         } completion: { [weak self] in
             guard let self, !self.state.isOpen, !self.pinned else { return }
             self.panel.orderOut(nil)
-            self.state.page = .usage
+            self.state.page = self.welcoming ? .welcome : .usage
         }
+    }
+
+    /// Opens the panel by itself on the welcome page, as on the first run. Until Got it,
+    /// the panel opens on it again.
+    func welcome() {
+        welcoming = true
+        state.page = .welcome
+        show()
+    }
+
+    /// Got it: not again at launch, and the panel folds (or, pinned, shows the usage).
+    private func finishWelcome() {
+        preferences.welcomeSeen = true
+        welcoming = false
+        if pinned {
+            withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) { state.page = .usage }
+        } else {
+            gate.close()
+            close()
+        }
+    }
+
+    /// From settings: the welcome page, for as long as the panel is open.
+    private func showWelcome() {
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) { state.page = .welcome }
     }
 
     private func switchTo(_ letter: String, open: (String) -> Void) {
@@ -269,11 +302,13 @@ final class NotchController {
     // MARK: Peeks
 
     /// Shows a peek for a few seconds, unless the panel is open, the setting for its kind
-    /// is off, or the app in front is in full screen.
+    /// is off, or the app in front is in full screen. ⌥⌘0 finding no room always says so:
+    /// otherwise the key would seem to do nothing.
     func peek(_ peek: Peek) {
         switch peek.kind {
         case .switched: guard preferences.switchPeeks else { return }
         case .alert: guard preferences.limitAlerts else { return }
+        case .noRoom: break
         }
         guard let layout, !pinned, !state.isOpen, !frontIsFullScreen else { return }
         peekTask?.cancel()

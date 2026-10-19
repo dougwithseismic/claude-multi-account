@@ -8,6 +8,10 @@ struct PanelActions {
     var editProfiles: () -> Void = {}
     var reloadProfiles: () -> Void = {}
     var quit: () -> Void = {}
+    /// The welcome page's Got it.
+    var finishWelcome: () -> Void = {}
+    /// Settings' "Show the welcome page again".
+    var showWelcome: () -> Void = {}
 }
 
 // MARK: - The window's content
@@ -70,6 +74,9 @@ struct PanelContent: View {
                     case .settings:
                         SettingsPage(preferences: preferences, actions: actions)
                             .transition(.blurReplace)
+                    case .welcome:
+                        WelcomePage(model: model, preferences: preferences, actions: actions)
+                            .transition(.blurReplace)
                     }
                 }
                 .padding(.horizontal, NotchLayout.flare + 10)
@@ -93,7 +100,7 @@ struct TopBar: View {
         HStack(spacing: 2) {
             IconButton(symbol: state.page == .settings ? "chevron.backward" : "gearshape.fill", active: state.page == .settings) {
                 withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) {
-                    state.page = state.page == .usage ? .settings : .usage
+                    state.page = state.page == .settings ? .usage : .settings
                 }
             }
             IconButton(symbol: details ? "eye.fill" : "eye.slash.fill", active: details) {
@@ -195,23 +202,34 @@ struct PressStyle: ButtonStyle {
     }
 }
 
-/// A small capsule button: Retry, Edit, Quit.
+/// A small capsule button: Retry, Edit, Quit. `prominent`, in the accent colour: Got it.
 struct PillButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View { Pill(configuration: configuration) }
+    var prominent = false
+
+    func makeBody(configuration: Configuration) -> some View { Pill(configuration: configuration, prominent: prominent) }
 
     private struct Pill: View {
         let configuration: Configuration
+        let prominent: Bool
         @State private var hovered = false
 
         var body: some View {
             configuration.label
-                .font(.system(size: 11, weight: .medium))
-                .padding(.horizontal, 10)
+                .font(.system(size: 11, weight: prominent ? .semibold : .medium))
+                .foregroundStyle(prominent ? .black : .primary)
+                .padding(.horizontal, prominent ? 14 : 10)
                 .frame(height: 22)
-                .background(Capsule().fill(.white.opacity(configuration.isPressed ? 0.24 : hovered ? 0.17 : 0.1)))
+                .background(Capsule().fill(fill))
                 .contentShape(Capsule())
                 .onHover { hovered = $0 }
                 .animation(.smooth(duration: 0.12), value: hovered)
+        }
+
+        private var fill: AnyShapeStyle {
+            if prominent {
+                return AnyShapeStyle(AccountStyle.accent.opacity(configuration.isPressed ? 0.75 : hovered ? 0.9 : 1))
+            }
+            return AnyShapeStyle(.white.opacity(configuration.isPressed ? 0.24 : hovered ? 0.17 : 0.1))
         }
     }
 }
@@ -365,7 +383,11 @@ struct AccountDetail: View {
                     Text("No usage limits on this plan").font(.system(size: 11)).foregroundStyle(.secondary)
                 }
                 ForEach(Array(report.windows.enumerated()), id: \.element.label) { index, window in
-                    WindowRow(window: window, color: color, now: now, delay: delay + 0.03 * Double(index))
+                    // Old numbers would understate the pace: no projection from them.
+                    WindowRow(
+                        window: window, color: color, now: now, delay: delay + 0.03 * Double(index),
+                        projects: !account.isStale
+                    )
                 }
             }
             .opacity(account.isStale ? 0.4 : 1)
@@ -377,18 +399,24 @@ struct AccountDetail: View {
 }
 
 /// A window's bar, how much is used, and its reset as a countdown, or by the clock while
-/// the row is hovered. At 100% the bar drains with the wait instead.
+/// the row is hovered. At 100% the bar drains with the wait instead. Going fast enough to
+/// run out before the reset, it says when instead, in orange; hovered, it's the reset again.
 struct WindowRow: View {
+    static let resetWidth: CGFloat = 140
+
     let window: UsageWindow
     let color: Color
     let now: Date
     var delay: Double = 0
+    /// Projects from the current pace; off for numbers too old to say much about it.
+    var projects = true
     @Environment(\.rowHovered) private var hovered
 
     var body: some View {
         let percent = window.percentUsed
         let full = percent >= 100
         let wait = waitFraction(window, now: now)
+        let out = projects && !hovered ? PaceProjection.runsOut(window, now: now) : nil
         HStack(spacing: 8) {
             Text(shortLabel(window))
                 .frame(width: 84, alignment: .leading)
@@ -403,17 +431,29 @@ struct WindowRow: View {
                 .contentTransition(.numericText(value: percent))
                 .frame(width: 36, alignment: .trailing)
                 .foregroundStyle(full ? AccountStyle.limitRed : .primary)
-            Countdown(target: window.resetsAt, now: now) { date in
-                let text = resetText(window, now: date, clock: hovered)
-                Text(text)
-                    .monospacedDigit()
-                    // "resets tomorrow 9:00 AM" shrinks a little rather than losing its end.
-                    .minimumScaleFactor(0.85)
-                    .contentTransition(.numericText(countsDown: true))
-                    .animation(.smooth(duration: 0.2), value: text)
+            Group {
+                if let out {
+                    Text(paceText(out, now: now))
+                        .monospacedDigit()
+                        .minimumScaleFactor(0.8)
+                        .foregroundStyle(.orange)
+                        .transition(.opacity)
+                } else {
+                    Countdown(target: window.resetsAt, now: now) { date in
+                        let text = resetText(window, now: date, clock: hovered)
+                        Text(text)
+                            .monospacedDigit()
+                            // "resets tomorrow 9:00 AM" shrinks a little rather than losing its end.
+                            .minimumScaleFactor(0.85)
+                            .contentTransition(.numericText(countsDown: true))
+                            .animation(.smooth(duration: 0.2), value: text)
+                    }
+                    .transition(.opacity)
+                }
             }
-            .frame(width: 122, alignment: .trailing)
+            .frame(width: Self.resetWidth, alignment: .trailing)
             .foregroundStyle(full ? AccountStyle.limitRed : .secondary)
+            .animation(.smooth(duration: 0.15), value: out == nil)
         }
         .font(.system(size: 11))
         .lineLimit(1)
@@ -469,22 +509,17 @@ struct Footer: View {
     var body: some View {
         // Rows that failed show their own age; this is the age of the rest.
         let fresh = model.accounts.filter { $0.error == nil }.compactMap(\.reportAt).min()
-        HStack(spacing: 5) {
-            if state.isDemo {
-                Text("Demo · made-up accounts, nothing is read")
-            } else if let updated = fresh ?? model.accounts.compactMap(\.reportAt).max() {
-                Text("Updated \(age(updated, now: now))")
-            }
-            if !state.isDemo, let lastUsed = model.lastUsed {
-                Text("·")
-                Text("Links go to \(AccountStyle.of(lastUsed).safeLabel)")
-            }
-            Spacer(minLength: 8)
-            if state.revealHeld, !preferences.showDetails {
-                Label("Showing details", systemImage: "eye.fill")
-            } else if !preferences.showDetails {
-                Text("Hold ⌥ to show emails")
-            }
+        let updated = state.isDemo
+            ? "Demo · made-up accounts, nothing is read"
+            : (fresh ?? model.accounts.compactMap(\.reportAt).max()).map { "Updated \(age($0, now: now))" }
+        let links = state.isDemo ? nil : model.lastUsed.map { "Links go to \(AccountStyle.of($0).safeLabel)" }
+        let room = mostRoom
+        // Short of room, the links go first (the row says "current"), then the ⌥ hint.
+        ViewThatFits(in: .horizontal) {
+            line([updated, links, room], hint: true)
+            line([updated, room], hint: true)
+            line([updated, room], hint: false)
+            line([room ?? updated], hint: false)
         }
         .font(.system(size: 10))
         .foregroundStyle(.tertiary)
@@ -492,5 +527,25 @@ struct Footer: View {
         .padding(.horizontal, 8)
         .padding(.top, 3)
         .contentTransition(.opacity)
+    }
+
+    /// "Most room: Claude C", when there's more than one copy to choose from.
+    private var mostRoom: String? {
+        guard model.copies.count > 1, case .copy(let letter) = model.mostRoom(now: now) else { return nil }
+        return "Most room: \(AccountStyle.of(letter).safeLabel)"
+    }
+
+    private func line(_ parts: [String?], hint: Bool) -> some View {
+        HStack(spacing: 5) {
+            Text(parts.compactMap(\.self).joined(separator: " · "))
+            Spacer(minLength: 8)
+            if hint {
+                if state.revealHeld, !preferences.showDetails {
+                    Label("Showing details", systemImage: "eye.fill")
+                } else if !preferences.showDetails {
+                    Text("Hold ⌥ to show emails")
+                }
+            }
+        }
     }
 }

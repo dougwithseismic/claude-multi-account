@@ -18,7 +18,18 @@ final class Preferences {
     var switchPeeks: Bool { didSet { defaults.set(switchPeeks, forKey: Key.switchPeeks) } }
     /// A tick on the trackpad as the panel opens.
     var haptics: Bool { didSet { defaults.set(haptics, forKey: Key.haptics) } }
+    /// ⌥⌘0 switches to the copy with the most room.
+    var mostRoomHotkey: Bool {
+        didSet {
+            defaults.set(mostRoomHotkey, forKey: Key.mostRoomHotkey)
+            onHotkeysChange?()
+        }
+    }
+    /// Got it was pressed on the welcome page; until then it opens by itself at launch.
+    var welcomeSeen: Bool { didSet { defaults.set(welcomeSeen, forKey: Key.welcomeSeen) } }
 
+    /// Called when a setting changes which hotkeys there are.
+    @ObservationIgnored var onHotkeysChange: (() -> Void)?
     @ObservationIgnored private let defaults: UserDefaults
 
     enum Key {
@@ -27,6 +38,8 @@ final class Preferences {
         static let limitAlerts = "limitAlerts"
         static let switchPeeks = "switchPeeks"
         static let haptics = "haptics"
+        static let mostRoomHotkey = "mostRoomHotkey"
+        static let welcomeSeen = "welcomeSeen"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -36,5 +49,7 @@ final class Preferences {
         limitAlerts = defaults.object(forKey: Key.limitAlerts) as? Bool ?? true
         switchPeeks = defaults.object(forKey: Key.switchPeeks) as? Bool ?? true
         haptics = defaults.object(forKey: Key.haptics) as? Bool ?? true
+        mostRoomHotkey = defaults.object(forKey: Key.mostRoomHotkey) as? Bool ?? true
+        welcomeSeen = defaults.bool(forKey: Key.welcomeSeen)
     }
 }

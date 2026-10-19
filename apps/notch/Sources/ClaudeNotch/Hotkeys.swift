@@ -1,5 +1,6 @@
 import Carbon.HIToolbox
 import Foundation
+import UsageCore
 
 /// ⌥⌘ + a profile's key, system-wide. Carbon's hotkeys need no Accessibility permission.
 @MainActor
@@ -76,4 +77,26 @@ final class Hotkeys {
         "U": kVK_ANSI_U, "V": kVK_ANSI_V, "W": kVK_ANSI_W, "X": kVK_ANSI_X, "Y": kVK_ANSI_Y,
         "Z": kVK_ANSI_Z,
     ]
+}
+
+/// Which ⌥⌘ key does what: each profile's own key, then ⌥⌘0 for the copy with the most
+/// room, unless that's switched off or a profile has 0 for its own.
+enum HotkeyPlan {
+    enum Target: Equatable {
+        case copy(String)
+        case mostRoom
+    }
+
+    static let mostRoomKey = "0"
+
+    static func bindings(_ styles: [ProfileStyle], mostRoom: Bool) -> [(key: String, target: Target)] {
+        var plan = styles.compactMap { style in style.hotkey.map { (key: $0, target: Target.copy(style.letter)) } }
+        if mostRoom, mostRoomKeyOwner(styles) == nil { plan.append((key: mostRoomKey, target: .mostRoom)) }
+        return plan
+    }
+
+    /// The profile whose own key is 0, if any: ⌥⌘0 is then its.
+    static func mostRoomKeyOwner(_ styles: [ProfileStyle]) -> String? {
+        styles.first { $0.hotkey == mostRoomKey }?.letter
+    }
 }

@@ -48,14 +48,22 @@ final class AccountsModel {
     /// so a refused prompt isn't shown again every few minutes.
     private(set) var keychainProblem: UsageError?
     var paused = false
-    /// The copy in front, or used last: where claude:// links go.
-    var lastUsed: String?
+    /// The copy in front, or used last: where claude:// links go. The shared snapshot
+    /// says which, so it's written again when this changes.
+    var lastUsed: String? { didSet { if lastUsed != oldValue { share() } } }
     /// Reading now, for the refresh button's spin.
     private(set) var polling = false
     /// Called after each update, so the panel can resize to its content.
     @ObservationIgnored var onChange: (() -> Void)?
     /// Called when a copy's organization in use crosses a line between two reads.
     @ObservationIgnored var onAlert: ((String, LimitAlert) -> Void)?
+
+    /// Where to share what was read, for `claude-usage --cached` and the status line. Nil
+    /// shares nothing: the demo, the film and tests leave it so.
+    @ObservationIgnored var snapshotFile: URL?
+    /// When usage was last read: the shared snapshot's `updatedAt`.
+    @ObservationIgnored private(set) var readAt: Date?
+    @ObservationIgnored private var shareError: String?
 
     @ObservationIgnored private let reader: AccountReader?
     @ObservationIgnored private var timer: Timer?
@@ -225,8 +233,24 @@ final class AccountsModel {
             }
             accounts[i] = account
         }
+        readAt = snapshots.map(\.fetchedAt).max() ?? Date()
+        share()
         onChange?()
         for (letter, alert) in alerts { onAlert?(letter, alert) }
+    }
+
+    /// Writes the shared snapshot, if there's somewhere to and something read. A failure is
+    /// logged once and otherwise ignored: the panel doesn't depend on it.
+    func share() {
+        guard let snapshotFile, let readAt else { return }
+        do {
+            try sharedSnapshot(updatedAt: readAt).write(to: snapshotFile)
+            shareError = nil
+        } catch {
+            let message = "couldn't write \(snapshotFile.path(percentEncoded: false)): \(error.localizedDescription)"
+            if message != shareError { complain(message) }
+            shareError = message
+        }
     }
 
     /// By letter, the organization in use first.

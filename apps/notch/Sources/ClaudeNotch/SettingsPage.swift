@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import UsageCore
 
@@ -30,13 +31,26 @@ struct SettingsPage: View {
                     isOn: $preferences.limitAlerts
                 )
                 SwitchRow(title: "Show switches", detail: "Peeks out naming the copy \(hotkeys) switched to.", isOn: $preferences.switchPeeks)
+                SwitchRow(
+                    title: "⌥⌘0 switches to the most room", detail: mostRoomDetail,
+                    isOn: $preferences.mostRoomHotkey, available: mostRoomOwner == nil
+                )
                 SwitchRow(title: "Haptic feedback", detail: "A tick on the trackpad as the panel opens.", isOn: $preferences.haptics)
             }
             section("General") {
                 LoginItemRow()
                 ProfilesRow(edit: actions.editProfiles, reload: actions.reloadProfiles)
             }
-            section("Reading it") { Legend() }
+            section("Reading it") {
+                Legend()
+                ActionRow(title: "Show the welcome page again", symbol: "chevron.forward", action: actions.showWelcome)
+                SettingLabel(title: "Learn more", detail: nil) {
+                    HStack(spacing: 6) {
+                        LinkButton(title: "How limits work", url: LearnLinks.howLimitsWork)
+                        LinkButton(title: Self.version == "dev" ? "What's new" : "What's new in \(Self.version)", url: LearnLinks.changelog)
+                    }
+                }
+            }
             HStack {
                 Text("Claude Notch \(Self.version)").font(.system(size: 10)).foregroundStyle(.tertiary)
                 Spacer()
@@ -51,18 +65,79 @@ struct SettingsPage: View {
         return keys.isEmpty ? "a hotkey" : "⌥⌘" + keys.joined(separator: ", ")
     }
 
+    private var mostRoomOwner: String? { HotkeyPlan.mostRoomKeyOwner(AccountStyle.styles) }
+
+    private var mostRoomDetail: String {
+        if let owner = mostRoomOwner { return "⌥⌘0 is \(AccountStyle.of(owner).safeLabel)'s own key in profiles.json." }
+        return "To the copy whose fullest window is lowest, from the last read."
+    }
+
     static var version: String { Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev" }
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        PanelSection(title: title, content: content)
+    }
+}
+
+/// Pages on the web, opened in the browser.
+enum LearnLinks {
+    static let howLimitsWork = URL(string: "https://dougwithseismic.github.io/claude-multi-account/learn/how-limits-work/")!
+    static let changelog = URL(string: "https://dougwithseismic.github.io/claude-multi-account/changelog/")!
+}
+
+/// A titled group of rows on a faint card, as on the settings and welcome pages.
+struct PanelSection<Content: View>: View {
+    let title: String
+    @ViewBuilder let content: Content
+
+    init(title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title.uppercased())
                 .font(.system(size: 9.5, weight: .semibold))
                 .tracking(0.6)
                 .foregroundStyle(.tertiary)
                 .padding(.horizontal, 10)
-            VStack(spacing: 0) { content() }
+            VStack(spacing: 0) { content }
                 .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(.white.opacity(0.04)))
         }
+    }
+}
+
+/// A page on the web, opened in the browser.
+private struct LinkButton: View {
+    let title: String
+    let url: URL
+
+    var body: some View {
+        Button { NSWorkspace.shared.open(url) } label: {
+            HStack(spacing: 3) {
+                Text(title)
+                Image(systemName: "arrow.up.forward").font(.system(size: 8, weight: .bold))
+            }
+        }
+        .buttonStyle(PillButtonStyle())
+        .help(url.absoluteString)
+    }
+}
+
+/// A row that does one thing when clicked, its symbol on the right.
+private struct ActionRow: View {
+    let title: String
+    let symbol: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            SettingLabel(title: title, detail: nil) {
+                Image(systemName: symbol).font(.system(size: 10, weight: .bold)).foregroundStyle(.secondary)
+            }
+        }
+        .buttonStyle(SettingRowStyle())
     }
 }
 
@@ -119,14 +194,17 @@ struct SwitchRow: View {
     let title: String
     let detail: String?
     @Binding var isOn: Bool
+    /// Off, the switch is dimmed and does nothing; the detail says why.
+    var available = true
 
     var body: some View {
         Button {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.72)) { isOn.toggle() }
         } label: {
-            SettingLabel(title: title, detail: detail) { SwitchKnob(isOn: isOn) }
+            SettingLabel(title: title, detail: detail) { SwitchKnob(isOn: isOn && available).opacity(available ? 1 : 0.4) }
         }
         .buttonStyle(SettingRowStyle())
+        .disabled(!available)
     }
 }
 
@@ -215,8 +293,8 @@ private struct ProfilesRow: View {
     }
 }
 
-/// What the rings and bars mean.
-private struct Legend: View {
+/// What the rings and bars mean, on the settings and welcome pages.
+struct Legend: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top, spacing: 12) {
@@ -230,6 +308,13 @@ private struct Legend: View {
                     .frame(width: 44)
                     .padding(.top, 5)
                 Text("The tick on a bar marks how far through its window it is. A bar past its tick is going faster than an even pace. A used-up bar drains until it's back. Hover a row for the time it resets.")
+            }
+            HStack(alignment: .top, spacing: 12) {
+                Text("out ~")
+                    .font(.system(size: 10.5, weight: .semibold))
+                    .foregroundStyle(.orange)
+                    .frame(width: 44)
+                Text("Fast enough to run out before it resets, a row says when instead, in orange: \"out ~15:40 at this pace\".")
             }
         }
         .font(.system(size: 10.5))

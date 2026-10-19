@@ -315,6 +315,17 @@ func resetTextWithClock(_ window: UsageWindow, now: Date) -> String {
     return "\(text) · \(clockText(reset, now: now))"
 }
 
+/// "out ~15:40 at this pace": when a window would be used up if use goes on as it has,
+/// by the clock ("out ~tomorrow 01:10 at this pace" past midnight).
+func paceText(_ out: Date, now: Date) -> String {
+    "out ~\(clockText(out, now: now)) at this pace"
+}
+
+/// "back in 41m · 16:19": when the copy back first is, for the peek when none has room.
+func backText(_ at: Date, now: Date) -> String {
+    "back in \(countdown(at.timeIntervalSince(now))) · \(clockText(at, now: now))"
+}
+
 /// Text that counts down to `target`: redrawn every second from ten minutes out, when its
 /// countdown shows seconds; otherwise with the view around it.
 struct Countdown<Content: View>: View {

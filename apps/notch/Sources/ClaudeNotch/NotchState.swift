@@ -8,6 +8,8 @@ import UsageCore
 final class NotchState {
     enum Page {
         case usage, settings
+        /// The first run's: how to read it, and what's left to set up.
+        case welcome
     }
 
     /// The panel is open; closed, it's folded away behind the notch and its window is
@@ -44,6 +46,8 @@ struct Peek: Equatable {
         /// A hotkey switched to this copy.
         case switched
         case alert(LimitAlert)
+        /// ⌥⌘0 found no copy with room, so nothing switched; the copy back first, if known.
+        case noRoom(BestCopy.Back?)
     }
 
     let letter: String
@@ -52,7 +56,11 @@ struct Peek: Equatable {
     let id = UUID()
 
     var duration: TimeInterval {
-        if case .switched = kind { 1.8 } else { 5 }
+        switch kind {
+        case .switched: 1.8
+        case .noRoom: 3
+        case .alert: 5
+        }
     }
 }
 

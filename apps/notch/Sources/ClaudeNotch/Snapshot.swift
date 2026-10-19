@@ -4,9 +4,10 @@ import UsageCore
 
 /// `--snapshot <file.png>`: once every account has been read (or after 30 seconds),
 /// renders the notch in each of its states with the live numbers to a PNG and quits: the
-/// rings (and every copy out), three peeks, the open panel and its settings page. For checking the rows without
-/// screen-recording permission. With `--demo` it also shows the panel with details, as
-/// holding ⌥ does; the live numbers' emails stay out of the file.
+/// rings (and every copy out), four peeks, the open panel and its settings page, and with
+/// `--welcome` the welcome page. For checking the rows without screen-recording permission.
+/// With `--demo` it also shows the panel with details, as holding ⌥ does; the live
+/// numbers' emails stay out of the file.
 @MainActor
 enum Snapshot {
     nonisolated static func path(in arguments: [String]) -> String? {
@@ -16,15 +17,20 @@ enum Snapshot {
 
     static func write(
         _ model: AccountsModel, preferences: Preferences, to path: String, hasNotch: Bool = true,
-        showDetails: Bool = false, deadline: Date = Date().addingTimeInterval(30)
+        showDetails: Bool = false, welcome: Bool = false, deadline: Date = Date().addingTimeInterval(30)
     ) {
         guard model.isSettled || Date() > deadline else {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                write(model, preferences: preferences, to: path, hasNotch: hasNotch, showDetails: showDetails, deadline: deadline)
+                write(
+                    model, preferences: preferences, to: path, hasNotch: hasNotch, showDetails: showDetails,
+                    welcome: welcome, deadline: deadline
+                )
             }
             return
         }
-        let renderer = ImageRenderer(content: Board(model: model, preferences: preferences, hasNotch: hasNotch, showDetails: showDetails))
+        let renderer = ImageRenderer(content: Board(
+            model: model, preferences: preferences, hasNotch: hasNotch, showDetails: showDetails, welcome: welcome
+        ))
         renderer.scale = 2
         guard let image = renderer.nsImage, let tiff = image.tiffRepresentation,
               let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:])
@@ -47,6 +53,7 @@ private struct Board: View {
     let preferences: Preferences
     let hasNotch: Bool
     let showDetails: Bool
+    var welcome = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 28) {
@@ -60,12 +67,18 @@ private struct Board: View {
                     tile("Peek near a limit") { peek(Peek(letter: letter, kind: .alert(.near(Self.nearWindow)))) }
                     tile("Peek at a limit") { peek(Peek(letter: letter, kind: .alert(.out(Self.outWindow)))) }
                 }
+                if case .noRoom(let back) = allOut.mostRoom() {
+                    tile("Peek after ⌥⌘0, every copy out") { peek(Peek(letter: back?.letter ?? "", kind: .noRoom(back))) }
+                }
                 tile("Open") { panel(state()) }
             }
             if showDetails {
                 tile("Holding ⌥: emails and team names") { panel(state(revealHeld: true)) }
             }
             tile("Settings") { panel(state(page: .settings)) }
+            if welcome {
+                tile("Welcome, on the first run") { panel(state(page: .welcome)) }
+            }
         }
         .padding(32)
         .background(
