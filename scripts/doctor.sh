@@ -175,6 +175,36 @@ fi
 if command -v claude-usage >/dev/null; then ok "claude-usage is on your PATH"
 else note "claude-usage isn't on your PATH" "It's in $here/apps/notch/build. To type just claude-usage, make ~/.local/bin, put it on your PATH, and run ./install.sh again."; fi
 
+# claude-a, claude-b… from ./install.sh --claude-code: Claude Code on each copy's own folder.
+MARK="made by claude-multi-account's install.sh --claude-code"
+wrappers=()
+for cmd in "$HOME"/.local/bin/claude-[a-z](N); do grep -qsF -- "$MARK" "$cmd" && wrappers+=$cmd; done
+if (( $#wrappers || $+commands[claude] )); then
+  section "Claude Code"
+  if (( $+commands[claude] )); then ok "Claude Code is on your PATH"
+  else bad "Claude Code isn't on your PATH, so claude-a, claude-b… can't start it" "Install it: https://code.claude.com/docs/en/setup"; fi
+  (( $#wrappers )) || note "No claude-a, claude-b… commands" "For Claude Code in the terminal with each copy's own login: ./install.sh --claude-code"
+  for cmd in $wrappers; do
+    x=${${cmd:t}#claude-}
+    X=${(U)x}
+    dir="$HOME/.claude-$X"
+    [[ $X == A ]] && dir="$HOME/.claude"
+    if [[ ! -d $dir ]]; then
+      bad "claude-$x's folder, ${dir/#$HOME/~}, isn't there" "Run ./install.sh --claude-code to make it again, then claude-$x to sign in."
+      continue
+    fi
+    # A link to something ~/.claude no longer has.
+    broken=("$dir"/*(N-@))
+    if (( $#broken )); then
+      bad "${dir/#$HOME/~} has links to what ~/.claude no longer has: $(list ${broken:t})" "Put them back in ~/.claude, or remove the links."
+    else
+      ok "claude-$x: Claude Code on ${dir/#$HOME/~}"
+    fi
+    (( ! $#letters || ${letters[(Ie)$X]} )) || note "claude-$x is for Claude $X, which isn't in profiles.json" "Remove ${cmd/#$HOME/~} if you don't use it."
+  done
+  (( $#wrappers > 1 )) && note "To see which account each one is signed in to: claude-b auth status, and so on"
+fi
+
 if (( problems )); then
   print "\n\e[1m$problems to fix.\e[0m Each ✗ says how."
   exit 1
