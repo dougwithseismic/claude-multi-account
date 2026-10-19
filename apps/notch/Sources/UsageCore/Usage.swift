@@ -40,6 +40,17 @@ public struct UsageReport: Sendable, Equatable, Codable {
         windows.filter { $0.label.hasPrefix(UsageReport.weeklyPrefix) }.max { $0.percentUsed < $1.percentUsed }
     }
 
+    /// A window is at 100%: nothing more until it resets.
+    public var isOut: Bool { windows.contains { $0.percentUsed >= 100 } }
+
+    /// When every window at 100% has reset. Nil when none is, or one's reset isn't known.
+    public var backAt: Date? {
+        let out = windows.filter { $0.percentUsed >= 100 }
+        let resets = out.compactMap(\.resetsAt)
+        guard !out.isEmpty, resets.count == out.count else { return nil }
+        return resets.max()
+    }
+
     static let fiveHourLabel = "5-hour"
     static let weeklyLabel = "Weekly · all models"
     static let weeklyPrefix = "Weekly"
