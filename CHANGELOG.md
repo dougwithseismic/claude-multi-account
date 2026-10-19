@@ -6,7 +6,15 @@ What changed for people who use Claude Notch, newest first. To update, `git pull
 
 ### Site
 
-- Docs: install, sign in, reading the panel, settings, `claude-usage`, troubleshooting and more, on the site instead of the README.
+- Docs: install, sign in, reading the panel, settings, profiles, `claude-usage`, troubleshooting, privacy, how it works and updating, on the site instead of the README.
+- A pace calculator: enter how much of a 5-hour or weekly limit you've used and when it resets, and see whether it lasts, when you'd run out at the rate so far, and how much an hour you can use to make it last. Works for anyone, on any computer. Links keep the inputs, so a result can be shared.
+- A setup planner: pick how many accounts, name them, give each a colour and hotkey, and get the rings as the Notch would draw them, the install command and the profiles.json.
+- This changelog, on the site.
+- Link previews for every page, a sitemap and robots.txt.
+
+### Guides
+
+- Seven guides to Claude's limits, each citing Anthropic's own pages and dated: how the 5-hour and weekly limits work, what each plan gets, pacing, several accounts on one Mac, Teams and organizations, limits in Claude Code, and reading the rings. Pacing and the rings guide have figures you can drag.
 
 ## 2026-10-18 · installer and site
 

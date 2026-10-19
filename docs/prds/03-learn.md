@@ -1,6 +1,6 @@
 # PRD 03: Learn, guides to Claude's limits
 
-Status: not started.
+Status: shipped 2026-10-19.
 
 ## Goal
 
@@ -40,4 +40,9 @@ People search for how Claude's 5-hour and weekly limits work, what each plan get
 
 ## Implementation notes
 
-(Filled in after shipping.)
+Shipped 2026-10-19.
+
+- Seven guides, sources checked 2026-10-19. All 33 cited URLs returned 200 on that date, and each source's title is the page's real title.
+- Two interactive figures, `rings` and `pace`, placed in Markdown with `<div data-figure="name"></div>` and drawn with the home page's own Notch components.
+- Several accounts are framed as personal, work and client accounts; no guide suggests using accounts to get more usage (see Needs the user, 5).
+- Each guide ends with Sources, "Checked against these pages on …", the note that Anthropic's pages win where they disagree, and a "Suggest a change" link to GitHub's editor.

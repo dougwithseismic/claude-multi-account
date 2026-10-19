@@ -1,6 +1,6 @@
 # PRD 02: Docs on the site
 
-Status: not started.
+Status: shipped 2026-10-19.
 
 ## Goal
 
@@ -51,4 +51,11 @@ Today every "Install", "Sign in" and "Uninstall" link on the site leaves for the
 
 ## Implementation notes
 
-(Filled in after shipping.)
+Shipped 2026-10-19.
+
+- Eleven pages in `apps/web/content/docs/`, grouped Start, Using it, Help. Facts were checked against the Swift source (refresh every 5 minutes with backoff to 6 hours, profile at most every 12 hours, the log subsystem, the ring's red at 90%).
+- `plugins/markdown.ts` compiles each file to `{ meta, html, toc }`; `?meta` imports give the frontmatter alone for sidebars and indexes. Internal links get the base path and a trailing slash, so Pages never redirects.
+- Every internal "Install", "Sign in", "Add a copy" and "Uninstall" link on the home page now goes to the docs, not the README.
+- `head.ts` gives each page its title, description, canonical URL and Open Graph and Twitter tags. Default card: `public/og/default.png`, from `og/default.html`.
+- Sitemap: every page is listed once, with the base path. The prerenderer's own route discovery is off, because it listed pages without the base path beside the crawled ones.
+- Open: per-page social images (parking lot).

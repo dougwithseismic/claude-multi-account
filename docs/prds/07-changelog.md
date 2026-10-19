@@ -1,6 +1,6 @@
 # PRD 07: Changelog and what's new
 
-Status: not started.
+Status: in progress; the changelog page is built, the hero badge waits for 0.5.
 
 ## Goal
 
@@ -20,4 +20,4 @@ People who install from source need to know what changed when they pull, and vis
 
 ## Implementation notes
 
-(Filled in after shipping.)
+`/changelog` shipped 2026-10-19: it renders `CHANGELOG.md` with the docs plugin, a file without frontmatter taking its title from `# Changelog`. Release headings are anchored by version (`## 0.5 — …` is `#0-5`). The hero badge and the app's link wait for 0.5 (PRD 05).

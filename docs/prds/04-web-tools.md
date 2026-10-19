@@ -1,6 +1,6 @@
 # PRD 04: Web tools
 
-Status: not started.
+Status: shipped 2026-10-19.
 
 ## Goal
 
@@ -48,4 +48,9 @@ Shows the rings as the Notch would draw them, the memory to expect (0.5–1 GB p
 
 ## Implementation notes
 
-(Filled in after shipping.)
+Shipped 2026-10-19.
+
+- `src/lib/pace.ts` holds the maths (12 tests, `pnpm --filter @claude-notch/web test`, run with Node's own test runner on the `.ts` file). Within 2 points of even counts as even; a minute's slack stops "100% just as it resets" being reported as running out.
+- Pace calculator: 5-hour or weekly, percent used, and the reset either "in" a duration or "at" a clock time (and day, for weekly). The hash keeps the inputs (`#w=5h&used=60&in=120`). The clock time is only worked out in the browser, since the prerendered page has no "now".
+- Setup planner: 2 to 9 accounts. With the defaults it shows `install.sh N`; once a name, colour or hotkey changes it shows a three-step flow that writes profiles.json before the installer runs, because the installer never overwrites an existing profiles.json. Warns when two accounts share a hotkey.
+- Checked in the browser: 60% with 2 hours left shows "On an even pace" and 60% through; 80% with 3 hours left shows the run-out time and 2h 30m without Claude in red; 5 accounts shows `install.sh 5`, five rings and A to E.
