@@ -22,12 +22,12 @@ export function Hero() {
       <div className="container hero__container">
         <div className="hero__content">
           <div className="hero__title">
-            <a className="badge" href="#how-it-works">
+            <a className="badge" href={hero.badge.href}>
               <Sparkle className="badge__icon" size={12} strokeWidth={2.5} aria-hidden="true" />
               <span className="badge__text">
-                <span>{hero.badge}</span>
+                <span>{hero.badge.label}</span>
                 <span className="badge__shine" aria-hidden="true">
-                  {hero.badge}
+                  {hero.badge.label}
                 </span>
               </span>
             </a>

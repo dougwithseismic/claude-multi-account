@@ -16,10 +16,14 @@ export const nav = {
 }
 
 export const hero = {
-  badge: 'Free for macOS 26',
+  /** The latest release, linked to its notes. */
+  badge: {
+    label: 'New in 0.5: pace, most room, status line',
+    href: `${site.changelog}#0-5`,
+  } satisfies Link,
   // The word wrapped in * is set in the serif italic.
   title: 'Sign in once. Run every Claude account *side by side.*',
-  lead: 'Each account gets its own copy of Claude, signed in for good. Switch with a key, and see every limit beside the notch.',
+  lead: 'Each account gets its own copy of Claude, signed in for good. Switch with a key, and see every limit beside the notch. Free, for macOS 26.',
   primary: { label: 'Install', href: site.install } satisfies Link,
   secondary: { label: 'How it works', href: '#how-it-works' } satisfies Link,
 }
@@ -67,7 +71,7 @@ export const cards = {
     {
       art: 'keys',
       title: 'One key per account',
-      body: '⌥⌘1, ⌥⌘2 and ⌥⌘3 bring that copy of Claude to the front, starting it if it’s closed, and outline its window in its colour.',
+      body: '⌥⌘1, ⌥⌘2 and ⌥⌘3 bring that copy of Claude to the front, starting it if it’s closed, and outline its window in its colour. ⌥⌘0 picks the one with the most room.',
       href: '#peeks',
     },
     {
@@ -135,7 +139,7 @@ export const grid = {
     {
       icon: 'terminal',
       title: 'claude-usage',
-      body: 'The same numbers in the terminal, with --json for scripts and --only to choose accounts.',
+      body: 'The same numbers in the terminal and in Claude Code’s status line, with --best for the copy with the most room and --json for scripts.',
     },
     {
       icon: 'shield',
@@ -190,7 +194,7 @@ export const details = {
     {
       art: 'tick',
       title: 'The pace tick',
-      body: 'A tick on each bar marks how far through its window you are.',
+      body: 'A tick marks an even pace. Go faster and the row says when you’d run out.',
     },
     {
       art: 'cross',

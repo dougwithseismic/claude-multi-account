@@ -2,7 +2,7 @@
 title: Privacy and security
 description: What Claude Notch reads, what it sends, what it stores, and what it never touches.
 section: Help
-order: 9
+order: 10
 ---
 
 Claude Notch reads each copy's login to check that account's usage. That's sensitive, so it follows strict rules.
@@ -21,6 +21,10 @@ Only two requests, both to Anthropic, both the ones Claude Code's own `/usage` m
 - `GET https://api.anthropic.com/api/oauth/profile` for the account's email and plan, at most every 12 hours.
 
 There's no analytics, no crash reporting, no update check and no server of ours. This website has no cookies or trackers either.
+
+## What it writes
+
+After each read, `~/Library/Caches/claude-multi-account/usage.json`, for [`claude-usage --cached`](/docs/claude-usage), `--best` and [the status line](/docs/status-line). It holds each copy's letter, name, colour and plan, whether it's in front, how its last read went, and each window's percent and reset time, for the organization the copy is working in. Never a login, an email, an organization's name or an ID; a profile name that's an email is written as "Claude B" instead. Only you can read it (the folder is 0700, the file 0600), and `install.sh --uninstall` deletes it.
 
 ## What it never does
 

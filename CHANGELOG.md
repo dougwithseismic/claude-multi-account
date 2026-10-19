@@ -1,17 +1,27 @@
 # Changelog
 
-What changed for people who use Claude Notch, newest first. To update, `git pull` and run `./install.sh` again.
+What changed for people who use Claude Notch, newest first. To update, paste the install line again, or `git pull` and run `./install.sh`.
 
-## Unreleased
+## 0.5 — 2026-10-19
 
-### Install
+### App
+
+- **Pace:** when a window is going fast enough to run out before it resets, its row says when, in orange: "out ~15:40 at this pace". At an even pace or slower, nothing changes.
+- **⌥⌘0** switches to the copy with the most room, and the panel's footer names it ("Most room: Claude C"). When every copy is out, a peek says so and which one is back first. A switch in settings turns it off.
+- **A welcome page** on the first run: how to read the rings and bars, then a checklist of the Keychain, each copy's sign-in (with a button that opens a copy that isn't signed in) and the hotkeys. Settings can show it again, and link to the guides and this changelog.
+- After each read the app keeps what it read in a file only you can read, for `claude-usage` and the status line. It never holds a login, an email or an organization's name.
+
+### Command line
 
 - One line installs everything: `curl -fsSL https://dougwithseismic.github.io/claude-multi-account/install.sh | zsh`. It checks the Mac, opens the Command Line Tools installer if they're missing, gets the code into `~/claude-multi-account` or updates it (never over changes of your own), and runs `install.sh`. Add `-s -- 4` for four copies.
-- `./install.sh --doctor` checks the whole setup and changes nothing: macOS, Claude.app and Swift, profiles.json, each copy's folder, launcher and sign-in, a copy open twice, whether Claude Notch is up to date, running and opening at login, where sign-in links go, and the Keychain item. Each problem comes with how to fix it.
+- `./install.sh --doctor` checks the whole setup and changes nothing: macOS, Claude.app and Swift, profiles.json, each copy's folder, launcher and sign-in, a copy open twice, whether Claude Notch is up to date, running and opening at login, where sign-in links go, the Keychain item, and how recently usage was read. Each problem comes with how to fix it.
+- `./install.sh --statusline` puts every copy's 5-hour and weekly use in Claude Code's status line, after the session's own: `Code 41·63  ▸A 37·62  B 92·✕  C 12·30`. It never replaces a status line you already have.
+- `claude-usage --cached` prints the last read with no Keychain prompt and no network, and `--best` prints the letter of the copy with the most room, for scripts.
+- `install.sh` links `claude-usage` into `~/.local/bin` when you have that folder. `--uninstall` takes the link and the status line out again, if they're ours.
 
 ### Site
 
-- Docs: install, sign in, reading the panel, settings, profiles, `claude-usage`, troubleshooting, privacy, how it works and updating, on the site instead of the README.
+- Docs: install, sign in, reading the panel, settings, profiles, `claude-usage`, the status line, troubleshooting, privacy, how it works and updating, on the site instead of the README.
 - A pace calculator: enter how much of a 5-hour or weekly limit you've used and when it resets, and see whether it lasts, when you'd run out at the rate so far, and how much an hour you can use to make it last. Works for anyone, on any computer. Links keep the inputs, so a result can be shared.
 - A setup planner: pick how many accounts, name them, give each a colour and hotkey, and get the rings as the Notch would draw them, the install command and the profiles.json.
 - This changelog, on the site.

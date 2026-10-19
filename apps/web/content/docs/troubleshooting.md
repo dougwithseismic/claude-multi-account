@@ -2,7 +2,7 @@
 title: Troubleshooting
 description: The install failed, a sign-in went to the wrong copy, a ring is missing, or the numbers look stale. What to check, in order.
 section: Help
-order: 8
+order: 9
 ---
 
 ## Check the setup
@@ -72,6 +72,13 @@ macOS ties **Always Allow** to the app's signature. If no code-signing certifica
 ## Two copies opened on the same folder
 
 That happens when `/Applications/Claude.app` is opened directly while a copy is running. Quit both with <kbd>⌘Q</kbd>, then open the copy you want with its hotkey or launcher. From then on use the hotkeys or launchers, not Claude.app.
+
+## Claude Code's status line
+
+- **"Claude Notch isn't running"**, in grey: there's no usage file yet. Open Claude Notch; the line fills in after its first read.
+- **"usage 20m old"**: Claude Notch hasn't read for that long. Check it's open and the Mac is online. `--doctor` says when it last read.
+- **Nothing changed after `--statusline`:** you already had a status line, so it was left alone and `install.sh` printed the setting to use. [Claude Code's status line](/docs/status-line) shows how to have both.
+- **No "Code" at the start:** Claude Code passes the session's own limits on Pro and Max plans, after the session's first answer.
 
 ## Still stuck
 

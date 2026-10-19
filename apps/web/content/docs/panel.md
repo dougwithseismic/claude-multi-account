@@ -24,7 +24,9 @@ Rest the pointer on the notch, or click it, and the panel grows out of it with o
 - **Bars** fill with that window's use and turn red at 90%.
 - The **white tick** on a bar marks how far through its window you are. A bar past its tick is being used faster than an even pace would last. [Pacing your limits](/learn/pacing) explains how to read it.
 - **Reset times** read "resets in 2h 10m" within a day and "resets Sat 14:00" beyond. Rest on one to see it as a clock time.
+- **out ~15:40 at this pace**, in orange, takes the reset time's place when a window is going fast enough to run out before it resets. It's a straight line from what's used so far, so it waits until a tenth of the window has passed and 5% is used. Rest on the row to see the reset time. [Pacing your limits](/learn/pacing) has the arithmetic.
 - A 5-hour window that hasn't started yet says **not started**.
+- The **footer** says which copy `claude://` links go to, when usage was last read and, with more than one copy, which has the most room ("Most room: Claude C"): the one <kbd>⌥⌘0</kbd> switches to.
 
 ## Teams and other organizations
 
@@ -37,6 +39,7 @@ An organization you've never used in that copy, a free personal plan say, has no
 | The panel says | What it means | What to do |
 | --- | --- | --- |
 | **out until Sat 14:00** | That window is at 100% | Wait for the reset, or switch to a copy with room |
+| **out ~15:40 at this pace** | At the rate it's been used so far, that window reaches 100% at 15:40, before it resets | Slow down, or switch: <kbd>⌥⌘0</kbd> picks the copy with the most room |
 | **Open Claude B to update** | That copy's login has expired because it's been closed a while; the numbers are greyed with their age | Open that copy. It renews its own login and the next read works |
 | **retrying in 20m** | Anthropic rate-limited the usage check | Nothing: it backs off and shows the last numbers with their age |
 | **Sign in to Claude C** | That copy has no login | [Sign in to it](/docs/sign-in) |
@@ -53,4 +56,4 @@ Rows show the profile's name ("Claude B") and plan, never the email or a Team's 
 
 ## Peeks
 
-After a <kbd>⌥⌘</kbd> switch, a strip under the notch names the copy for a moment. When the copy in use passes 90% of its 5-hour limit, runs out of a limit, or gets one back, the strip says so for a few seconds. Peeks never take clicks and stay away while an app is full screen.
+After a <kbd>⌥⌘</kbd> switch, a strip under the notch names the copy for a moment. When the copy in use passes 90% of its 5-hour limit, runs out of a limit, or gets one back, the strip says so for a few seconds. When <kbd>⌥⌘0</kbd> finds every copy out, it says **No copy has room** and which one is back first. Peeks never take clicks and stay away while an app is full screen.

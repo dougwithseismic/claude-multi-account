@@ -43,6 +43,9 @@ It prints each step as it goes:
 2. **Profiles.** Writes `~/.config/claude-multi-account/profiles.json` with each copy's name, colour and hotkey, if you don't have one yet. See [Names, colours and keys](/docs/profiles).
 3. **Launchers.** Builds `Claude A.app`, `Claude B.app` and `Claude C.app` in `~/Applications`. Each brings its copy to the front if it's running and starts it if it isn't, so you can open them from Spotlight, Raycast or the Dock.
 4. **Claude Notch.** Builds it, installs it as `~/Applications/Claude Notch.app` and opens it. It has no Dock icon; quit it from its panel.
+5. **claude-usage.** Links the [command](/docs/claude-usage) into `~/.local/bin` if you have that folder and nothing else there is called `claude-usage`.
+
+To put every copy's usage in Claude Code's status line too, run `~/claude-multi-account/install.sh --statusline`. See [Claude Code's status line](/docs/status-line).
 
 Claude.app itself is never modified, so it stays signed and keeps updating as normal.
 

@@ -91,4 +91,4 @@ In Claude Code, Opus uses meaningfully more of your limits than other models, an
 
 ## Every account at once
 
-`/usage` shows the account Claude Code is signed in to. [claude-usage](/docs/claude-usage), which comes with Claude Notch, prints every desktop copy's limits in the terminal, with `--json` for scripts.
+`/usage` shows the account Claude Code is signed in to. [claude-usage](/docs/claude-usage), which comes with Claude Notch, prints every desktop copy's limits in the terminal, with `--json` for scripts. And `install.sh --statusline` puts them all in Claude Code's status line, after the session's own: [Claude Code's status line](/docs/status-line).

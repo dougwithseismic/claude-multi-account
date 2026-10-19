@@ -2,7 +2,7 @@
 title: How it works
 description: Why each copy of Claude stays signed in on its own, and the two problems Claude Notch solves to make that work.
 section: Help
-order: 10
+order: 11
 ---
 
 ## One data folder per account
