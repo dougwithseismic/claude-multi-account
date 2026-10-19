@@ -81,7 +81,7 @@ The status line runs again after each message, uses no tokens, and only shows wh
 alias claude-work='CLAUDE_CONFIG_DIR=~/.claude-work claude'
 ```
 
-Set it in your shell, not in a project's settings, where Claude Code ignores it.
+Set it in your shell, not in a project's settings, where Claude Code ignores it. With Claude Notch, `install.sh --claude-code` makes one command like this per copy, `claude-a`, `claude-b` and so on, with your settings and skills shared: [Claude Code in the terminal](/docs/claude-code).
 
 > **Note:** One report says the Claude Code inside the desktop app can overwrite the terminal Claude Code's login in the Keychain ([anthropics/claude-code#101990](https://github.com/anthropics/claude-code/issues/101990)). If your terminal login keeps changing account, that may be why.
 

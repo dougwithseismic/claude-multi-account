@@ -44,7 +44,7 @@ Or point your coding agent at this repository and tell it to install it.
 4. **Claude Notch:** builds it, installs it as `~/Applications/Claude Notch.app` and opens it. It has no Dock icon; quit it from its panel.
 5. **`claude-usage`:** links the [command](#claude-usage) into `~/.local/bin` if you have that folder and nothing else there is called `claude-usage`.
 
-To put every copy's usage in Claude Code's status line as well, run `./install.sh --statusline` (see [below](#claude-codes-status-line)).
+To put every copy's usage in Claude Code's status line as well, run `./install.sh --statusline` (see [below](#claude-codes-status-line)). For Claude Code in the terminal with each copy's own login, run `./install.sh --claude-code` ([below](#claude-code-in-the-terminal)).
 
 Run it again after a `git pull` to update. It keeps your profiles.json, settings and logins.
 
@@ -171,6 +171,16 @@ It writes this to `~/.claude/settings.json` (or `$CLAUDE_CONFIG_DIR/settings.jso
 
 The command is the `~/.local/bin` link, or the repository's `apps/notch/build/claude-usage` without one. If you already have a status line, it's left alone: `install.sh` prints it and the setting to use instead, to change by hand. `refreshInterval` runs it once a minute even while a session is idle, as Claude Notch's numbers change on their own. Add `--only A,B` to the command to show fewer copies.
 
+## Claude Code in the terminal
+
+```bash
+~/claude-multi-account/install.sh --claude-code
+```
+
+The desktop copies each keep their own login, but Claude Code in the terminal has one, in `~/.claude`. This makes a command per copy in `~/.local/bin`: `claude-a` is Claude Code as you have it now, on `~/.claude`, and `claude-b` runs Claude Code with `CLAUDE_CONFIG_DIR=~/.claude-B`, a folder of its own with its own login and history. Run `claude-b` once and sign in with the same account as Claude B, so B's ring counts both. They take everything `claude` does.
+
+`~/.claude-B` links to `~/.claude`'s `settings.json`, `CLAUDE.md`, `skills`, `agents`, `commands` and `plugins`, so every login has the same setup; anything the folder already has stays as it is. With the status line set, a `claude-b` session's own limits read "Code B". It only changes commands it made, `./install.sh` updates them once they're there, and `--uninstall` removes them and leaves the folders, printing the line that deletes them.
+
 ## How it works
 
 Claude is an Electron app. Electron keeps everything for one account (login cookies, settings, window state) in a single data folder, `~/Library/Application Support/Claude`. If you start Claude with `--user-data-dir=<another folder>`, that copy runs separately with its own login.
@@ -228,14 +238,14 @@ Then open Claude Notch again so it takes the links back. If Hammerspoon has noth
 ~/claude-multi-account/install.sh --uninstall
 ```
 
-This quits Claude Notch, takes it out of your login items and deletes it, deletes the launchers, profiles.json, the app's settings and its usage file, and hands `claude://` links back to Claude. It removes the `~/.local/bin/claude-usage` link and Claude Code's status line only if they're the ones `install.sh` added. It leaves each extra copy's data folder, so those copies stay signed in if you install again, and prints the command that deletes them (which signs them out and deletes their settings).
+This quits Claude Notch, takes it out of your login items and deletes it, deletes the launchers, profiles.json, the app's settings and its usage file, and hands `claude://` links back to Claude. It removes the `~/.local/bin/claude-usage` link, Claude Code's status line and the `claude-a`, `claude-b`… commands only if they're the ones `install.sh` added. It leaves each extra copy's data folder, so those copies stay signed in if you install again, and prints the command that deletes them (which signs them out and deletes their settings).
 
 ## Files
 
 | File | Goes to | Does |
 | --- | --- | --- |
 | `bootstrap.sh` | served as the site's `/install.sh` | The one-line install: checks the Mac, clones or pulls this repository, runs `install.sh` |
-| `install.sh` | | Sets everything up, adds copies or the status line, or takes it all out; `--doctor` checks it all |
+| `install.sh` | | Sets everything up, adds copies, the status line or `claude-a`, `claude-b`…, or takes it all out; `--doctor` checks it all |
 | `scripts/doctor.sh` | | `install.sh --doctor` |
 | `files/claude-profile.sh` | inside each launcher app | Brings a copy to the front, or starts it |
 | `files/profiles.json` | `~/.config/claude-multi-account/profiles.json` | Each copy's label, colour and hotkey |

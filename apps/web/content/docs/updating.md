@@ -2,7 +2,7 @@
 title: Updating and uninstalling
 description: Update with a pull and a re-run, uninstall in one command, and move off the older Hammerspoon setup.
 section: Help
-order: 12
+order: 13
 ---
 
 ## Update Claude Notch
@@ -23,9 +23,9 @@ Claude.app updates itself as normal, and every copy runs the updated app. When a
 ~/claude-multi-account/install.sh --uninstall
 ```
 
-This quits Claude Notch, takes it out of your login items and deletes it, deletes the launchers, profiles.json, the app's settings and its usage file, and hands `claude://` links back to Claude. It removes the `~/.local/bin/claude-usage` link and Claude Code's status line only if they're the ones `install.sh` added.
+This quits Claude Notch, takes it out of your login items and deletes it, deletes the launchers, profiles.json, the app's settings and its usage file, and hands `claude://` links back to Claude. It removes the `~/.local/bin/claude-usage` link and Claude Code's status line only if they're the ones `install.sh` added, and the `claude-a`, `claude-b`… commands it made.
 
-It leaves each extra copy's data folder, so those copies stay signed in if you install again, and prints the command that deletes them. Deleting a data folder signs that copy out and deletes its settings and local history.
+It leaves each extra copy's data folder, so those copies stay signed in if you install again, and prints the command that deletes them. Deleting a data folder signs that copy out and deletes its settings and local history. The same goes for Claude Code's `~/.claude-B` and the rest, if you made them.
 
 ## Moving from Hammerspoon
 

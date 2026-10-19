@@ -2,7 +2,7 @@
 title: Troubleshooting
 description: The install failed, a sign-in went to the wrong copy, a ring is missing, or the numbers look stale. What to check, in order.
 section: Help
-order: 9
+order: 10
 ---
 
 ## Check the setup
@@ -13,7 +13,7 @@ One command checks everything Claude Notch needs, changes nothing, and says how 
 ~/claude-multi-account/install.sh --doctor
 ```
 
-It checks macOS, Claude.app and Swift; your profiles.json; each copy's data folder, launcher and sign-in; whether a copy is open twice on one folder; whether Claude Notch is installed, up to date, running and opening at login; where `claude://` links go; that the Keychain item is there (without reading it); and how recently usage was read. It ends with "Everything looks right" or the number of things to fix.
+It checks macOS, Claude.app and Swift; your profiles.json; each copy's data folder, launcher and sign-in; whether a copy is open twice on one folder; whether Claude Notch is installed, up to date, running and opening at login; where `claude://` links go; that the Keychain item is there (without reading it); how recently usage was read; and, once you have them, that each of `claude-a`, `claude-b`… has its folder. It ends with "Everything looks right" or the number of things to fix.
 
 ## Find out what went wrong
 
@@ -79,6 +79,13 @@ That happens when `/Applications/Claude.app` is opened directly while a copy is 
 - **"usage 20m old"**: Claude Notch hasn't read for that long. Check it's open and the Mac is online. `--doctor` says when it last read.
 - **Nothing changed after `--statusline`:** you already had a status line, so it was left alone and `install.sh` printed the setting to use. [Claude Code's status line](/docs/status-line) shows how to have both.
 - **No "Code" at the start:** Claude Code passes the session's own limits on Pro and Max plans, after the session's first answer.
+
+## Claude Code in the terminal
+
+- **`claude-b: command not found`:** `~/.local/bin` isn't on your PATH. Type `~/.local/bin/claude-b`, or add the folder to your PATH in `~/.zshrc`.
+- **`claude-b` asks you to sign in:** it's the first run on `~/.claude-B`, or that login was signed out. Sign in with Claude B's account. `claude-b auth status` says which account it has.
+- **`claude-b` doesn't have a skill or setting `claude` has:** it's linked from `~/.claude` only if the folder didn't have its own. Remove the folder's own one and run `./install.sh --claude-code` again to link it.
+- **The terminal's Claude Code keeps changing account:** one report says the Claude Code inside the desktop app can overwrite the terminal's login in the Keychain ([anthropics/claude-code#101990](https://github.com/anthropics/claude-code/issues/101990)). `claude-b auth status` shows which account each one has.
 
 ## Still stuck
 

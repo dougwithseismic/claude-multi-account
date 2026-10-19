@@ -14,14 +14,15 @@ What changed for people who use Claude Notch, newest first. To update, paste the
 ### Command line
 
 - One line installs everything: `curl -fsSL https://dougwithseismic.github.io/claude-multi-account/install.sh | zsh`. It checks the Mac, opens the Command Line Tools installer if they're missing, gets the code into `~/claude-multi-account` or updates it (never over changes of your own), and runs `install.sh`. Add `-s -- 4` for four copies.
-- `./install.sh --doctor` checks the whole setup and changes nothing: macOS, Claude.app and Swift, profiles.json, each copy's folder, launcher and sign-in, a copy open twice, whether Claude Notch is up to date, running and opening at login, where sign-in links go, the Keychain item, and how recently usage was read. Each problem comes with how to fix it.
+- `./install.sh --doctor` checks the whole setup and changes nothing: macOS, Claude.app and Swift, profiles.json, each copy's folder, launcher and sign-in, a copy open twice, whether Claude Notch is up to date, running and opening at login, where sign-in links go, the Keychain item, how recently usage was read, and each `claude-a`, `claude-b`… command's folder. Each problem comes with how to fix it.
 - `./install.sh --statusline` puts every copy's 5-hour and weekly use in Claude Code's status line, after the session's own: `Code 41·63  ▸A 37·62  B 92·✕  C 12·30`. It never replaces a status line you already have.
+- `./install.sh --claude-code` makes `claude-a`, `claude-b`, `claude-c`: Claude Code in the terminal with each copy's own login, in `~/.claude-B` and so on, sharing your settings, `CLAUDE.md`, skills, agents, commands and plugins. Sign each in to the same account as its desktop copy and that copy's ring counts both. In a `claude-b` session the status line starts "Code B".
 - `claude-usage --cached` prints the last read with no Keychain prompt and no network, and `--best` prints the letter of the copy with the most room, for scripts.
-- `install.sh` links `claude-usage` into `~/.local/bin` when you have that folder. `--uninstall` takes the link and the status line out again, if they're ours.
+- `install.sh` links `claude-usage` into `~/.local/bin` when you have that folder. `--uninstall` takes the link, the status line and the `claude-a`, `claude-b`… commands out again, if they're ours.
 
 ### Site
 
-- Docs: install, sign in, reading the panel, settings, profiles, `claude-usage`, the status line, troubleshooting, privacy, how it works and updating, on the site instead of the README.
+- Docs: install, sign in, reading the panel, settings, profiles, `claude-usage`, the status line, Claude Code in the terminal, troubleshooting, privacy, how it works and updating, on the site instead of the README.
 - A pace calculator: enter how much of a 5-hour or weekly limit you've used and when it resets, and see whether it lasts, when you'd run out at the rate so far, and how much an hour you can use to make it last. Works for anyone, on any computer. Links keep the inputs, so a result can be shared.
 - A setup planner: pick how many accounts, name them, give each a colour and hotkey, and get the rings as the Notch would draw them, the install command and the profiles.json.
 - This changelog, on the site.

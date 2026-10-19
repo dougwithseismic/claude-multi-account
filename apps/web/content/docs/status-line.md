@@ -20,7 +20,7 @@ Code 41·63  ▸A 37·62  B 92·✕  C 12·30
 - Each copy shows its **letter** in its colour, then its **5-hour** and fullest **weekly** window, in percent.
 - A figure turns **red** from 90%, and **✕** means that window is used up.
 - **▸** marks the copy in front. A copy whose numbers are old is dimmed.
-- **Code** leads with the session's own limits, when Claude Code passes them: on Pro and Max plans, after the session's first answer.
+- **Code** leads with the session's own limits, when Claude Code passes them: on Pro and Max plans, after the session's first answer. In a [`claude-b`](/docs/claude-code) session it reads **Code B**, in B's colour.
 - In a narrow window, the copies on the right go first.
 
 It comes from the file Claude Notch writes after each read, so it costs no tokens, makes no network call and never asks for the Keychain. It answers in under 20 ms. If Claude Notch isn't running, or hasn't read for 15 minutes, the line says so in grey.

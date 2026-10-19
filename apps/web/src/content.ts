@@ -18,7 +18,7 @@ export const nav = {
 export const hero = {
   /** The latest release, linked to its notes. */
   badge: {
-    label: 'New in 0.5: pace, most room, status line',
+    label: 'New in 0.5: pace, most room, Claude Code per account',
     href: `${site.changelog}#0-5`,
   } satisfies Link,
   // The word wrapped in * is set in the serif italic.
@@ -264,6 +264,10 @@ export const faq = {
     {
       q: 'What does it send over the network?',
       a: 'Only the usage and profile checks Claude Code’s /usage makes: at launch, then every 5 minutes per account, backing off when Anthropic rate-limits the check.',
+    },
+    {
+      q: 'Does it work with Claude Code in the terminal?',
+      a: 'Yes. One command makes claude-a, claude-b and claude-c, each Claude Code with that copy’s own login, and the status line under Claude Code’s prompt shows every copy’s limits.',
     },
     {
       q: 'How many accounts can I run at once?',

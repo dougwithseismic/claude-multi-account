@@ -45,7 +45,7 @@ It prints each step as it goes:
 4. **Claude Notch.** Builds it, installs it as `~/Applications/Claude Notch.app` and opens it. It has no Dock icon; quit it from its panel.
 5. **claude-usage.** Links the [command](/docs/claude-usage) into `~/.local/bin` if you have that folder and nothing else there is called `claude-usage`.
 
-To put every copy's usage in Claude Code's status line too, run `~/claude-multi-account/install.sh --statusline`. See [Claude Code's status line](/docs/status-line).
+To put every copy's usage in Claude Code's status line too, run `~/claude-multi-account/install.sh --statusline`. See [Claude Code's status line](/docs/status-line). For Claude Code in the terminal with each copy's own login, run it with `--claude-code`: [Claude Code in the terminal](/docs/claude-code).
 
 Claude.app itself is never modified, so it stays signed and keeps updating as normal.
 

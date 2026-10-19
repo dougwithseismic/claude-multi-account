@@ -62,7 +62,7 @@ How it does each of these is in [How it works](/docs/how-it-works).
 
 - **Installing.** Claude Notch builds on your Mac from source, so it needs Apple's Command Line Tools and a minute or two. Most of the others are a signed download or a Homebrew cask, many with automatic updates.
 - **macOS 26 or later only.** Claude Profiles runs on macOS 14, Lanes on 13, Multi-Claude on 12.
-- **Claude Code in the terminal.** Every copy shares `~/.claude`, so Claude Code sees one account. Brow, ModelDeck, Codenotch, Claude-Usage-Tracker and claude-multiprofile handle separate Claude Code accounts. [Limits in Claude Code](/learn/claude-code) shows how to give each account its own folder.
+- **Accounts you only use in Claude Code.** [`claude-a`, `claude-b`…](/docs/claude-code) give Claude Code in the terminal each copy's own login, and a copy's ring counts that use when it's the same account. An account with no desktop copy gets no ring, though. Brow, ModelDeck, Codenotch and Claude-Usage-Tracker follow Claude Code accounts on their own.
 - **Other tools and systems.** Codex, Cursor and others are in CodexBar, openusage and Codenotch. Windows and Linux are in token-monitor and DeckSpace.
 - **Memory.** Each copy is a whole Claude app, about 0.5 to 1 GB with it open. A switcher has one app open.
 
