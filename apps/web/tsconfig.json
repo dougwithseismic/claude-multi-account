@@ -1,4 +1,7 @@
 {
   "extends": "@claude-notch/tsconfig/react.json",
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "plugins", "vite.config.ts"],
+  "compilerOptions": {
+    "allowImportingTsExtensions": true
+  }
 }

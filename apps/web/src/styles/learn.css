@@ -1,0 +1,277 @@
+/* Learn: a guide is the article and "On this page", with figures and sources. */
+.guide__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 720px) 200px;
+  justify-content: center;
+  gap: 96px;
+  padding-top: 56px;
+}
+
+.guide__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.guide__back:hover {
+  color: var(--fg);
+}
+
+.guide__meta {
+  margin-top: 20px;
+  font-size: 14px;
+  color: rgb(255 255 255 / 0.5);
+}
+
+.guide__next {
+  display: flex;
+  margin-top: 48px;
+}
+
+.sources {
+  margin-top: 64px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 96px;
+}
+
+.sources__title {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.sources__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+  padding-left: 22px;
+  list-style: decimal;
+  color: rgb(255 255 255 / 0.5);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.sources__list a {
+  color: var(--fg-dim);
+  text-decoration: underline;
+  text-decoration-color: rgb(255 255 255 / 0.25);
+  text-underline-offset: 3px;
+}
+
+.sources__list a:hover {
+  color: var(--fg);
+  text-decoration-color: currentColor;
+}
+
+.sources__note {
+  margin-top: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgb(255 255 255 / 0.5);
+}
+
+.sources__note a {
+  color: var(--fg-dim);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* The index: a card per guide. */
+.learn-index .card-link {
+  min-height: 220px;
+}
+
+@media (max-width: 1199.98px) {
+  .guide__grid {
+    grid-template-columns: minmax(0, 720px);
+  }
+
+  .guide__grid .docs__aside {
+    display: none;
+  }
+}
+
+@media (max-width: 899.98px) {
+  .guide__grid {
+    padding-top: 32px;
+  }
+}
+
+/* A figure the reader can drag: the app's mockup, sliders, and a line saying what changed. */
+.figure {
+  margin: 40px 0;
+  padding: 28px;
+  border-radius: 20px;
+  background: var(--raise);
+  border: 1px solid var(--line);
+}
+
+.figure__stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 28px 20px;
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 30% 0%, rgb(47 123 245 / 0.16), transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgb(47 179 107 / 0.1), transparent 60%), #050505;
+}
+
+.figure__ring .nm-ring {
+  width: 104px;
+  height: 104px;
+  padding: 6px;
+}
+
+.figure__panel {
+  flex: 1;
+  max-width: 440px;
+  padding: 8px;
+  border-radius: 18px;
+  background: #000;
+  color: #fff;
+  font-family: var(--mac);
+  font-size: 11px;
+  line-height: normal;
+  -webkit-font-smoothing: antialiased;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.06);
+}
+
+.figure__panel .nm-bar__fill,
+.figure__ring .nm-ring__arc {
+  transition:
+    width 0.25s ease,
+    stroke-dasharray 0.25s ease,
+    stroke 0.2s;
+}
+
+.figure__controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px 28px;
+  margin-top: 24px;
+}
+
+.figure__caption {
+  margin-top: 20px;
+  min-height: 3em;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+}
+
+@media (max-width: 599.98px) {
+  .figure {
+    padding: 16px;
+  }
+
+  .figure__stage {
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px 10px;
+  }
+
+  .figure__panel {
+    width: 100%;
+  }
+
+  .figure__panel .nm-window__reset {
+    width: auto;
+  }
+}
+
+/* A labelled range input, shared by figures and tools. */
+.slider {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 10px 12px;
+}
+
+.slider__label {
+  font-size: 14px;
+  color: var(--fg-dim);
+}
+
+.slider__value {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.slider__input {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.slider__input::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, var(--fg) var(--p), rgb(255 255 255 / 0.12) var(--p));
+}
+
+.slider__input::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, var(--fg) var(--p), rgb(255 255 255 / 0.12) var(--p));
+}
+
+.slider__input::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: #fff;
+  border: 0;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.5);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.slider__input::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 0;
+}
+
+.slider__input:focus-visible {
+  outline: 2px solid var(--tint-blue);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* The changelog: each release a section, its groups as small headings. */
+.changelog .article__lead code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.85em;
+  color: var(--fg);
+}
+
+.changelog__body h2 {
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+}
+
+.changelog__body h2:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.changelog__body h3 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.5);
+}

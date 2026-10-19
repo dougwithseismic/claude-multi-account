@@ -9,6 +9,17 @@ export const colors = {
 
 export type Letter = keyof typeof colors
 
+/** install.sh's colour for each letter; letters after H are grey. */
+export const palette: Record<string, string> = {
+  ...colors,
+  E: '#E5487F',
+  F: '#1FB5C1',
+  G: '#E3B52B',
+  H: '#E5484D',
+}
+
+export const colorOf = (letter: string) => palette[letter] ?? '#B3B3B3'
+
 export const limitRed = '#FF453A'
 export const alertOrange = '#FF9F0A'
 

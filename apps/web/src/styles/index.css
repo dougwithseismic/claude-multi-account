@@ -21,3 +21,8 @@
 @import "./sections/faq.css";
 @import "./sections/cta.css";
 @import "./sections/footer.css";
+@import "./page.css";
+@import "./prose.css";
+@import "./docs.css";
+@import "./learn.css";
+@import "./tools.css";

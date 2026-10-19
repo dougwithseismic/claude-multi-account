@@ -10,33 +10,141 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as DocsIndexRouteImport } from './routes/docs/index'
+import { Route as DocsSlugRouteImport } from './routes/docs/$slug'
+import { Route as LearnIndexRouteImport } from './routes/learn/index'
+import { Route as LearnSlugRouteImport } from './routes/learn/$slug'
+import { Route as ToolsIndexRouteImport } from './routes/tools/index'
+import { Route as ToolsPaceRouteImport } from './routes/tools/pace'
+import { Route as ToolsSetupRouteImport } from './routes/tools/setup'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChangelogRoute = ChangelogRouteImport.update({
+  id: '/changelog',
+  path: '/changelog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsIndexRoute = DocsIndexRouteImport.update({
+  id: '/docs/',
+  path: '/docs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsSlugRoute = DocsSlugRouteImport.update({
+  id: '/docs/$slug',
+  path: '/docs/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnIndexRoute = LearnIndexRouteImport.update({
+  id: '/learn/',
+  path: '/learn/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnSlugRoute = LearnSlugRouteImport.update({
+  id: '/learn/$slug',
+  path: '/learn/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsIndexRoute = ToolsIndexRouteImport.update({
+  id: '/tools/',
+  path: '/tools/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsPaceRoute = ToolsPaceRouteImport.update({
+  id: '/tools/pace',
+  path: '/tools/pace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsSetupRoute = ToolsSetupRouteImport.update({
+  id: '/tools/setup',
+  path: '/tools/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/changelog': typeof ChangelogRoute
+  '/docs/$slug': typeof DocsSlugRoute
+  '/learn/$slug': typeof LearnSlugRoute
+  '/tools/pace': typeof ToolsPaceRoute
+  '/tools/setup': typeof ToolsSetupRoute
+  '/docs/': typeof DocsIndexRoute
+  '/learn/': typeof LearnIndexRoute
+  '/tools/': typeof ToolsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/changelog': typeof ChangelogRoute
+  '/docs/$slug': typeof DocsSlugRoute
+  '/learn/$slug': typeof LearnSlugRoute
+  '/tools/pace': typeof ToolsPaceRoute
+  '/tools/setup': typeof ToolsSetupRoute
+  '/docs': typeof DocsIndexRoute
+  '/learn': typeof LearnIndexRoute
+  '/tools': typeof ToolsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/changelog': typeof ChangelogRoute
+  '/docs/$slug': typeof DocsSlugRoute
+  '/learn/$slug': typeof LearnSlugRoute
+  '/tools/pace': typeof ToolsPaceRoute
+  '/tools/setup': typeof ToolsSetupRoute
+  '/docs/': typeof DocsIndexRoute
+  '/learn/': typeof LearnIndexRoute
+  '/tools/': typeof ToolsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/changelog'
+    | '/docs/$slug'
+    | '/learn/$slug'
+    | '/tools/pace'
+    | '/tools/setup'
+    | '/docs/'
+    | '/learn/'
+    | '/tools/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/changelog'
+    | '/docs/$slug'
+    | '/learn/$slug'
+    | '/tools/pace'
+    | '/tools/setup'
+    | '/docs'
+    | '/learn'
+    | '/tools'
+  id:
+    | '__root__'
+    | '/'
+    | '/changelog'
+    | '/docs/$slug'
+    | '/learn/$slug'
+    | '/tools/pace'
+    | '/tools/setup'
+    | '/docs/'
+    | '/learn/'
+    | '/tools/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChangelogRoute: typeof ChangelogRoute
+  DocsSlugRoute: typeof DocsSlugRoute
+  LearnSlugRoute: typeof LearnSlugRoute
+  ToolsPaceRoute: typeof ToolsPaceRoute
+  ToolsSetupRoute: typeof ToolsSetupRoute
+  DocsIndexRoute: typeof DocsIndexRoute
+  LearnIndexRoute: typeof LearnIndexRoute
+  ToolsIndexRoute: typeof ToolsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +156,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/changelog': {
+      id: '/changelog'
+      path: '/changelog'
+      fullPath: '/changelog'
+      preLoaderRoute: typeof ChangelogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs/': {
+      id: '/docs/'
+      path: '/docs'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof DocsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs/$slug': {
+      id: '/docs/$slug'
+      path: '/docs/$slug'
+      fullPath: '/docs/$slug'
+      preLoaderRoute: typeof DocsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn/': {
+      id: '/learn/'
+      path: '/learn'
+      fullPath: '/learn/'
+      preLoaderRoute: typeof LearnIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn/$slug': {
+      id: '/learn/$slug'
+      path: '/learn/$slug'
+      fullPath: '/learn/$slug'
+      preLoaderRoute: typeof LearnSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/': {
+      id: '/tools/'
+      path: '/tools'
+      fullPath: '/tools/'
+      preLoaderRoute: typeof ToolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/pace': {
+      id: '/tools/pace'
+      path: '/tools/pace'
+      fullPath: '/tools/pace'
+      preLoaderRoute: typeof ToolsPaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/setup': {
+      id: '/tools/setup'
+      path: '/tools/setup'
+      fullPath: '/tools/setup'
+      preLoaderRoute: typeof ToolsSetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChangelogRoute: ChangelogRoute,
+  DocsSlugRoute: DocsSlugRoute,
+  LearnSlugRoute: LearnSlugRoute,
+  ToolsPaceRoute: ToolsPaceRoute,
+  ToolsSetupRoute: ToolsSetupRoute,
+  DocsIndexRoute: DocsIndexRoute,
+  LearnIndexRoute: LearnIndexRoute,
+  ToolsIndexRoute: ToolsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,0 +1,123 @@
+/* Every page but the home page: a sticky, solid nav over the page. */
+.nav--solid {
+  position: sticky;
+  top: 0;
+  inset: auto;
+  background: rgb(0 0 0 / 0.82);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.nav--solid .nav__bar {
+  height: 64px;
+}
+
+.nav--solid .nav__backing {
+  display: none;
+}
+
+@media (max-width: 809.98px) {
+  .nav--solid {
+    position: sticky;
+  }
+}
+
+.page {
+  min-height: 70vh;
+  padding-bottom: 120px;
+}
+
+/* A page's opening: eyebrow, title and lead. */
+.page-head {
+  max-width: 820px;
+  padding: 96px 0 56px;
+}
+
+.page-head__eyebrow,
+.article__eyebrow {
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tint-blue);
+}
+
+.page-head__title {
+  font-size: 56px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.page-head__lead {
+  margin-top: 20px;
+  max-width: 640px;
+  font-size: 18px;
+  line-height: 1.5;
+  color: var(--fg-dim);
+}
+
+@media (max-width: 809.98px) {
+  .page-head {
+    padding: 56px 0 40px;
+  }
+
+  .page-head__title {
+    font-size: 36px;
+  }
+}
+
+/* Cards in a grid, for the guides and tools indexes. */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.card-link {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 200px;
+  padding: 28px;
+  border-radius: 20px;
+  background: var(--raise);
+  border: 1px solid var(--line);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.card-link:hover {
+  border-color: #2a2a2a;
+  background: #121212;
+}
+
+.card-link__kicker {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.5);
+}
+
+.card-link__title {
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.card-link__body {
+  color: var(--fg-dim);
+  line-height: 1.5;
+}
+
+.card-link__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
