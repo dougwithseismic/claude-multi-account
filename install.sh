@@ -1,10 +1,11 @@
 #!/bin/zsh
 # Sets up several Claude desktop accounts side by side (see the README):
 #
-#   ./install.sh               A, B and C, or every copy profiles.json already lists
-#   ./install.sh 4             A to D: adds D to an existing setup
-#   ./install.sh --uninstall   takes it out again, keeping each copy's data folder
-#   ./install.sh --doctor      checks the setup and says how to fix what's wrong; changes nothing
+#   ./install.sh                A, B and C, or every copy profiles.json already lists
+#   ./install.sh 4              A to D: adds D to an existing setup
+#   ./install.sh --statusline   adds every copy's usage to Claude Code's status line
+#   ./install.sh --doctor       checks the setup and says how to fix what's wrong; changes nothing
+#   ./install.sh --uninstall    takes it out again, keeping each copy's data folder
 #
 # It never asks for input, so an AI agent can run it, and it's safe to run again: it
 # rebuilds the launchers and Claude Notch and keeps profiles.json, settings and logins.
@@ -15,10 +16,61 @@ cd "${0:A:h}"
 CLAUDE=/Applications/Claude.app
 SUPPORT="$HOME/Library/Application Support"
 CONFIG="$HOME/.config/claude-multi-account/profiles.json"
+# The claude-usage command, linked into ~/.local/bin when that folder exists.
+CLI="$PWD/apps/notch/build/claude-usage"
+LINK="$HOME/.local/bin/claude-usage"
+# Claude Code's own settings, where its status line is set.
+SETTINGS="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
 
 step() { print "\n\e[1m==> $*\e[0m" }
 fail() { print -u2 "\e[31minstall.sh: $*\e[0m"; exit 1 }
 list() { (( $# > 1 )) && print "${(j:, :)@[1,-2]} and ${@[-1]}" || print "$*" }
+indent() { local nl=$'\n'; print -r -- "  ${1//$nl/$nl  }" }
+linked() { [[ -L $LINK && $(readlink "$LINK") == $CLI ]] }
+
+link_cli() {
+  if [[ ! -d ${LINK:h} ]]; then
+    print "  ${CLI/#$HOME/~} (there's no ~/.local/bin to link it into)"
+  elif [[ -e $LINK || -L $LINK ]] && ! linked; then
+    print "  ${LINK/#$HOME/~} is something else already, so it's left alone: ${CLI/#$HOME/~}"
+  else
+    ln -sfn "$CLI" "$LINK"
+    print "  ${LINK/#$HOME/~} -> ${CLI/#$HOME/~}"
+    (( ${path[(Ie)${LINK:h}]} )) || print "  ~/.local/bin isn't on your PATH, so run it as ~/.local/bin/claude-usage"
+  fi
+}
+
+# Adds `claude-usage --statusline` to Claude Code's settings.json when it has no status
+# line yet; one that's there already is never replaced (claude-usage says what to change).
+statusline() {
+  # A build from before 0.5 has no status line.
+  if [[ ! -x $CLI || $("$CLI" --help 2>/dev/null) != *--statusline* ]]; then
+    step "Building claude-usage"
+    apps/notch/scripts/build-app.sh
+  fi
+  step "claude-usage"
+  link_cli
+  step "Claude Code's status line: ${SETTINGS/#$HOME/~}"
+  local cmd=$CLI result code=0
+  if linked; then cmd=$LINK; fi
+  result=$("$CLI" --add-statusline "$SETTINGS" "${(q-)cmd} --statusline" 2>&1) || code=$?
+  indent "$result"
+  case $code in
+    0) print "\nClaude Code shows it under the prompt in each session, from the session's next answer: every"
+       print "copy's letter, its 5-hour · weekly percentages, red from 90%, ✕ when used up, ▸ for the one in front." ;;
+    3) ;; # Another status line is set; claude-usage said what's there and what to set.
+    *) fail "couldn't add the status line" ;;
+  esac
+  # The numbers come from what Claude Notch 0.5 or later shares after each read.
+  local version
+  version=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$HOME/Applications/Claude Notch.app/Contents/Info.plist" 2>/dev/null) || version=
+  autoload -Uz is-at-least
+  if [[ -z $version ]]; then
+    print "\nClaude Notch reads the numbers it shows, and it isn't installed: run ./install.sh too."
+  elif ! is-at-least 0.5 $version; then
+    print "\nClaude Notch $version doesn't share its numbers yet: run ./install.sh to update it."
+  fi
+}
 
 uninstall() {
   step "Removing Claude Notch"
@@ -29,6 +81,16 @@ uninstall() {
     if [[ -f "$app/Contents/Resources/claude-profile.sh" ]]; then rm -rf "$app"; print "  removed ${app:t}"; fi
   done
   rm -rf "${CONFIG:h}"
+
+  step "Removing claude-usage's link, its status line and the usage snapshot"
+  if linked; then rm "$LINK"; print "  removed ${LINK/#$HOME/~}"; fi
+  # Only a status line that runs claude-usage; another one stays.
+  if [[ -f $SETTINGS && -x $CLI ]]; then
+    local result
+    result=$("$CLI" --remove-statusline "$SETTINGS" 2>&1) || true
+    if [[ -n $result ]]; then indent "$result"; fi
+  fi
+  rm -rf "$HOME/Library/Caches/claude-multi-account"
 
   local kept=("$SUPPORT"/Claude-[B-Z](N/))
   print "\nUninstalled."
@@ -41,7 +103,8 @@ uninstall() {
 
 [[ ${1:-} == --uninstall ]] && { uninstall; exit }
 [[ ${1:-} == --doctor ]] && exec scripts/doctor.sh
-[[ $# -eq 0 || $1 == <2-26> ]] || fail "usage: ./install.sh [number of copies, 2 to 26] | --uninstall | --doctor"
+[[ ${1:-} == --statusline ]] && { statusline; exit }
+[[ $# -eq 0 || $1 == <2-26> ]] || fail "usage: ./install.sh [number of copies, 2 to 26] | --statusline | --doctor | --uninstall"
 
 step "Checking what's needed"
 [[ $(uname) == Darwin ]] || fail "this is for macOS"
@@ -131,6 +194,9 @@ done
 step "Building and installing Claude Notch (the first build takes a minute or two)"
 apps/notch/scripts/build-app.sh --install
 
+step "claude-usage"
+link_cli
+
 if [[ -d "$HOME/Applications/Claude Link Router.app" ]]; then
   print "\nAn older Claude Link Router is installed. See \"Moving from Hammerspoon\" in the README."
 fi
@@ -158,3 +224,8 @@ for X in $letters; do
 done
 print "\nFrom now on, open Claude with $(list $shortcuts) or the Claude $(list $letters) apps in ~/Applications,"
 print "not Claude.app itself: that would start a second copy on Claude A's folder."
+# Unless a profile has ⌥⌘0 for itself.
+if (( ! ${${(v)hotkey}[(Ie)0]} )); then print "⌥⌘0 switches to the copy with the most room."; fi
+if ! grep -qs -- 'claude-usage.*--statusline' "$SETTINGS"; then
+  print "\nTo see every copy's usage in Claude Code's status line too: ./install.sh --statusline"
+fi

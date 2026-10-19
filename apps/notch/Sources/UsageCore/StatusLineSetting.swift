@@ -37,7 +37,10 @@ public enum StatusLineSetting {
         guard let root = object(text) else { return .unreadable("it isn't a JSON object") }
         if let existing = root["statusLine"] { return isOurs(existing) ? .alreadyOurs : .other(json(existing)) }
         let bytes = Array(text.utf8)
-        guard let layout = Layout(bytes) else { return .unreadable("its layout couldn't be followed") }
+        // Foundation lets a trailing comma through; this doesn't.
+        guard let layout = Layout(bytes) else {
+            return .unreadable("it has something plain JSON doesn't, such as a trailing comma")
+        }
 
         var edited: [UInt8]
         if let last = layout.members.last, let first = layout.members.first {
