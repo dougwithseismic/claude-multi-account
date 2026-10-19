@@ -5,19 +5,34 @@ import Foundation
 ///
 ///     Code 41·63  ▸A 37·62  B 92·✕  C 12·30
 ///
-/// "Code" is the account that Claude Code session is signed in to, then each copy: its
-/// letter in its colour, the 5-hour window · the fullest weekly one, red from 90%, ✕ when
-/// used up. ▸ marks the copy in front. Old numbers are dimmed.
+/// "Code" is the account that Claude Code session is signed in to ("Code B" when it runs on
+/// ~/.claude-B, as `claude-b` does), then each copy: its letter in its colour, the 5-hour
+/// window · the fullest weekly one, red from 90%, ✕ when used up. ▸ marks the copy in front.
+/// Old numbers are dimmed.
 public enum StatusLine {
     /// The session's own limits, from Claude Code's stdin.
     public struct Session: Equatable, Sendable {
         public var fiveHour: Double?
         public var sevenDay: Double?
+        /// The copy whose Claude Code folder the session runs on, from `CLAUDE_CONFIG_DIR`.
+        public var letter: String?
 
-        public init(fiveHour: Double?, sevenDay: Double?) {
+        public init(fiveHour: Double?, sevenDay: Double?, letter: String? = nil) {
             self.fiveHour = fiveHour
             self.sevenDay = sevenDay
+            self.letter = letter
         }
+    }
+
+    /// "B" for a `CLAUDE_CONFIG_DIR` of `~/.claude-B` (or `.claude-b`), as `install.sh
+    /// --claude-code` sets up; nil for anything else, including no folder, which is A's.
+    public static func letter(configDir: String?) -> String? {
+        guard let configDir, !configDir.isEmpty else { return nil }
+        let name = URL(filePath: configDir).lastPathComponent
+        guard name.count == ".claude-B".count, name.lowercased().hasPrefix(".claude-"),
+              let letter = name.last.map({ String($0).uppercased() }), letter.range(of: "^[A-Z]$", options: .regularExpression) != nil
+        else { return nil }
+        return letter
     }
 
     /// `rate_limits.five_hour` and `rate_limits.seven_day` from Claude Code's stdin JSON, each
@@ -53,7 +68,10 @@ public enum StatusLine {
         snapshot: SharedSnapshot?, session: Session?, only: Set<String>? = nil, now: Date = Date(), columns: Int? = nil
     ) -> String {
         var pieces: [Piece] = []
-        if let session { pieces.append(segment(session)) }
+        if let session {
+            let colour = session.letter.flatMap { letter in snapshot?.copies.first { $0.letter == letter }?.color }
+            pieces.append(segment(session, colour: colour))
+        }
         if let snapshot {
             if snapshot.isFresh(now: now) {
                 pieces += snapshot.copies.filter { only?.contains($0.letter) ?? true }.map { segment($0, now: now) }
@@ -117,8 +135,13 @@ public enum StatusLine {
         }
     }
 
-    static func segment(_ session: Session) -> Piece {
-        Piece([Atom("Code", bold, accent), Atom(" ")] + figures(session.fiveHour, session.sevenDay, dimmed: false))
+    /// "Code 41·63", or "Code B 41·63" with B in its colour (`colour`, else the accent).
+    static func segment(_ session: Session, colour: String? = nil) -> Piece {
+        var atoms = [Atom("Code", bold, accent)]
+        if let letter = session.letter {
+            atoms += [Atom(" "), Atom(letter, codes: [bold, colour.map(UsageText.foreground) ?? accent])]
+        }
+        return Piece(atoms + [Atom(" ")] + figures(session.fiveHour, session.sevenDay, dimmed: false))
     }
 
     static func segment(_ copy: SharedSnapshot.Copy, now: Date) -> Piece {

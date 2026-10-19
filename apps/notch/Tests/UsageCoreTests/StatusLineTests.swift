@@ -154,6 +154,28 @@ private func plain(
         #expect(line.contains("\u{1B}[1;38;2;255;69;58m✕"))
     }
 
+    @Test func aSessionOnACopysClaudeCodeFolderIsNamedInItsColour() {
+        let session = StatusLine.Session(fiveHour: 41, sevenDay: 63, letter: "B")
+        #expect(plain(three, session) == "Code B 41·63  ▸A 37·62  B 92·✕  C 12·30")
+        let line = StatusLine.render(snapshot: three, session: session, now: now)
+        #expect(line.hasPrefix("\u{1B}[1;38;2;217;119;87mCode\u{1B}[0m \u{1B}[1;38;2;229;72;77mB\u{1B}[0m 41"))
+        // A letter no copy has is still named, in the accent.
+        let other = StatusLine.render(snapshot: three, session: .init(fiveHour: 1, sevenDay: 2, letter: "Q"), now: now)
+        #expect(other.contains("\u{1B}[1;38;2;217;119;87mQ\u{1B}[0m"))
+    }
+
+    @Test func theLetterComesFromTheClaudeCodeFolder() {
+        #expect(StatusLine.letter(configDir: "/Users/me/.claude-B") == "B")
+        #expect(StatusLine.letter(configDir: "/Users/me/.claude-c/") == "C")
+        #expect(StatusLine.letter(configDir: "~/.claude-D") == "D")
+        #expect(StatusLine.letter(configDir: nil) == nil)
+        #expect(StatusLine.letter(configDir: "") == nil)
+        #expect(StatusLine.letter(configDir: "/Users/me/.claude") == nil)
+        #expect(StatusLine.letter(configDir: "/Users/me/.claude-work") == nil)
+        #expect(StatusLine.letter(configDir: "/Users/me/.claude-1") == nil)
+        #expect(StatusLine.letter(configDir: "/Users/me/claude-B") == nil)
+    }
+
     @Test func aMissingOrOldSnapshotIsADimHint() {
         #expect(StatusLine.render(snapshot: nil, session: nil, now: now) == "\u{1B}[2mClaude Notch isn't running\u{1B}[0m")
         #expect(StatusLine.render(snapshot: snapshot([copy("A", 1, 1)], age: 20 * 60), session: nil, now: now) == "\u{1B}[2musage 20m old\u{1B}[0m")

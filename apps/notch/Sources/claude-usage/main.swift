@@ -105,9 +105,13 @@ while let argument = arguments.popFirst() {
 
 switch mode {
 case .statusLine:
+    let environment = ProcessInfo.processInfo.environment
+    var session = StatusLine.session(from: Input.read())
+    // Claude Code passes its own environment on, so claude-b's sessions are B's.
+    session?.letter = StatusLine.letter(configDir: environment["CLAUDE_CONFIG_DIR"])
     let line = StatusLine.render(
-        snapshot: SharedSnapshot.read(), session: StatusLine.session(from: Input.read()), only: only,
-        columns: ProcessInfo.processInfo.environment["COLUMNS"].flatMap(Int.init).flatMap { $0 > 0 ? $0 : nil }
+        snapshot: SharedSnapshot.read(), session: session, only: only,
+        columns: environment["COLUMNS"].flatMap(Int.init).flatMap { $0 > 0 ? $0 : nil }
     )
     print(line)
     exit(0)
