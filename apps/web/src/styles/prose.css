@@ -194,7 +194,8 @@
 
 .prose table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 15px;
   line-height: 1.5;
 }
@@ -264,4 +265,19 @@
   margin-top: 8px;
   font-size: 14px;
   color: rgb(255 255 255 / 0.55);
+}
+
+/* On a phone a wide table scrolls sideways; its first column, what each row is, stays put. */
+@media (max-width: 720px) {
+  .prose td:first-child,
+  .prose th:first-child {
+    position: sticky;
+    left: 0;
+    background: var(--bg);
+    box-shadow: inset -1px 0 0 var(--line);
+  }
+
+  .prose th:first-child {
+    background: #0a0a0a;
+  }
 }
