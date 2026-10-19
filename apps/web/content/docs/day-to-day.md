@@ -9,6 +9,7 @@ order: 3
 
 - <kbd>⌥⌘1</kbd>, <kbd>⌥⌘2</kbd> and <kbd>⌥⌘3</kbd> switch to A, B and C from anywhere, starting the copy if it's closed. A peek under the notch names the copy you switched to.
 - Clicking a row in the notch panel does the same.
+- <kbd>⌥⌘0</kbd> switches to the copy with the most room: of those read in the last 15 minutes and not out of any limit, the one whose fullest window, 5-hour or weekly, is lowest. A tie goes to the earlier letter, and the panel's footer names it ("Most room: Claude C"). When every copy is out, the peek says **No copy has room** and which is back first, and nothing switches. A profile whose own hotkey is `0` keeps it, and a switch in [settings](/docs/settings) turns this off.
 - The **outline** round the window in front, in that copy's colour, shows which Claude you're typing into.
 
 ## Closing and quitting

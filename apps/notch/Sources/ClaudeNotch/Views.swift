@@ -295,18 +295,10 @@ func shortLabel(_ window: UsageWindow) -> String {
 }
 
 /// How long a window lasts, when it's known.
-func windowLength(_ window: UsageWindow) -> TimeInterval? {
-    window.label == "5-hour" ? 5 * 3600 : window.label.hasPrefix("Weekly") ? 7 * 86400 : nil
-}
+func windowLength(_ window: UsageWindow) -> TimeInterval? { PaceProjection.windowLength(window) }
 
-/// How far through its window a limit is, 0–1: where an even pace would have the bar.
-/// Nil when the window hasn't started or its length isn't known.
-func elapsedFraction(_ window: UsageWindow, now: Date) -> Double? {
-    guard let reset = window.resetsAt, let length = windowLength(window) else { return nil }
-    let left = reset.timeIntervalSince(now)
-    guard left > 0, left <= length else { return nil }
-    return 1 - left / length
-}
+/// How far through its window a limit is, 0–1: where the pace tick sits.
+func elapsedFraction(_ window: UsageWindow, now: Date) -> Double? { PaceProjection.elapsedFraction(window, now: now) }
 
 /// How much of the wait is left for a window at 100%, 1 down to 0 at its reset: its bar
 /// and ring drain as the time passes. Nil below 100%, or when the wait can't be told.
@@ -323,17 +315,15 @@ func resetTextWithClock(_ window: UsageWindow, now: Date) -> String {
     return "\(text) · \(clockText(reset, now: now))"
 }
 
-extension UsageReport {
-    /// A window is at 100%: nothing more until it resets.
-    var isOut: Bool { windows.contains { $0.percentUsed >= 100 } }
+/// "out ~15:40 at this pace": when a window would be used up if use goes on as it has,
+/// by the clock ("out ~tomorrow 01:10 at this pace" past midnight).
+func paceText(_ out: Date, now: Date) -> String {
+    "out ~\(clockText(out, now: now)) at this pace"
+}
 
-    /// When every window at 100% has reset. Nil when none is, or one's reset isn't known.
-    var backAt: Date? {
-        let out = windows.filter { $0.percentUsed >= 100 }
-        let resets = out.compactMap(\.resetsAt)
-        guard !out.isEmpty, resets.count == out.count else { return nil }
-        return resets.max()
-    }
+/// "back in 41m · 16:19": when the copy back first is, for the peek when none has room.
+func backText(_ at: Date, now: Date) -> String {
+    "back in \(countdown(at.timeIntervalSince(now))) · \(clockText(at, now: now))"
 }
 
 /// Text that counts down to `target`: redrawn every second from ten minutes out, when its

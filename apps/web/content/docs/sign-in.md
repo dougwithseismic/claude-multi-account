@@ -13,11 +13,15 @@ Each copy of Claude encrypts its own login with that key, and Claude Notch reads
 
 > **Note:** The build is signed with your first code-signing certificate (or `CODESIGN_IDENTITY` if you set it), so later updates don't ask again. With no certificate it signs ad hoc, and macOS asks again after every update.
 
+## The welcome page
+
+On its first run the panel opens by itself on a welcome page: how to read the rings and bars, then a checklist of what's left. It shows whether the Keychain allowed Claude Notch, which copies are signed in, with a **Sign in** button on each that isn't, and the hotkeys. **Sign in** opens that copy, as clicking its row does; then follow the steps below. **Got it** folds the page away for good, and **Show the welcome page again** in [settings](/docs/settings) brings it back.
+
 ## Sign in to B and C
 
 Do this once for each extra copy, one at a time:
 
-1. Open it: <kbd>⌥⌘2</kbd> for B, <kbd>⌥⌘3</kbd> for C. Its window gets that copy's coloured outline.
+1. Open it: <kbd>⌥⌘2</kbd> for B, <kbd>⌥⌘3</kbd> for C, or its **Sign in** button on the welcome page. Its window gets that copy's coloured outline.
 2. Click **Sign in** and finish in the browser.
 3. When the browser asks to open Claude, allow it. The login goes to the copy you opened.
 

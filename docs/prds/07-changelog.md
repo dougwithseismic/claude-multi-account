@@ -1,6 +1,6 @@
 # PRD 07: Changelog and what's new
 
-Status: in progress; the changelog page is built, the hero badge waits for 0.5.
+Status: shipped 2026-10-19.
 
 ## Goal
 
@@ -21,3 +21,5 @@ People who install from source need to know what changed when they pull, and vis
 ## Implementation notes
 
 `/changelog` shipped 2026-10-19: it renders `CHANGELOG.md` with the docs plugin, a file without frontmatter taking its title from `# Changelog`. Release headings are anchored by version (`## 0.5 — …` is `#0-5`). The hero badge and the app's link wait for 0.5 (PRD 05).
+
+0.5, 2026-10-19: the hero badge reads "New in 0.5: pace, most room, status line" and links to `/changelog/#0-5`; it's `hero.badge` in `apps/web/src/content.ts`, changed by hand each release. "Free, for macOS 26", which the badge used to say, moved to the end of the hero's lead. The app's settings link to the changelog. 0.5's notes use the App, Command line, Site and Guides groups.

@@ -63,7 +63,7 @@ Claude Code supports this itself. Set `CLAUDE_CONFIG_DIR` to a different folder 
 alias claude-work='CLAUDE_CONFIG_DIR=~/.claude-work claude'
 ```
 
-Run `claude-work` and sign in with `/login`. On a Mac, each folder's login is kept in the Keychain separately. Anthropic Console logins without an API key aren't kept apart this way. [Claude Code and your limits](/learn/claude-code) has more.
+Run `claude-work` and sign in with `/login`. On a Mac, each folder's login is kept in the Keychain separately. Anthropic Console logins without an API key aren't kept apart this way. [Claude Code and your limits](/learn/claude-code) has more, and with Claude Notch installed, `install.sh --claude-code` makes `claude-a`, `claude-b`… for you: [Claude Code in the terminal](/docs/claude-code).
 
 ## Which to pick
 

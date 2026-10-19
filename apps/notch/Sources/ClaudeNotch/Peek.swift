@@ -44,7 +44,15 @@ struct PeekLine: View {
     var body: some View {
         let style = AccountStyle.of(peek.letter)
         HStack(spacing: 8) {
-            Badge(letter: peek.letter, color: style.color, size: 17)
+            if case .noRoom = peek.kind {
+                Image(systemName: "hourglass")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.85))
+                    .frame(width: 17, height: 17)
+                    .background(Circle().fill(.white.opacity(0.16)))
+            } else {
+                Badge(letter: peek.letter, color: style.color, size: 17)
+            }
             Text(title(style)).font(.system(size: 12, weight: .semibold)).lineLimit(1)
             Spacer(minLength: 6)
             trailing(style)
@@ -61,6 +69,7 @@ struct PeekLine: View {
         case .alert(.near(let window)): "\(style.safeLabel) · \(window.label) at \(Int(window.percentUsed.rounded()))%"
         case .alert(.out(let window)): "\(style.safeLabel) · \(shortLabel(window)) used up"
         case .alert(.back(let window)): "\(style.safeLabel) · \(shortLabel(window)) reset"
+        case .noRoom: "No copy has room"
         }
     }
 
@@ -85,6 +94,18 @@ struct PeekLine: View {
         case .alert(.back):
             Label("ready again", systemImage: "checkmark.circle.fill")
                 .font(.system(size: 11, weight: .medium)).foregroundStyle(AccountStyle.backGreen)
+        case .noRoom(let back):
+            if let back {
+                HStack(spacing: 5) {
+                    Text(back.letter).fontWeight(.bold).foregroundStyle(AccountStyle.of(back.letter).color)
+                    Countdown(target: back.at, now: now) { date in
+                        Text(backText(back.at, now: date)).monospacedDigit().lineLimit(1)
+                    }
+                    .foregroundStyle(.secondary)
+                }
+                .font(.system(size: 11, design: .rounded))
+                .fixedSize()
+            }
         }
     }
 }

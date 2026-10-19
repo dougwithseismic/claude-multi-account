@@ -73,9 +73,6 @@ function profilesJson(profiles: Profile[]) {
   return `[\n${lines.join(',\n')}\n]`
 }
 
-const clone =
-  'git clone https://github.com/dougwithseismic/claude-multi-account.git ~/claude-multi-account'
-
 export function SetupPlanner() {
   const [profiles, setProfiles] = useState<Profile[]>(() =>
     Array.from({ length: 3 }, (_, i) => fallback(i)),
@@ -223,10 +220,7 @@ export function SetupPlanner() {
 
         {custom ? (
           <>
-            <h2 className="tool__step">1. Get the code</h2>
-            <p className="tool__note">Skip this if Claude Notch is already installed.</p>
-            <CodeBlock lang="bash" code={clone} />
-            <h2 className="tool__step">2. Save your profiles</h2>
+            <h2 className="tool__step">1. Save your profiles</h2>
             <p className="tool__note">
               The installer never changes an existing profiles.json, so write yours before it runs.
               This replaces the file if you have one.
@@ -235,17 +229,21 @@ export function SetupPlanner() {
               lang="bash"
               code={`mkdir -p ~/.config/claude-multi-account && cat > ~/.config/claude-multi-account/profiles.json <<'EOF'\n${json}\nEOF`}
             />
-            <h2 className="tool__step">3. Install</h2>
+            <h2 className="tool__step">2. Install</h2>
+            <CodeBlock lang="bash" code={site.installLine} />
             <p className="tool__note">
-              It sets up every copy the file lists. Already installed? Running it again adds any new
-              copies and restarts Claude Notch with your names and colours.
+              It sets up every copy the file lists. Already installed? Run{' '}
+              <code>~/claude-multi-account/install.sh</code> instead: it adds any new copies and
+              restarts Claude Notch with your names and colours.
             </p>
-            <CodeBlock lang="bash" code="~/claude-multi-account/install.sh" />
           </>
         ) : (
           <>
             <h2 className="tool__step">Install</h2>
-            <CodeBlock lang="bash" code={`${clone}\n~/claude-multi-account/install.sh ${count}`} />
+            <CodeBlock
+              lang="bash"
+              code={count === 3 ? site.installLine : `${site.installLine} -s -- ${count}`}
+            />
             <p className="tool__note">
               Already installed? <code>~/claude-multi-account/install.sh {count}</code> adds the new
               copies and keeps everything else.

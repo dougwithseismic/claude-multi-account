@@ -1,6 +1,6 @@
 # Builds the site (apps/web) to static HTML and publishes it to GitHub Pages at
 # https://dougwithseismic.github.io/claude-multi-account/. /changelog is built from the
-# root CHANGELOG.md, so that triggers it too.
+# root CHANGELOG.md and /install.sh is bootstrap.sh, so those trigger it too.
 name: Pages
 
 on:
@@ -11,6 +11,7 @@ on:
       - packages/**
       - pnpm-lock.yaml
       - CHANGELOG.md
+      - bootstrap.sh
       - .github/workflows/pages.yml
   workflow_dispatch:
 

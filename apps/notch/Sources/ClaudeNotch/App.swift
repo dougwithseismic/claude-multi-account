@@ -7,19 +7,23 @@ import UsageCore
 // passing claude:// links to the copy used last.
 //
 // `--pin` keeps the panel open; `--snapshot <file.png>` renders it and quits; `--demo` shows
-// made-up accounts in every state; `--no-notch` draws the pill used on screens without one;
-// `--remove-login-item` takes the app out of login items and quits, for `build-app.sh --uninstall`.
+// made-up accounts in every state; `--welcome` opens on the welcome page (and adds it to a
+// snapshot); `--no-notch` draws the pill used on screens without one; `--remove-login-item`
+// takes the app out of login items and quits, for `build-app.sh --uninstall`; `--login-item`
+// prints whether it opens at login and quits, for `install.sh --doctor`.
 
 struct Options {
     var pinned = false
     var demo = false
     var noNotch = false
+    var welcome = false
     var snapshot: String?
 
     init(_ arguments: [String]) {
         pinned = arguments.contains("--pin")
         demo = arguments.contains("--demo")
         noNotch = arguments.contains("--no-notch")
+        welcome = arguments.contains("--welcome")
         snapshot = Snapshot.path(in: arguments)
     }
 }
@@ -30,6 +34,10 @@ enum ClaudeNotchApp {
     static func main() {
         if CommandLine.arguments.contains("--remove-login-item") {
             LoginItem.remove()
+            return
+        }
+        if CommandLine.arguments.contains("--login-item") {
+            print(LoginItem.status)
             return
         }
         let app = NSApplication.shared
@@ -73,6 +81,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         model.onAlert = { [weak self] letter, alert in
             self?.controller.peek(Peek(letter: letter, kind: .alert(alert)))
         }
+        // Shared for `claude-usage --cached` and the status line; the demo's numbers are made up.
+        if !options.demo { model.snapshotFile = SharedSnapshot.file }
+        preferences.onHotkeysChange = { [weak self] in self?.registerHotkeys() }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -93,11 +104,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             model.start()
         }
         if let path = options.snapshot {
-            Snapshot.write(model, preferences: preferences, to: path, hasNotch: !options.noNotch, showDetails: options.demo)
+            Snapshot.write(
+                model, preferences: preferences, to: path, hasNotch: !options.noNotch, showDetails: options.demo,
+                welcome: options.welcome
+            )
             return
         }
         controller.start()
-        if options.demo { Demo.peeks(controller) }
+        // The first run opens on the welcome page by itself; the demo only with --welcome.
+        if options.welcome || (!options.demo && !preferences.welcomeSeen) {
+            controller.welcome()
+        } else if options.demo {
+            Demo.peeks(controller)
+        }
 
         let center = NotificationCenter.default
         observers.append(center.addObserver(
@@ -155,18 +174,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func registerHotkeys() {
-        let bindings = AccountStyle.styles.compactMap { style -> (key: String, action: () -> Void)? in
-            guard let key = style.hotkey else { return nil }
-            return (key: key, action: { [weak self] in
-                log.notice("⌥⌘\(key, privacy: .public) switches to \(style.letter, privacy: .public)")
-                self?.switchTo(style.letter)
-                self?.controller.peek(Peek(letter: style.letter, kind: .switched))
-            })
+        let plan = HotkeyPlan.bindings(AccountStyle.styles, mostRoom: preferences.mostRoomHotkey)
+        let bindings = plan.map { key, target -> (key: String, action: () -> Void) in
+            switch target {
+            case .copy(let letter):
+                return (key: key, action: { [weak self] in
+                    log.notice("⌥⌘\(key, privacy: .public) switches to \(letter, privacy: .public)")
+                    self?.switchTo(letter)
+                    self?.controller.peek(Peek(letter: letter, kind: .switched))
+                })
+            case .mostRoom:
+                return (key: key, action: { [weak self] in self?.switchToMostRoom() })
+            }
         }
         let taken = hotkeys.register(bindings)
         if !taken.isEmpty { complain("couldn't register ⌥⌘\(taken.joined(separator: ", ⌥⌘")); another app may have them") }
         let keys = bindings.map(\.key).filter { !taken.contains($0) }.map { "⌥⌘\($0)" }.joined(separator: " ")
         log.notice("hotkeys \(keys, privacy: .public)")
+    }
+
+    /// ⌥⌘0: to the copy with the most room, from the numbers already read. With none, a
+    /// peek says so and which is back first, and nothing switches.
+    private func switchToMostRoom() {
+        switch model.mostRoom() {
+        case .copy(let letter):
+            log.notice("⌥⌘0 switches to \(letter, privacy: .public), the most room")
+            switchTo(letter)
+            controller.peek(Peek(letter: letter, kind: .switched))
+        case .noRoom(let back):
+            log.notice("⌥⌘0: no copy has room")
+            controller.peek(Peek(letter: back?.letter ?? "", kind: .noRoom(back)))
+        }
     }
 
     /// The demo's copies are made up: a switch only moves which one is current.

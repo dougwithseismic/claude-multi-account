@@ -19,7 +19,7 @@ The inner ring is the fullest weekly limit, whether that's all models or one mod
 
 ## The bars and the tick
 
-The panel has a bar for each window, with its percent and when it resets. The white tick on each bar marks how far through the window you are, so fill past the tick means you're using it faster than an even pace. [Pacing](/learn/pacing) explains the arithmetic.
+The panel has a bar for each window, with its percent and when it resets. The white tick on each bar marks how far through the window you are, so fill past the tick means you're using it faster than an even pace. Far enough past to run out before the reset, the reset time turns orange and says when: "out ~15:40 at this pace". [Pacing](/learn/pacing) explains the arithmetic.
 
 ## Everything else
 

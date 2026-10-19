@@ -16,10 +16,14 @@ export const nav = {
 }
 
 export const hero = {
-  badge: 'Free for macOS 26',
+  /** The latest release, linked to its notes. */
+  badge: {
+    label: 'New in 0.5: pace, most room, Claude Code per account',
+    href: `${site.changelog}#0-5`,
+  } satisfies Link,
   // The word wrapped in * is set in the serif italic.
   title: 'Sign in once. Run every Claude account *side by side.*',
-  lead: 'Each account gets its own copy of Claude, signed in for good. Switch with a key, and see every limit beside the notch.',
+  lead: 'Each account gets its own copy of Claude, signed in for good. Switch with a key, and see every limit beside the notch. Free, for macOS 26.',
   primary: { label: 'Install', href: site.install } satisfies Link,
   secondary: { label: 'How it works', href: '#how-it-works' } satisfies Link,
 }
@@ -67,7 +71,7 @@ export const cards = {
     {
       art: 'keys',
       title: 'One key per account',
-      body: '⌥⌘1, ⌥⌘2 and ⌥⌘3 bring that copy of Claude to the front, starting it if it’s closed, and outline its window in its colour.',
+      body: '⌥⌘1, ⌥⌘2 and ⌥⌘3 bring that copy of Claude to the front, starting it if it’s closed, and outline its window in its colour. ⌥⌘0 picks the one with the most room.',
       href: '#peeks',
     },
     {
@@ -135,7 +139,7 @@ export const grid = {
     {
       icon: 'terminal',
       title: 'claude-usage',
-      body: 'The same numbers in the terminal, with --json for scripts and --only to choose accounts.',
+      body: 'The same numbers in the terminal and in Claude Code’s status line, with --best for the copy with the most room and --json for scripts.',
     },
     {
       icon: 'shield',
@@ -190,7 +194,7 @@ export const details = {
     {
       art: 'tick',
       title: 'The pace tick',
-      body: 'A tick on each bar marks how far through its window you are.',
+      body: 'A tick marks an even pace. Go faster and the row says when you’d run out.',
     },
     {
       art: 'cross',
@@ -262,6 +266,10 @@ export const faq = {
       a: 'Only the usage and profile checks Claude Code’s /usage makes: at launch, then every 5 minutes per account, backing off when Anthropic rate-limits the check.',
     },
     {
+      q: 'Does it work with Claude Code in the terminal?',
+      a: 'Yes. One command makes claude-a, claude-b and claude-c, each Claude Code with that copy’s own login, and the status line under Claude Code’s prompt shows every copy’s limits.',
+    },
+    {
       q: 'How many accounts can I run at once?',
       a: 'A, B and C come set up, and you can add D, E and more in profiles.json. Each copy is a full Claude app, so expect roughly 0.5 to 1 GB of memory for each one you have open.',
     },
@@ -283,6 +291,7 @@ export const footer = {
         { label: 'Features', href: to('/#features') },
         { label: 'How it works', href: to('/#how-it-works') },
         { label: 'Changelog', href: site.changelog },
+        { label: 'Compare', href: site.compare },
         { label: 'GitHub', href: site.repo, external: true },
       ],
     },

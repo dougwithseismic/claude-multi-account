@@ -23,6 +23,8 @@ In Claude Notch every bar has a white tick that marks how far through its window
 - **Fill level with the tick:** an even pace. You'd reach 100% just as it resets.
 - **Fill past the tick:** faster than an even pace. At this rate you'll reach 100% before the reset.
 
+When a bar is far enough past its tick to run out before the reset, Claude Notch says when, in orange, where the reset time was: "out ~15:40 at this pace". It waits until a tenth of the window has gone and 5% is used, so one busy minute doesn't set it off.
+
 Drag the sliders to see it.
 
 <div data-figure="pace"></div>
