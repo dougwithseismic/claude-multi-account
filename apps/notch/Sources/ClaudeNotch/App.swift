@@ -8,7 +8,8 @@ import UsageCore
 //
 // `--pin` keeps the panel open; `--snapshot <file.png>` renders it and quits; `--demo` shows
 // made-up accounts in every state; `--no-notch` draws the pill used on screens without one;
-// `--remove-login-item` takes the app out of login items and quits, for `build-app.sh --uninstall`.
+// `--remove-login-item` takes the app out of login items and quits, for `build-app.sh --uninstall`;
+// `--login-item` prints whether it opens at login and quits, for `install.sh --doctor`.
 
 struct Options {
     var pinned = false
@@ -30,6 +31,10 @@ enum ClaudeNotchApp {
     static func main() {
         if CommandLine.arguments.contains("--remove-login-item") {
             LoginItem.remove()
+            return
+        }
+        if CommandLine.arguments.contains("--login-item") {
+            print(LoginItem.status)
             return
         }
         let app = NSApplication.shared

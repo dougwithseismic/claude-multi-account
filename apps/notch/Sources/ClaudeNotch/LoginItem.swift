@@ -8,6 +8,17 @@ enum LoginItem {
 
     static var isEnabled: Bool { SMAppService.mainApp.status == .enabled }
 
+    /// For `install.sh --doctor` (`--login-item`).
+    static var status: String {
+        switch SMAppService.mainApp.status {
+        case .enabled: "enabled"
+        case .requiresApproval: "requiresApproval"
+        case .notRegistered: "notRegistered"
+        case .notFound: "notFound"
+        @unknown default: "unknown"
+        }
+    }
+
     /// Turns it on or off and returns whether it's on now.
     @discardableResult
     static func set(_ on: Bool) -> Bool {

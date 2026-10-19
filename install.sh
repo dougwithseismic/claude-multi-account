@@ -4,6 +4,7 @@
 #   ./install.sh               A, B and C, or every copy profiles.json already lists
 #   ./install.sh 4             A to D: adds D to an existing setup
 #   ./install.sh --uninstall   takes it out again, keeping each copy's data folder
+#   ./install.sh --doctor      checks the setup and says how to fix what's wrong; changes nothing
 #
 # It never asks for input, so an AI agent can run it, and it's safe to run again: it
 # rebuilds the launchers and Claude Notch and keeps profiles.json, settings and logins.
@@ -39,7 +40,8 @@ uninstall() {
 }
 
 [[ ${1:-} == --uninstall ]] && { uninstall; exit }
-[[ $# -eq 0 || $1 == <2-26> ]] || fail "usage: ./install.sh [number of copies, 2 to 26] | --uninstall"
+[[ ${1:-} == --doctor ]] && exec scripts/doctor.sh
+[[ $# -eq 0 || $1 == <2-26> ]] || fail "usage: ./install.sh [number of copies, 2 to 26] | --uninstall | --doctor"
 
 step "Checking what's needed"
 [[ $(uname) == Darwin ]] || fail "this is for macOS"

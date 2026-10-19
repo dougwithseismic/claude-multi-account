@@ -21,6 +21,8 @@ export const site = {
   tools: to('/tools/'),
   changelog: to('/changelog/'),
   prd: `${repo}/blob/main/docs/notch-prd.md`,
+  /** The one-line install, which runs bootstrap.sh. */
+  installLine: 'curl -fsSL https://dougwithseismic.github.io/claude-multi-account/install.sh | zsh',
   /** The GitHub page that edits a docs page or guide. */
   edit: (path: string) => `${repo}/edit/main/apps/web/content/${path}`,
 } as const

@@ -5,6 +5,16 @@ section: Help
 order: 8
 ---
 
+## Check the setup
+
+One command checks everything Claude Notch needs, changes nothing, and says how to fix whatever is wrong:
+
+```bash
+~/claude-multi-account/install.sh --doctor
+```
+
+It checks macOS, Claude.app and Swift; your profiles.json; each copy's data folder, launcher and sign-in; whether a copy is open twice on one folder; whether Claude Notch is installed, up to date, running and opening at login; where `claude://` links go; that the Keychain item is there (without reading it); and how recently usage was read. It ends with "Everything looks right" or the number of things to fix.
+
 ## Find out what went wrong
 
 Claude Notch logs what failed, and nothing else, to the system log:
@@ -25,7 +35,9 @@ And `claude-usage` shows what each copy's login looks like from the terminal:
 | --- | --- |
 | this is for macOS / needs macOS 26 or later | Claude Notch uses macOS 26's notch and window APIs, so it can't run on an older system |
 | install the Claude desktop app in /Applications first | [Download Claude](https://claude.ai/download) and drag it to `/Applications`, not `~/Applications` |
-| install Apple's Command Line Tools first | Run `xcode-select --install`, wait for it to finish, then run `install.sh` again |
+| install Apple's Command Line Tools first, or needs Apple's Command Line Tools | Finish the installer it opened (or run `xcode-select --install`), then run the same command again |
+| ~/claude-multi-account is there but isn't a copy of Claude Notch | Something else has that name. Rename it, then paste the install line again |
+| It has changes of its own, so it wasn't updated | You've edited files in `~/claude-multi-account`. It installs from them as they are; to update, commit or undo your changes (`git -C ~/claude-multi-account status` lists them) |
 | …isn't a JSON list of profiles | Your `profiles.json` has a typo. Fix it, or move it aside and the installer writes a new one |
 | couldn't build / couldn't sign | Run it again; if it fails twice, [open an issue](https://github.com/dougwithseismic/claude-multi-account/issues) with the output |
 

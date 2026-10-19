@@ -2,6 +2,7 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { contentRoutes, markdown } from './plugins/markdown'
+import { rootFiles } from './plugins/root-files'
 
 // GitHub Pages serves the site under /claude-multi-account/; the Pages workflow sets
 // BASE_PATH. Start derives the router's basepath from this.
@@ -30,6 +31,8 @@ export default defineConfig({
   server: { port: 5173, strictPort: true },
   plugins: [
     markdown(),
+    // The one-line install: curl -fsSL …/install.sh | zsh
+    rootFiles({ 'install.sh': new URL('../../bootstrap.sh', import.meta.url) }),
     // The site is static: every route is rendered to HTML at build time. Crawling checks
     // the links between pages too, and fails the build on one that's broken.
     tanstackStart({

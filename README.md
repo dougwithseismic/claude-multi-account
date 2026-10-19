@@ -16,7 +16,13 @@ Claude.app itself is never modified, so it stays signed and keeps updating as no
 
 ## Install
 
-You need macOS 26 or later, the [Claude desktop app](https://claude.ai/download) in `/Applications`, and Apple's Command Line Tools (`xcode-select --install`) or Xcode.
+You need macOS 26 or later, the [Claude desktop app](https://claude.ai/download) in `/Applications`, and Apple's Command Line Tools (`xcode-select --install`) or Xcode. Paste this into Terminal:
+
+```bash
+curl -fsSL https://dougwithseismic.github.io/claude-multi-account/install.sh | zsh
+```
+
+It runs [`bootstrap.sh`](bootstrap.sh): it checks those three, clones this repository into `~/claude-multi-account` (or pulls, if it's there and unchanged), and runs `install.sh`. Or do that by hand:
 
 ```bash
 git clone https://github.com/dougwithseismic/claude-multi-account.git ~/claude-multi-account
@@ -155,7 +161,7 @@ log show --predicate 'subsystem == "com.godzillaaa.claude-notch"' --last 1h --in
 
 Claude.app isn't modified, so it updates itself as normal, and every copy runs the same updated app. When an update installs, quit and reopen **all** the copies. Otherwise any that didn't restart keeps running the old version.
 
-To update Claude Notch, `git pull` and run `install.sh` again.
+To update Claude Notch, `git pull` and run `install.sh` again, or paste the install line again. If something isn't working, `~/claude-multi-account/install.sh --doctor` checks the whole setup, changes nothing, and says how to fix each problem.
 
 ## Moving from Hammerspoon
 
@@ -181,7 +187,9 @@ This quits Claude Notch, takes it out of your login items and deletes it, delete
 
 | File | Goes to | Does |
 | --- | --- | --- |
-| `install.sh` | | Sets everything up, adds copies, or takes it all out |
+| `bootstrap.sh` | served as the site's `/install.sh` | The one-line install: checks the Mac, clones or pulls this repository, runs `install.sh` |
+| `install.sh` | | Sets everything up, adds copies, or takes it all out; `--doctor` checks it all |
+| `scripts/doctor.sh` | | `install.sh --doctor` |
 | `files/claude-profile.sh` | inside each launcher app | Brings a copy to the front, or starts it |
 | `files/profiles.json` | `~/.config/claude-multi-account/profiles.json` | Each copy's label, colour and hotkey |
 | `apps/notch/` | `~/Applications/Claude Notch.app` | The app (limits, hotkeys, outline, links) and the `claude-usage` command |
