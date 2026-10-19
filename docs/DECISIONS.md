@@ -25,6 +25,7 @@ Settled choices. Don't relitigate them; add new calls with their date.
 - Swift 6.2, macOS 26, no third-party dependencies. See [notch-prd.md](notch-prd.md) for everything the app already does and why.
 - Read only, never refresh a login, never write to Claude's files. Tokens never touch disk or logs.
 - Anything the app shares with other tools (the CLI, the status line) is written without tokens, emails or organization names.
+- Claude Code in the terminal gets a login per copy through `CLAUDE_CONFIG_DIR` (`claude-b` on `~/.claude-B`), set up by `install.sh --claude-code`. The installer only links into those folders and never replaces anything in them, and nothing of ours runs `claude` to check a login.
 
 ## Shipping
 

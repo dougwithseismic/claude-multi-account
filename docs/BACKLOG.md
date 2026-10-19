@@ -14,7 +14,7 @@ Ordered. `[ ]` not started, `[~]` shipped up to a seam, `[x]` done. Each PRD is 
 | 06 | [One-line install and `--doctor`](prds/06-install.md) | Tooling | [x] |
 | 07 | [Changelog and what's new](prds/07-changelog.md) | Both | [x] |
 | 08 | [Compare page and launch kit](prds/08-launch.md) | Education | [x] |
-| 09 | Claude Code in the terminal, one login per copy (`CLAUDE_CONFIG_DIR`, now in Anthropic's docs) | Tooling | [ ] thin |
+| 09 | [Claude Code in the terminal, one login per copy](prds/09-claude-code.md) | Tooling | [x] |
 
 ## Needs the user
 
