@@ -3,13 +3,16 @@ import { nav } from '../content'
 import { Logo } from './Logo'
 import { Button, external } from './ui'
 
-export function Nav() {
+/** The bar over the hero on the home page; `solid` on every other page, where it sticks
+ * to the top with a black backing. */
+export function Nav({ solid = false }: { solid?: boolean }) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
   // On phones the bar stays fixed, and gets a black backing once the hero has scrolled
   // past, as on the reference.
   useEffect(() => {
+    if (solid) return
     const hero = document.querySelector('main > section')
     const check = () => setScrolled(window.scrollY >= (hero?.clientHeight ?? 0) - 1)
     check()
@@ -19,7 +22,7 @@ export function Nav() {
       window.removeEventListener('scroll', check)
       window.removeEventListener('resize', check)
     }
-  }, [])
+  }, [solid])
 
   useEffect(() => {
     if (!open) return
@@ -34,7 +37,9 @@ export function Nav() {
 
   return (
     <header
-      className={['nav', open && 'is-open', scrolled && 'is-scrolled'].filter(Boolean).join(' ')}
+      className={['nav', solid && 'nav--solid', open && 'is-open', scrolled && 'is-scrolled']
+        .filter(Boolean)
+        .join(' ')}
     >
       <div className="nav__backing" aria-hidden="true" />
       <nav className="nav__bar container" aria-label="Main">

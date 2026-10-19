@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dougwithseismic.github.io/claude-multi-account/sitemap.xml

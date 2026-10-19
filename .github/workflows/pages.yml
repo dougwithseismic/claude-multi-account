@@ -1,5 +1,6 @@
-# Builds the marketing page (apps/web) to static HTML and publishes it to GitHub Pages
-# at https://dougwithseismic.github.io/claude-multi-account/.
+# Builds the site (apps/web) to static HTML and publishes it to GitHub Pages at
+# https://dougwithseismic.github.io/claude-multi-account/. /changelog is built from the
+# root CHANGELOG.md, so that triggers it too.
 name: Pages
 
 on:
@@ -9,6 +10,7 @@ on:
       - apps/web/**
       - packages/**
       - pnpm-lock.yaml
+      - CHANGELOG.md
       - .github/workflows/pages.yml
   workflow_dispatch:
 
@@ -32,6 +34,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile --filter @claude-notch/web...
+      - run: pnpm --filter @claude-notch/web test
       - id: pages
         uses: actions/configure-pages@v6
       - run: pnpm --filter @claude-notch/web build

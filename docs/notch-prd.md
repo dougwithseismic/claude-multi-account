@@ -273,4 +273,4 @@ Checked live: the hotkeys fire (synthetic ⌥⌘ presses in the demo, logged per
 | [TheBoredTeam/boring.notch](https://github.com/TheBoredTeam/boring.notch) | GPL-3.0 | Ideas only (window flags, display-change handling); no code |
 | [hamed-elfayome/Claude-Usage-Tracker](https://github.com/hamed-elfayome/Claude-Usage-Tracker) | MIT | Lessons: its refresh bug and its paid-call fallback, both avoided |
 
-None of these shows several accounts at once; that, and the notch, is what's new here.
+Several tools now show more than one account's limits (Brow, ModelDeck, Codenotch, Claude-Usage-Tracker, openusage), and several run the desktop app side by side (claude-multiprofile, Claude Profiles, Multi-Claude). What's new here is both together: several copies of the desktop app open at once, with live limits for each copy and each of its organizations, beside the notch. See `research/2026-10-19-competitors.md`.

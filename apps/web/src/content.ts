@@ -1,4 +1,4 @@
-import { site } from './site'
+import { site, to } from './site'
 
 /** Every word on the page. Facts come from the README and the PRD in this repo. */
 
@@ -6,12 +6,13 @@ export type Link = { label: string; href: string; external?: boolean }
 
 export const nav = {
   links: [
-    { label: 'Features', href: '#features' },
-    { label: 'How it works', href: '#how-it-works' },
-    { label: 'FAQ', href: '#faq' },
+    { label: 'Features', href: to('/#features') },
+    { label: 'Docs', href: site.docs },
+    { label: 'Learn', href: site.learn },
+    { label: 'Tools', href: site.tools },
     { label: 'GitHub', href: site.repo, external: true },
   ] satisfies Link[],
-  cta: { label: 'Install', href: site.install, external: true } satisfies Link,
+  cta: { label: 'Install', href: site.install } satisfies Link,
 }
 
 export const hero = {
@@ -19,7 +20,7 @@ export const hero = {
   // The word wrapped in * is set in the serif italic.
   title: 'Sign in once. Run every Claude account *side by side.*',
   lead: 'Each account gets its own copy of Claude, signed in for good. Switch with a key, and see every limit beside the notch.',
-  primary: { label: 'Install', href: site.install, external: true } satisfies Link,
+  primary: { label: 'Install', href: site.install } satisfies Link,
   secondary: { label: 'How it works', href: '#how-it-works' } satisfies Link,
 }
 
@@ -85,7 +86,7 @@ export const walkthrough = [
     tag: 'Collapsed',
     title: 'A ring for every account, beside the notch',
     body: 'The outer ring is the 5-hour window and the inner one the fullest weekly window, in that account’s colour. A red cross means it’s out for the week, and a dot marks the copy in front.',
-    cta: { label: 'Install', href: site.install, external: true },
+    cta: { label: 'Install', href: site.install },
     scene: 'rings',
   },
   {
@@ -94,7 +95,7 @@ export const walkthrough = [
     tag: 'Open',
     title: 'Rest on the notch to see everything',
     body: 'The panel grows out of the notch with a row per account: its plan, every window’s bar and when it resets. The white tick marks an even pace. Click a row to switch to that copy.',
-    cta: { label: 'Install', href: site.install, external: true },
+    cta: { label: 'Install', href: site.install },
     scene: 'panel',
   },
   {
@@ -103,7 +104,7 @@ export const walkthrough = [
     tag: 'Peeks',
     title: 'A word under the notch when it matters',
     body: 'Switch with ⌥⌘ and a number, and a strip under the notch names the copy you’re in. Pass 90% of a 5-hour limit, run out, or get one back, and it tells you for a few seconds.',
-    cta: { label: 'Install', href: site.install, external: true },
+    cta: { label: 'Install', href: site.install },
     scene: 'peek',
   },
 ] as const
@@ -165,7 +166,7 @@ export const facts = {
         { value: 3, suffix: '', label: 'Copies set up' },
         { value: 0, suffix: '', label: 'Changes to Claude' },
       ],
-      cta: { label: 'Read the guide', href: site.repo, external: true },
+      cta: { label: 'Read the docs', href: site.docs },
       scene: 'profiles',
       tint: 'green',
     },
@@ -175,7 +176,7 @@ export const facts = {
 export const copies = {
   title: 'One ring for every copy of Claude you run',
   body: 'A, B and C come set up. Add D, E and more to profiles.json with a letter, label, colour and hotkey, then click Reload.',
-  cta: { label: 'Add a copy', href: site.addCopy, external: true } satisfies Link,
+  cta: { label: 'Add a copy', href: site.addCopy } satisfies Link,
 }
 
 export const details = {
@@ -269,8 +270,8 @@ export const faq = {
 
 export const cta = {
   title: 'Ready to see every *limit?*',
-  primary: { label: 'Install', href: site.install, external: true } satisfies Link,
-  secondary: { label: 'Read the guide', href: site.repo, external: true } satisfies Link,
+  primary: { label: 'Install', href: site.install } satisfies Link,
+  secondary: { label: 'Read the docs', href: site.docs } satisfies Link,
 }
 
 export const footer = {
@@ -279,26 +280,36 @@ export const footer = {
     {
       title: 'Product',
       links: [
-        { label: 'Features', href: '#features' },
-        { label: 'How it works', href: '#how-it-works' },
-        { label: 'FAQ', href: '#faq' },
-      ],
-    },
-    {
-      title: 'Guide',
-      links: [
-        { label: 'Install', href: site.install, external: true },
-        { label: 'Sign in to B and C', href: site.signIn, external: true },
-        { label: 'Add a copy', href: site.addCopy, external: true },
-        { label: 'Uninstall', href: site.undo, external: true },
-      ],
-    },
-    {
-      title: 'Project',
-      links: [
+        { label: 'Features', href: to('/#features') },
+        { label: 'How it works', href: to('/#how-it-works') },
+        { label: 'Changelog', href: site.changelog },
         { label: 'GitHub', href: site.repo, external: true },
-        { label: 'PRD', href: site.prd, external: true },
-        { label: 'claude-usage', href: site.cli, external: true },
+      ],
+    },
+    {
+      title: 'Tools',
+      links: [
+        { label: 'Pace calculator', href: to('/tools/pace/') },
+        { label: 'Setup planner', href: to('/tools/setup/') },
+        { label: 'All tools', href: site.tools },
+      ],
+    },
+    {
+      title: 'Docs',
+      links: [
+        { label: 'Install', href: site.install },
+        { label: 'Sign in to each copy', href: site.signIn },
+        { label: 'Troubleshooting', href: to('/docs/troubleshooting/') },
+        { label: 'claude-usage', href: site.cli },
+      ],
+    },
+    {
+      title: 'Learn',
+      links: [
+        { label: 'How limits work', href: to('/learn/how-limits-work/') },
+        { label: 'Plans and limits', href: to('/learn/plans/') },
+        { label: 'Several accounts on a Mac', href: to('/learn/multiple-accounts/') },
+        { label: 'All guides', href: site.learn },
       ],
     },
   ] satisfies Array<{ title: string; links: Link[] }>,

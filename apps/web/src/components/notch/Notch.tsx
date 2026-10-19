@@ -1,6 +1,15 @@
 import { EyeOff, RotateCw, Settings } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { type Copy, colors, type Letter, limitRed, notch, ringOf, type Window } from './data'
+import {
+  type Copy,
+  colorOf,
+  colors,
+  type Letter,
+  limitRed,
+  notch,
+  ringOf,
+  type Window,
+} from './data'
 
 /** One double ring: the 5-hour window outside, the fullest weekly window inside. */
 export function Ring({
@@ -9,14 +18,17 @@ export function Ring({
   out = false,
   weekly,
   dim = false,
+  color: tint,
 }: {
-  letter: Letter
+  letter: string
   fiveHour: number
   out?: boolean
   weekly: number
   dim?: boolean
+  /** Instead of the letter's own colour. */
+  color?: string
 }) {
-  const color = colors[letter]
+  const color = tint ?? colorOf(letter)
   const outer = out || fiveHour >= 0.9 ? limitRed : color
   return (
     <svg
@@ -126,12 +138,25 @@ export function Closed({
   )
 }
 
-export function Badge({ letter, size = 22 }: { letter: Letter; size?: number }) {
+export function Badge({
+  letter,
+  size = 22,
+  color,
+}: {
+  letter: string
+  size?: number
+  color?: string
+}) {
   return (
     <span
       className="nm-badge"
       style={
-        { '--c': colors[letter], width: size, height: size, fontSize: size * 0.5 } as CSSProperties
+        {
+          '--c': color ?? colorOf(letter),
+          width: size,
+          height: size,
+          fontSize: size * 0.5,
+        } as CSSProperties
       }
     >
       {letter}
@@ -169,7 +194,7 @@ export function Bar({ window, color }: { window: Window; color: string }) {
   )
 }
 
-function WindowRow({ window, color }: { window: Window; color: string }) {
+export function WindowRow({ window, color }: { window: Window; color: string }) {
   const full = window.used >= 100
   return (
     <div className="nm-window" data-full={full ? '' : undefined}>

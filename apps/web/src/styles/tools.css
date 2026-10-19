@@ -1,0 +1,381 @@
+/* Tools: inputs on the left, the result on the right, in the panel's own look. */
+.tool {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.tool--wide {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.tool__panel {
+  padding: 28px;
+  border-radius: 20px;
+  background: var(--raise);
+  border: 1px solid var(--line);
+}
+
+.tool__inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.tool__result {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tool__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--fg-dim);
+}
+
+.tool__row {
+  display: flex;
+  gap: 12px;
+}
+
+.tool__field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tool__input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: #050505;
+  border: 1px solid #262626;
+  color: var(--fg);
+  font: inherit;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color-scheme: dark;
+}
+
+.tool__input:focus-visible {
+  outline: 2px solid var(--tint-blue);
+  outline-offset: 1px;
+}
+
+.tool__input--color {
+  padding: 4px;
+  cursor: pointer;
+}
+
+.tool__input--color::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.tool__input--color::-webkit-color-swatch {
+  border: 0;
+  border-radius: 6px;
+}
+
+.tool__hint,
+.tool__note {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.tool__note a,
+.tool-page__footer a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: rgb(255 255 255 / 0.3);
+  text-underline-offset: 3px;
+}
+
+.tool__note code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 13px;
+  color: var(--fg-dim);
+}
+
+.tool__verdict {
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.tool__verdict[data-tone="red"] {
+  color: var(--limit-red);
+}
+
+.tool__verdict[data-tone="green"] {
+  color: var(--tint-green);
+}
+
+.tool__body {
+  color: var(--fg-dim);
+  line-height: 1.5;
+}
+
+.tool__bar {
+  max-width: none;
+  padding: 14px 16px;
+}
+
+.tool__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.tool__stat {
+  padding: 14px 16px;
+  background: var(--raise);
+}
+
+.tool__stat dt {
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.tool__stat dd {
+  margin-top: 4px;
+  font-size: 17px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.tool__stat[data-red] dd {
+  color: var(--limit-red);
+}
+
+.tool__share,
+.tool__reset {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  background: #161616;
+  border: 1px solid #262626;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fg-dim);
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.tool__share:hover,
+.tool__reset:hover:not(:disabled) {
+  background: #202020;
+  color: var(--fg);
+}
+
+.tool__share[data-copied] {
+  color: var(--tint-green);
+}
+
+.tool__reset:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.tool__step {
+  margin-top: 8px;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.tool__warning {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgb(255 69 58 / 0.1);
+  border: 1px solid rgb(255 69 58 / 0.3);
+  font-size: 14px;
+  line-height: 1.5;
+  color: #ffb1ab;
+}
+
+/* The top of a screen, cropped at the left so the rings always show. */
+.tool__preview {
+  display: flex;
+  justify-content: flex-end;
+  overflow: hidden;
+  padding: 0 28px 36px 0;
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(255 255 255 / 0.08), transparent 70%),
+    linear-gradient(#1a1a1a, #0c0c0c);
+}
+
+.tool__preview .nm-surface {
+  flex: none;
+  zoom: 1.5;
+}
+
+.tool-page__head {
+  padding-bottom: 40px;
+}
+
+.tool-page__footer {
+  max-width: 720px;
+  margin-top: 40px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--fg-dim);
+}
+
+/* Two or three choices as one control. */
+.segmented {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.segmented__options {
+  display: flex;
+  padding: 3px;
+  border-radius: 12px;
+  background: #050505;
+  border: 1px solid #262626;
+}
+
+.segmented__option {
+  position: relative;
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  color: rgb(255 255 255 / 0.6);
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.segmented__option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented__option[data-on] {
+  background: #222;
+  color: var(--fg);
+}
+
+.segmented__option:has(input:focus-visible) {
+  outline: 2px solid var(--tint-blue);
+  outline-offset: 1px;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stepper .tool__label {
+  margin: 0;
+}
+
+.stepper__controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stepper__button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #161616;
+  border: 1px solid #262626;
+  color: var(--fg);
+}
+
+.stepper__button:disabled {
+  opacity: 0.35;
+}
+
+.stepper__value {
+  width: 44px;
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.profiles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profiles__row {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 64px 104px;
+  align-items: end;
+  gap: 12px;
+}
+
+.profiles__row:not(:first-child) .tool__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.profiles__row .nm-badge {
+  margin-bottom: 8px;
+  font-family: var(--mac);
+}
+
+@media (max-width: 999.98px) {
+  .tool,
+  .tool--wide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tool__result {
+    position: static;
+  }
+}
+
+@media (max-width: 599.98px) {
+  .tool__panel {
+    padding: 18px;
+  }
+
+  .profiles__row {
+    grid-template-columns: 26px minmax(0, 1fr) 56px;
+  }
+
+  .profiles__key {
+    grid-column: 2 / -1;
+  }
+
+  .tool__verdict {
+    font-size: 24px;
+  }
+}
