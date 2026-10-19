@@ -15,6 +15,7 @@ What changed for people who use Claude Notch, newest first. To update, `git pull
 - A pace calculator: enter how much of a 5-hour or weekly limit you've used and when it resets, and see whether it lasts, when you'd run out at the rate so far, and how much an hour you can use to make it last. Works for anyone, on any computer. Links keep the inputs, so a result can be shared.
 - A setup planner: pick how many accounts, name them, give each a colour and hotkey, and get the rings as the Notch would draw them, the install command and the profiles.json.
 - This changelog, on the site.
+- A compare page: the other usage trackers, side-by-side launchers and account switchers, what each does, where they're ahead, and when to pick one instead.
 - Link previews for every page, a sitemap and robots.txt.
 
 ### Guides
