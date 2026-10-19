@@ -283,6 +283,7 @@ export const footer = {
         { label: 'Features', href: to('/#features') },
         { label: 'How it works', href: to('/#how-it-works') },
         { label: 'Changelog', href: site.changelog },
+        { label: 'Compare', href: site.compare },
         { label: 'GitHub', href: site.repo, external: true },
       ],
     },

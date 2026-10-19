@@ -18,6 +18,7 @@ const host = 'https://dougwithseismic.github.io'
 const pages = [
   '/',
   '/changelog/',
+  '/compare/',
   '/docs/',
   '/learn/',
   '/tools/',

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as DocsIndexRouteImport } from './routes/docs/index'
 import { Route as DocsSlugRouteImport } from './routes/docs/$slug'
 import { Route as LearnIndexRouteImport } from './routes/learn/index'
@@ -27,6 +28,11 @@ const IndexRoute = IndexRouteImport.update({
 const ChangelogRoute = ChangelogRouteImport.update({
   id: '/changelog',
   path: '/changelog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsIndexRoute = DocsIndexRouteImport.update({
@@ -68,6 +74,7 @@ const ToolsSetupRoute = ToolsSetupRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
+  '/compare': typeof CompareRoute
   '/docs/$slug': typeof DocsSlugRoute
   '/learn/$slug': typeof LearnSlugRoute
   '/tools/pace': typeof ToolsPaceRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
+  '/compare': typeof CompareRoute
   '/docs/$slug': typeof DocsSlugRoute
   '/learn/$slug': typeof LearnSlugRoute
   '/tools/pace': typeof ToolsPaceRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
+  '/compare': typeof CompareRoute
   '/docs/$slug': typeof DocsSlugRoute
   '/learn/$slug': typeof LearnSlugRoute
   '/tools/pace': typeof ToolsPaceRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/changelog'
+    | '/compare'
     | '/docs/$slug'
     | '/learn/$slug'
     | '/tools/pace'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/changelog'
+    | '/compare'
     | '/docs/$slug'
     | '/learn/$slug'
     | '/tools/pace'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/changelog'
+    | '/compare'
     | '/docs/$slug'
     | '/learn/$slug'
     | '/tools/pace'
@@ -138,6 +150,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChangelogRoute: typeof ChangelogRoute
+  CompareRoute: typeof CompareRoute
   DocsSlugRoute: typeof DocsSlugRoute
   LearnSlugRoute: typeof LearnSlugRoute
   ToolsPaceRoute: typeof ToolsPaceRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/changelog'
       fullPath: '/changelog'
       preLoaderRoute: typeof ChangelogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs/': {
@@ -218,6 +238,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChangelogRoute: ChangelogRoute,
+  CompareRoute: CompareRoute,
   DocsSlugRoute: DocsSlugRoute,
   LearnSlugRoute: LearnSlugRoute,
   ToolsPaceRoute: ToolsPaceRoute,

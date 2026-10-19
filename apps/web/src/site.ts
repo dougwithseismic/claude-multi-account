@@ -20,6 +20,7 @@ export const site = {
   learn: to('/learn/'),
   tools: to('/tools/'),
   changelog: to('/changelog/'),
+  compare: to('/compare/'),
   prd: `${repo}/blob/main/docs/notch-prd.md`,
   /** The one-line install, which runs bootstrap.sh. */
   installLine: 'curl -fsSL https://dougwithseismic.github.io/claude-multi-account/install.sh | zsh',
