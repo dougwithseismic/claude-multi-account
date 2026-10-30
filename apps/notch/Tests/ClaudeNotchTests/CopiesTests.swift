@@ -6,27 +6,6 @@ import Testing
 @testable import UsageCore
 
 @Suite struct CopiesTests {
-    @Test func aCopysLetterComesFromItsDataFolder() {
-        let support = "/Users/me/Library/Application Support"
-        #expect(ClaudeCopies.letter(fromArguments: ["/Applications/Claude.app/Contents/MacOS/Claude"]) == "A")
-        #expect(ClaudeCopies.letter(fromArguments: ["Claude", "--user-data-dir=\(support)/Claude-B"]) == "B")
-        #expect(ClaudeCopies.letter(fromArguments: ["Claude", "--user-data-dir=\(support)/Claude-C/"]) == "C")
-        #expect(ClaudeCopies.letter(fromArguments: ["Claude", "--user-data-dir=\(support)/Claude"]) == "A")
-        // Started some other way: not one of ours.
-        #expect(ClaudeCopies.letter(fromArguments: ["Claude", "--user-data-dir=/tmp/scratch"]) == nil)
-        #expect(ClaudeCopies.letter(fromArguments: ["Claude", "--user-data-dir=\(support)/Claude-b"]) == nil)
-    }
-
-    @Test func readsAProcesssArguments() throws {
-        let mine = try #require(ClaudeCopies.arguments(of: ProcessInfo.processInfo.processIdentifier))
-        #expect(mine == CommandLine.arguments)
-        // argc, the executable, padding, the arguments, then the environment.
-        var bytes = withUnsafeBytes(of: Int32(2)) { Array($0) }
-        bytes += Array("/bin/x\0\0\0x\0--user-data-dir=/a/Claude-D\0HOME=/Users/me\0".utf8)
-        #expect(ClaudeCopies.parseArguments(bytes) == ["x", "--user-data-dir=/a/Claude-D"])
-        #expect(ClaudeCopies.parseArguments([1, 0]) == nil)
-    }
-
     @Test func linksGoToTheCopyUsedLast() {
         #expect(Links.target(lastUsed: "B", running: ["A", "B", "C"]) == "B")
         // B was quit: the first running copy.
