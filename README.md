@@ -78,7 +78,7 @@ On its first run the panel opens by itself on a welcome page: how to read the ri
 - **⌥⌘0** switches to the copy with the most room: of those read in the last 15 minutes and not out of any limit, the one whose fullest window (5-hour or weekly) is lowest. A tie goes to the earlier letter. When every copy is out, the peek says "No copy has room" and which copy is back first, and nothing switches. The panel's footer names the copy ("Most room: Claude C") when you have more than one. A profile whose own hotkey is `0` keeps it, and the switch in settings turns this off.
 - Closing a Claude window doesn't quit that copy: it keeps running with no window, as Mac apps do. Switching handles this by sending it the same "reopen" message a Dock click sends, so a new window appears. To really quit a copy, press ⌘Q in it.
 - The outline shows which Claude you're typing into. When another app is in front, the next `claude://` link goes to the Claude you used last ("Links go to Claude B" in the panel).
-- **Claude in Chrome:** there's one Chrome and one extension, and the connection to it belongs to your Mac user rather than to a Claude account. So every copy can use the same Chrome; just don't have two driving it at the same time.
+- **Claude in Chrome:** only the copies on the account the extension is signed in to can use it; see [Claude in Chrome in every copy](#claude-in-chrome-in-every-copy-experimental).
 - **Built-in browser pane:** this is separate per copy, so each copy has its own site logins there.
 - **Code tab:** the MCP servers and skills it uses live in `~/.claude`, which every copy shares. Transcripts and memory are shared too, which is useful, but don't run two accounts in the same git worktree at once.
 - All copies write to the same log, `~/Library/Logs/Claude/main.log`.
@@ -181,6 +181,26 @@ The desktop copies each keep their own login, but Claude Code in the terminal ha
 
 `~/.claude-B` links to `~/.claude`'s `settings.json`, `CLAUDE.md`, `skills`, `agents`, `commands` and `plugins`, so every login has the same setup; anything the folder already has stays as it is. With the status line set, a `claude-b` session's own limits read "Code B". It only changes commands it made, `./install.sh` updates them once they're there, and `--uninstall` removes them and leaves the folders, printing the line that deletes them.
 
+## Claude in Chrome in every copy (experimental)
+
+Claude in Chrome reaches Claude through Anthropic's servers, by account: the extension in a Chrome profile is signed in to one claude.ai account, and only copies on that account can use it. `claude-chrome-relay` works round that for the Code tab. It's an MCP server that sends the same browser tools to the extension through its helper on your Mac, which doesn't check the account. So every copy can work in your usual Chrome profile, with its logins, at the same time.
+
+`install.sh` builds it into `apps/notch/build/claude-chrome-relay`. Add it once and every copy's Code tab gets it, since they share `~/.claude`:
+
+```bash
+claude mcp add --scope user chrome-relay -- ~/claude-multi-account/apps/notch/build/claude-chrome-relay
+```
+
+New Code sessions then have its tools (`mcp__chrome-relay__navigate` and the rest). Each session gets its own tab group in Chrome, named after its copy ("Claude B"), and sees only its own tabs.
+
+- Chrome must be open with the Claude extension installed. If several Chrome profiles have the extension, it uses the one whose helper started last; `--socket` picks another (the sockets are in `/tmp/claude-mcp-browser-bridge-<you>/`).
+- The copy whose account the extension is signed in to has both the built-in Claude in Chrome tools and these.
+- It leaves out picking between browsers, uploading files or images from the chat, GIF recording and shortcuts.
+- The `claude-b`… commands from `--claude-code` each have their own settings folder, so add it to each one the same way (`claude-b mcp add --scope user …`). Their tab groups are called "Claude"; pass `--label` after the path to name them.
+- Only the Code tab is tested. A copy's chat could use it from that copy's `claude_desktop_config.json`; `--label` names its tab group something else.
+
+Anthropic doesn't support this. It relies on how the extension and its helper work today: the extension already refuses these local commands when a company manages it, and an update could do the same for everyone. Any copy that has it can drive your Chrome profile, signed-in sites included. Remove it with `claude mcp remove --scope user chrome-relay`.
+
 ## How it works
 
 Claude is an Electron app. Electron keeps everything for one account (login cookies, settings, window state) in a single data folder, `~/Library/Application Support/Claude`. If you start Claude with `--user-data-dir=<another folder>`, that copy runs separately with its own login.
@@ -206,7 +226,7 @@ apps/notch/build/"Claude Notch.app"/Contents/MacOS/ClaudeNotch --demo --pin
 
 `--demo` never writes the usage file. To check `claude-usage --cached`, `--best` and `--statusline` without Claude Notch, point `CLAUDE_NOTCH_SNAPSHOT` at a file of your own.
 
-Without `--demo` or `--snapshot`, a second copy quits at once if Claude Notch is already running. `apps/notch/scripts/build-app.sh` builds the app and `claude-usage` on their own; add `--install` to install and open the app, or `--uninstall` to quit and remove it.
+Without `--demo` or `--snapshot`, a second copy quits at once if Claude Notch is already running. `apps/notch/scripts/build-app.sh` builds the app, `claude-usage` and `claude-chrome-relay` on their own; add `--install` to install and open the app, or `--uninstall` to quit and remove it.
 
 What went wrong, if anything, is in the system log:
 
@@ -249,4 +269,4 @@ This quits Claude Notch, takes it out of your login items and deletes it, delete
 | `scripts/doctor.sh` | | `install.sh --doctor` |
 | `files/claude-profile.sh` | inside each launcher app | Brings a copy to the front, or starts it |
 | `files/profiles.json` | `~/.config/claude-multi-account/profiles.json` | Each copy's label, colour and hotkey |
-| `apps/notch/` | `~/Applications/Claude Notch.app` | The app (limits, hotkeys, outline, links) and the `claude-usage` command |
+| `apps/notch/` | `~/Applications/Claude Notch.app` | The app (limits, hotkeys, outline, links), the `claude-usage` command and `claude-chrome-relay` |

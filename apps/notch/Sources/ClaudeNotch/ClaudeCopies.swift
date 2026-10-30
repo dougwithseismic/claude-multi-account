@@ -43,7 +43,7 @@ final class ClaudeCopies {
         guard app.bundleIdentifier == Self.bundleID else { return nil }
         let pid = app.processIdentifier
         if let known = letters[pid] { return known }
-        guard let arguments = Self.arguments(of: pid), let letter = Self.letter(fromArguments: arguments) else { return nil }
+        guard let arguments = ClaudeProcess.arguments(of: pid), let letter = ClaudeProcess.letter(fromArguments: arguments) else { return nil }
         letters[pid] = letter
         return letter
     }
@@ -67,43 +67,5 @@ final class ClaudeCopies {
             UserDefaults.standard.set(letter, forKey: Self.lastUsedKey)
         }
         onFrontChange?(letter == nil ? nil : front, letter)
-    }
-
-    /// "--user-data-dir=…/Claude-B" is B, "…/Claude" or no such argument is A, a folder
-    /// named anything else is a copy this setup didn't start.
-    nonisolated static func letter(fromArguments arguments: [String]) -> String? {
-        let prefix = "--user-data-dir="
-        guard let argument = arguments.last(where: { $0.hasPrefix(prefix) }) else { return "A" }
-        let folder = URL(filePath: String(argument.dropFirst(prefix.count))).lastPathComponent
-        return Profile.letter(forFolder: folder)
-    }
-
-    /// Another process's arguments, from the kernel; readable for the user's own processes
-    /// without any permission.
-    nonisolated static func arguments(of pid: pid_t) -> [String]? {
-        var mib = [CTL_KERN, KERN_PROCARGS2, pid]
-        var size = 0
-        guard sysctl(&mib, 3, nil, &size, nil, 0) == 0, size > 0 else { return nil }
-        var buffer = [UInt8](repeating: 0, count: size)
-        guard sysctl(&mib, 3, &buffer, &size, nil, 0) == 0 else { return nil }
-        return parseArguments(Array(buffer.prefix(size)))
-    }
-
-    /// KERN_PROCARGS2 is argc, the executable's path, NUL padding, then argc NUL-terminated
-    /// arguments (then the environment, which is skipped).
-    nonisolated static func parseArguments(_ bytes: [UInt8]) -> [String]? {
-        guard bytes.count >= 4 else { return nil }
-        let argc = Int(bytes.withUnsafeBytes { $0.loadUnaligned(as: Int32.self) })
-        var i = 4
-        while i < bytes.count, bytes[i] != 0 { i += 1 }
-        while i < bytes.count, bytes[i] == 0 { i += 1 }
-        var arguments: [String] = []
-        while arguments.count < argc, i < bytes.count {
-            let start = i
-            while i < bytes.count, bytes[i] != 0 { i += 1 }
-            arguments.append(String(decoding: bytes[start..<i], as: UTF8.self))
-            i += 1
-        }
-        return arguments.count == argc ? arguments : nil
     }
 }

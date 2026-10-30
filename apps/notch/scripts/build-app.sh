@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Builds "Claude Notch.app" and the claude-usage command into apps/notch/build/ and signs both.
+# Builds "Claude Notch.app" and the claude-usage and claude-chrome-relay commands into apps/notch/build/ and signs them.
 # With --install, also replaces ~/Applications/Claude Notch.app with it and opens it.
 # With --uninstall, builds nothing: quits the installed app and removes it.
 #
@@ -25,8 +25,7 @@ if [[ ${1:-} == --uninstall ]]; then
   exit
 fi
 
-swift build -c release --product ClaudeNotch
-swift build -c release --product claude-usage
+swift build -c release
 
 APP="build/Claude Notch.app"
 rm -rf "$APP"
@@ -66,9 +65,13 @@ if [[ -z $IDENTITY ]]; then
 fi
 codesign --force --sign "$IDENTITY" --identifier com.godzillaaa.claude-notch "$APP"
 codesign --verify --strict "$APP"
-cp .build/release/claude-usage build/claude-usage
-codesign --force --sign "$IDENTITY" --identifier com.godzillaaa.claude-usage build/claude-usage
-echo "Built $PWD/$APP and $PWD/build/claude-usage"
+for tool in claude-usage claude-chrome-relay; do
+  # A new file rather than an overwrite: sessions running the old one keep it.
+  rm -f build/$tool
+  cp .build/release/$tool build/$tool
+  codesign --force --sign "$IDENTITY" --identifier com.godzillaaa.$tool build/$tool
+done
+echo "Built $PWD/$APP, $PWD/build/claude-usage and $PWD/build/claude-chrome-relay"
 
 if [[ ${1:-} == --install ]]; then
   pkill -x ClaudeNotch && sleep 1 || true
