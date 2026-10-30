@@ -2,6 +2,16 @@
 
 What changed for people who use Claude Notch, newest first. To update, paste the install line again, or `git pull` and run `./install.sh`.
 
+## Unreleased
+
+### App
+
+- **Chrome access for every copy**, a switch in settings: off, `claude-chrome-relay` refuses every call and nothing reaches Chrome. While it's on, a globe beside a copy's name shows it used Chrome in the last minute.
+
+### Command line
+
+- `claude-chrome-relay` (experimental): the Claude in Chrome tools for every copy's Code sessions through one Chrome profile, each session in its own tab group named after its copy. The README's "Claude in Chrome in every copy" has the setup.
+
 ## 0.5 — 2026-10-19
 
 ### App

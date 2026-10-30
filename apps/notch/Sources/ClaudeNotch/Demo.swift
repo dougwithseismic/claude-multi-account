@@ -8,6 +8,8 @@ import UsageCore
 enum Demo {
     /// Where the demo keeps its settings, apart from the app's.
     static let defaultsSuite = "com.godzillaaa.claude-notch.demo"
+    /// The demo's own Chrome switch, so flipping it leaves the relay alone.
+    static let chromeAccess = ChromeAccess(folder: FileManager.default.temporaryDirectory.appending(path: defaultsSuite))
 
     static func fill(_ model: AccountsModel, now: Date = Date()) {
         func profile(_ letter: String) -> Profile {
@@ -75,6 +77,8 @@ enum Demo {
             profiles: ["A", "B", "C", "D", "E", "F"].map(profile), accounts: accounts,
             keychainProblem: .keychain(errSecAuthFailed)
         )
+        // A used Chrome a moment ago: its row shows the globe for the rest of the minute.
+        model.chrome.called("A", at: now.addingTimeInterval(-12))
     }
 
     /// A switch peek and then an alert soon after launch, to see both without waiting.

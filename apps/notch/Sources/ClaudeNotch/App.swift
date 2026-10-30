@@ -65,7 +65,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.options = options
         // The demo's accounts are made up: it reads nothing, and its settings are its own.
         model = AccountsModel(reader: options.demo ? nil : AccountReader())
-        preferences = Preferences(defaults: options.demo ? UserDefaults(suiteName: Demo.defaultsSuite)! : .standard)
+        preferences = options.demo
+            ? Preferences(defaults: UserDefaults(suiteName: Demo.defaultsSuite)!, chrome: Demo.chromeAccess)
+            : Preferences()
         super.init()
         controller = NotchController(
             model: model, preferences: preferences, pinned: options.pinned, forcePill: options.noNotch,
@@ -139,6 +141,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         registerHotkeys()
         guard !options.demo else { return }
         startCopies()
+        model.chrome.start()
         Links.claim()
         LoginItem.enableOnFirstLaunch()
     }

@@ -51,6 +51,8 @@ final class AccountsModel {
     /// The copy in front, or used last: where claude:// links go. The shared snapshot
     /// says which, so it's written again when this changes.
     var lastUsed: String? { didSet { if lastUsed != oldValue { share() } } }
+    /// The copies using Chrome through claude-chrome-relay just now.
+    let chrome = ChromeUse()
     /// Reading now, for the refresh button's spin.
     private(set) var polling = false
     /// Called after each update, so the panel can resize to its content.

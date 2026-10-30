@@ -1,7 +1,9 @@
 import Foundation
 import Observation
+import UsageCore
 
-/// The choices on the panel's settings page, kept in UserDefaults.
+/// The choices on the panel's settings page, kept in UserDefaults; Chrome access is the
+/// one kept in a file instead.
 @MainActor @Observable
 final class Preferences {
     enum OpenOn: String, CaseIterable {
@@ -27,10 +29,14 @@ final class Preferences {
     }
     /// Got it was pressed on the welcome page; until then it opens by itself at launch.
     var welcomeSeen: Bool { didSet { defaults.set(welcomeSeen, forKey: Key.welcomeSeen) } }
+    /// claude-chrome-relay may use Chrome, for every copy. Read from its file, which a shell
+    /// can change too, so `rereadChromeAccess()` picks that up.
+    private(set) var chromeAccess: Bool
 
     /// Called when a setting changes which hotkeys there are.
     @ObservationIgnored var onHotkeysChange: (() -> Void)?
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private let chrome: ChromeAccess
 
     enum Key {
         static let showDetails = "showDetails"
@@ -42,8 +48,9 @@ final class Preferences {
         static let welcomeSeen = "welcomeSeen"
     }
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, chrome: ChromeAccess = ChromeAccess()) {
         self.defaults = defaults
+        self.chrome = chrome
         showDetails = defaults.bool(forKey: Key.showDetails)
         openOn = defaults.string(forKey: Key.openOn).flatMap(OpenOn.init) ?? .hover
         limitAlerts = defaults.object(forKey: Key.limitAlerts) as? Bool ?? true
@@ -51,5 +58,18 @@ final class Preferences {
         haptics = defaults.object(forKey: Key.haptics) as? Bool ?? true
         mostRoomHotkey = defaults.object(forKey: Key.mostRoomHotkey) as? Bool ?? true
         welcomeSeen = defaults.bool(forKey: Key.welcomeSeen)
+        chromeAccess = chrome.isOn
+    }
+
+    /// Turns Chrome access on or off for every copy; the switch then shows what the file says.
+    func setChromeAccess(_ on: Bool) {
+        do { try chrome.set(on) } catch { complain("couldn't turn Chrome access \(on ? "on" : "off"): \(error.localizedDescription)") }
+        rereadChromeAccess()
+    }
+
+    /// Picks up a change made in a shell since the last look.
+    func rereadChromeAccess() {
+        let on = chrome.isOn
+        if on != chromeAccess { chromeAccess = on }
     }
 }

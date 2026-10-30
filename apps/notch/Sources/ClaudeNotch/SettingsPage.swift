@@ -2,8 +2,8 @@ import AppKit
 import SwiftUI
 import UsageCore
 
-/// The gear's page: privacy, how the notch behaves, and the app itself. Its own switches
-/// and choices rather than AppKit's, which want a key window this panel never is.
+/// The gear's page: privacy, how the notch behaves, Chrome access, and the app itself. Its
+/// own switches and choices rather than AppKit's, which want a key window this panel never is.
 struct SettingsPage: View {
     @Bindable var preferences: Preferences
     let actions: PanelActions
@@ -37,6 +37,15 @@ struct SettingsPage: View {
                 )
                 SwitchRow(title: "Haptic feedback", detail: "A tick on the trackpad as the panel opens.", isOn: $preferences.haptics)
             }
+            section("Chrome") {
+                SwitchRow(
+                    title: "Chrome access for every copy",
+                    detail: preferences.chromeAccess
+                        ? "Copies can use Chrome through claude-chrome-relay. A globe marks a copy for a minute after it does."
+                        : "claude-chrome-relay refuses every call, so nothing reaches Chrome.",
+                    isOn: Binding(get: { preferences.chromeAccess }, set: { preferences.setChromeAccess($0) })
+                )
+            }
             section("General") {
                 LoginItemRow()
                 ProfilesRow(edit: actions.editProfiles, reload: actions.reloadProfiles)
@@ -58,6 +67,8 @@ struct SettingsPage: View {
             }
             .padding(.horizontal, 8)
         }
+        // The file may have changed in a shell since the page last showed.
+        .onAppear { preferences.rereadChromeAccess() }
     }
 
     private var hotkeys: String {
