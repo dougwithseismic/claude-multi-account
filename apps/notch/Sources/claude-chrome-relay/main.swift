@@ -5,7 +5,9 @@ import UsageCore
 // claude-chrome-relay [--label "Claude B"] [--socket <path>]
 // An MCP server (stdio) with the Claude in Chrome tools, for any copy of Claude; see Relay.
 // --label names the tab group (default: the copy's name). --socket picks a native host
-// when several browsers run the extension (default: the newest).
+// when several browsers run the extension (default: the newest). Claude Notch's Chrome
+// switch (ChromeAccess) refuses every call while it's off, and the notch marks the copy
+// that made each call.
 
 let usageLine = "usage: claude-chrome-relay [--label <name>] [--socket <path>]"
 
@@ -36,8 +38,10 @@ while let argument = arguments.popFirst() {
 // A Code tab session passes its id down, so each conversation gets its own tab group.
 let environment = ProcessInfo.processInfo.environment
 let sessionID = environment["CLAUDE_CODE_SESSION_ID"].flatMap(UUID.init(uuidString:)) ?? UUID()
-let name = label ?? ClaudeProcess.copy().map { ProfileStyle.of($0, in: ProfileStyle.load()).label } ?? "Claude"
+let copy = ClaudeProcess.copy()
+let name = label ?? copy.map { ProfileStyle.of($0, in: ProfileStyle.load()).label } ?? "Claude"
 let relay = Relay(sessionID: sessionID.uuidString.lowercased(), displayName: name, socketPath: socketPath)
+let access = ChromeAccess()
 
 /// Answers request `id` with `body`: ["result": …] or ["error": …].
 func reply(_ id: Any, _ body: [String: Any]) {
@@ -46,6 +50,14 @@ func reply(_ id: Any, _ body: [String: Any]) {
     guard var data = try? JSONSerialization.data(withJSONObject: message, options: .withoutEscapingSlashes) else { return }
     data.append(UInt8(ascii: "\n"))
     FileHandle.standardOutput.write(data)
+}
+
+/// Tells Claude Notch that `copy` just used Chrome, so its row can show it. Delivered at
+/// once, as the notch app is rarely the active one.
+func announceUse(by copy: String) {
+    DistributedNotificationCenter.default().postNotificationName(
+        ChromeAccess.usedNotification, object: copy, userInfo: nil, deliverImmediately: true
+    )
 }
 
 // One JSON-RPC message per line. Calls run one at a time, as the host answers one
@@ -74,11 +86,23 @@ while let line = readLine() {
             reply(id, ["error": ["code": -32602, "message": "tools/call needs a name"]])
             continue
         }
+        // Read on every call, so switching it in Claude Notch (or a shell) applies to
+        // sessions already running.
+        guard access.isOn else {
+            reply(id, ["result": Relay.errorResult(
+                "Chrome access is switched off in Claude Notch. Ask the user to turn it back on if you need the browser."
+            )])
+            continue
+        }
         guard Tools.names.contains(name) else {
             reply(id, ["result": Relay.errorResult("Unknown tool: \(name)")])
             continue
         }
-        reply(id, ["result": relay.call(name, arguments: params["arguments"] as? [String: Any] ?? [:])])
+        let result = relay.call(name, arguments: params["arguments"] as? [String: Any] ?? [:])
+        reply(id, ["result": result])
+        // After the answer, so it never waits on this. A call that failed (Chrome closed,
+        // say) leaves the row alone.
+        if let copy, result["isError"] as? Bool != true { announceUse(by: copy) }
     default:
         reply(id, ["error": ["code": -32601, "message": "Method not found: \(method)"]])
     }

@@ -93,7 +93,7 @@ Rest the pointer on the notch, or click it, and the panel grows out of it with o
 
 - **Privacy:** rows show the profile's name ("Claude B") and plan, not the email or a Team's name, so the panel can open in front of anyone. The eye at the top left shows them; holding ⌥ over the panel shows them until you let go.
 - **Peeks:** after a ⌥⌘ switch, a strip under the notch names the copy for a moment. When the copy in use passes 90% of its 5-hour limit, runs out of a limit, or gets one back, the strip says so for a few seconds. Peeks never take clicks and stay away while an app is full screen.
-- **Settings** (the gear): show emails and team names, open on hover or only on click, limit alerts, switch peeks, ⌥⌘0, haptic feedback, open at login, and editing profiles.json. Under "Reading it": what the rings and bars mean, the welcome page again, and links to [how limits work](https://dougwithseismic.github.io/claude-multi-account/learn/how-limits-work/) and [what's new](https://dougwithseismic.github.io/claude-multi-account/changelog/).
+- **Settings** (the gear): show emails and team names, open on hover or only on click, limit alerts, switch peeks, ⌥⌘0, haptic feedback, Chrome access for `claude-chrome-relay`, open at login, and editing profiles.json. Under "Reading it": what the rings and bars mean, the welcome page again, and links to [how limits work](https://dougwithseismic.github.io/claude-multi-account/learn/how-limits-work/) and [what's new](https://dougwithseismic.github.io/claude-multi-account/changelog/).
 
 **Teams and other organizations:** one login can belong to several organizations, for example a personal Max plan and a Team. Each has its own limits. The row shows the one that copy is working in (whichever you last picked in Claude's account menu), and any other organization below it, marked "not in use". Claude renews only the login of the organization it's working in. So if another one's numbers go stale, switch that Claude to it once to update them. An organization you've never used in that copy (a free personal plan, say) has no login and isn't shown.
 
@@ -192,6 +192,8 @@ claude mcp add --scope user chrome-relay -- ~/claude-multi-account/apps/notch/bu
 ```
 
 New Code sessions then have its tools (`mcp__chrome-relay__navigate` and the rest). Each session gets its own tab group in Chrome, named after its copy ("Claude B"), and sees only its own tabs.
+
+**Chrome access for every copy** in Claude Notch's settings switches it on or off for all copies at once: off, the relay refuses every call and nothing reaches Chrome. The switch is the file `~/.config/claude-multi-account/chrome-off`, so from a shell `touch` it to turn access off and `rm` it to turn it back on. While access is on, a globe beside a copy's name in the panel shows it used Chrome in the last minute.
 
 - Chrome must be open with the Claude extension installed. If several Chrome profiles have the extension, it uses the one whose helper started last; `--socket` picks another (the sockets are in `/tmp/claude-mcp-browser-bridge-<you>/`).
 - The copy whose account the extension is signed in to has both the built-in Claude in Chrome tools and these.

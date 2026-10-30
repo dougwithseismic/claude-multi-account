@@ -200,6 +200,7 @@ final class NotchController {
 
     private func show(haptic: Bool = false) {
         model.refreshIfStale()
+        preferences.rereadChromeAccess()
         shrinkTask?.cancel()
         let fromPeek = state.peekShown
         if !panel.isVisible {

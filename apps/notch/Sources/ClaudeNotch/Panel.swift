@@ -158,7 +158,11 @@ struct UsagePage: View {
             }
             ForEach(Array(model.copies.enumerated()), id: \.element.id) { index, copy in
                 Button { actions.open(copy.id) } label: {
-                    CopyRow(copy: copy, now: now, isCurrent: model.lastUsed == copy.id, showsDetails: details, index: index + 1)
+                    CopyRow(
+                        copy: copy, now: now, isCurrent: model.lastUsed == copy.id,
+                        usingChrome: model.chrome.showsMark(copy.id, accessOn: preferences.chromeAccess, now: now),
+                        showsDetails: details, index: index + 1
+                    )
                 }
                 .buttonStyle(RowButtonStyle())
                 .modifier(Reveal(index: index + 1))
@@ -259,11 +263,13 @@ struct KeychainBanner: View {
 
 /// One copy: its badge and name, the organization it's working in, and below that any
 /// other organization the same login belongs to (a personal Max plan beside a Team, say).
-/// The name is the profile's unless details show, when it's the login's email.
+/// The name is the profile's unless details show, when it's the login's email. A globe
+/// after it means the copy used Chrome through claude-chrome-relay in the last minute.
 struct CopyRow: View {
     let copy: AccountsModel.Copy
     let now: Date
     let isCurrent: Bool
+    var usingChrome = false
     let showsDetails: Bool
     /// Its place in the panel, for when its bars fill.
     let index: Int
@@ -283,6 +289,14 @@ struct CopyRow: View {
                         .contentTransition(.opacity)
                     if let plan = copy.active?.planText(showsDetails: showsDetails) { Tag(text: plan) }
                     if isCurrent { Tag(text: "current", color: style.color) }
+                    if usingChrome {
+                        Image(systemName: "globe")
+                            .font(.system(size: 10.5, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                            .help("Used Chrome in the last minute")
+                            .accessibilityLabel("Using Chrome")
+                            .transition(.opacity.combined(with: .scale(scale: 0.6)))
+                    }
                     Spacer(minLength: 4)
                     if let status = copy.active?.status(now: now) {
                         Text(status).font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
@@ -297,6 +311,7 @@ struct CopyRow: View {
                 }
                 .frame(minHeight: 22)
                 .animation(.smooth(duration: 0.15), value: hovered)
+                .animation(.smooth(duration: 0.25), value: usingChrome)
                 if let active = copy.active {
                     AccountDetail(account: active, color: style.color, now: now, delay: delay)
                 } else {
