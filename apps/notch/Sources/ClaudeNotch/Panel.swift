@@ -6,7 +6,8 @@ struct PanelActions {
     var open: (String) -> Void = { _ in }
     var refresh: () -> Void = {}
     var editProfiles: () -> Void = {}
-    var reloadProfiles: () -> Void = {}
+    /// Nil once reloaded, or what's wrong with the file.
+    var reloadProfiles: () -> String? = { nil }
     var quit: () -> Void = {}
     /// The welcome page's Got it.
     var finishWelcome: () -> Void = {}
@@ -145,9 +146,10 @@ struct UsagePage: View {
     let preferences: Preferences
     let actions: PanelActions
     let now: Date
+    /// The rows' own height, to tell when there are too many to fit on screen.
+    @State private var rowsHeight: CGFloat = 0
 
     var body: some View {
-        let details = state.showsDetails(preferences)
         VStack(alignment: .leading, spacing: 6) {
             if let problem = model.keychainProblem {
                 KeychainBanner(problem: problem, retry: model.retryKeychain).modifier(Reveal(index: 1))
@@ -156,6 +158,23 @@ struct UsagePage: View {
                 Text("No Claude profiles in ~/Library/Application Support")
                     .font(.system(size: 12)).foregroundStyle(.secondary).padding(10)
             }
+            // Only scrolls when there are more copies than fit, as a scroll view clips the
+            // rows sliding in.
+            if rowsHeight > state.rowsLimit {
+                ScrollView { rows }
+                    .frame(height: state.rowsLimit)
+                    .scrollIndicators(.automatic)
+            } else {
+                rows
+            }
+            Footer(model: model, state: state, preferences: preferences, now: now)
+                .modifier(Reveal(index: model.copies.count + 1))
+        }
+    }
+
+    private var rows: some View {
+        let details = state.showsDetails(preferences)
+        return VStack(alignment: .leading, spacing: 6) {
             ForEach(Array(model.copies.enumerated()), id: \.element.id) { index, copy in
                 Button { actions.open(copy.id) } label: {
                     CopyRow(
@@ -167,9 +186,8 @@ struct UsagePage: View {
                 .buttonStyle(RowButtonStyle())
                 .modifier(Reveal(index: index + 1))
             }
-            Footer(model: model, state: state, preferences: preferences, now: now)
-                .modifier(Reveal(index: model.copies.count + 1))
         }
+        .onGeometryChange(for: CGFloat.self, of: \.size.height) { rowsHeight = $0 }
     }
 }
 
@@ -401,11 +419,11 @@ struct AccountDetail: View {
                     // Old numbers would understate the pace: no projection from them.
                     WindowRow(
                         window: window, color: color, now: now, delay: delay + 0.03 * Double(index),
-                        projects: !account.isStale
+                        projects: !account.isStale && !account.isOld(now: now)
                     )
                 }
             }
-            .opacity(account.isStale ? 0.4 : 1)
+            .opacity(account.isStale ? 0.4 : account.isOld(now: now) ? 0.6 : 1)
         }
         if let message = account.message {
             Text(message).font(.system(size: 11)).foregroundStyle(account.report == nil ? .secondary : .primary)

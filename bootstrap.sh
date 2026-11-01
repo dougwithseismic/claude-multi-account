@@ -27,14 +27,21 @@ main() {
     || fail "Install the Claude desktop app in /Applications first: https://claude.ai/download"
   # git and Swift both come with Apple's Command Line Tools. Without them /usr/bin/git
   # only offers to install them, so check before using it.
-  if ! xcode-select -p >/dev/null 2>&1 || ! xcrun --find swift >/dev/null 2>&1; then
+  if ! xcode-select -p >/dev/null 2>&1; then
     xcode-select --install 2>/dev/null || true
     print "\nClaude Notch is built on this Mac, which needs Apple's Command Line Tools."
     print "Their installer should be open now. When it's done, run this line again:\n"
     print "  $line"
     exit 1
   fi
-  print "  macOS $macos, Claude.app and the Command Line Tools found"
+  local swift
+  swift=$(xcrun swift -version 2>&1) || fail "The Command Line Tools are there but Swift won't run:
+$swift
+If it mentions a licence, run: sudo xcodebuild -license accept. Otherwise: sudo xcode-select --reset"
+  swift=${${swift#*Swift version }%% *}
+  autoload -Uz is-at-least
+  is-at-least 6.2 $swift || fail "Claude Notch needs Swift 6.2 or later, and this Mac has $swift. Update the Command Line Tools in System Settings → General → Software Update, then run this line again."
+  print "  macOS $macos, Claude.app and Swift $swift found"
 
   if [[ ! -e $dir ]]; then
     step "Getting the code into ~/claude-multi-account"
@@ -43,13 +50,18 @@ main() {
     fail "~/claude-multi-account is there but isn't a copy of Claude Notch. Move it aside and run this again."
   elif [[ -n $(git -C "$dir" status --porcelain) ]]; then
     step "Using ~/claude-multi-account as it is"
-    print "  It has changes of its own, so it wasn't updated. To update it, commit or undo"
-    print "  them, then run this again."
+    print "  It has changes of its own, so it wasn't updated. To update it, undo or stash"
+    print "  them (git stash), then run this again."
   else
     step "Updating ~/claude-multi-account"
-    git -C "$dir" pull --quiet --ff-only \
-      || fail "Couldn't update ~/claude-multi-account; run git pull in it to see why."
-    print "  $(git -C "$dir" log -1 --format='%h %s')"
+    # A branch of your own, a detached HEAD or a branch that has moved apart can't be
+    # fast-forwarded; install what's there rather than nothing.
+    if git -C "$dir" pull --quiet --ff-only 2>/dev/null; then
+      print "  $(git -C "$dir" log -1 --format='%h %s')"
+    else
+      print "  It couldn't be fast-forwarded to the latest version (run git pull in it to see why),"
+      print "  so this installs what it has: $(git -C "$dir" log -1 --format='%h %s')"
+    fi
   fi
 
   exec "$dir/install.sh" "$@"

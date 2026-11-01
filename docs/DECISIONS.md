@@ -25,6 +25,8 @@ Settled choices. Don't relitigate them; add new calls with their date.
 - Swift 6.2, macOS 26, no third-party dependencies. See [notch-prd.md](notch-prd.md) for everything the app already does and why.
 - Read only, never refresh a login, never write to Claude's files. Tokens never touch disk or logs.
 - Anything the app shares with other tools (the CLI, the status line) is written without tokens, emails or organization names.
+- **The version (2026-11-01)** is `current` and `build` in `apps/notch/Sources/UsageCore/Version.swift`, and nowhere else: `build-app.sh` writes it into Info.plist, and `claude-usage`, `claude-chrome-relay` and the doctor read it.
+- **`claude-chrome-relay` is opt in (2026-11-01):** `install.sh --chrome` adds it; a plain `install.sh` only keeps an existing one current. It sends to the extension's own helper on the Mac and never to Anthropic, and Chrome access in settings switches it off for every copy.
 - Claude Code in the terminal gets a login per copy through `CLAUDE_CONFIG_DIR` (`claude-b` on `~/.claude-B`), set up by `install.sh --claude-code`. The installer only links into those folders and never replaces anything in them, and nothing of ours runs `claude` to check a login.
 
 ## Shipping

@@ -1,4 +1,4 @@
-import { AppWindow, Gauge, Laptop, Monitor, Users } from 'lucide-react'
+import { AppWindow, Gauge, Globe, Laptop, Monitor, SquareTerminal, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { platforms } from '../content'
 
@@ -18,6 +18,8 @@ const icons: Record<(typeof platforms.items)[number]['icon'], ReactNode> = {
   laptop: <Laptop size={20} strokeWidth={2} />,
   notch: <NotchGlyph />,
   display: <Monitor size={20} strokeWidth={2} />,
+  code: <SquareTerminal size={20} strokeWidth={2} />,
+  chrome: <Globe size={20} strokeWidth={2} />,
 }
 
 function Row({ hidden }: { hidden?: boolean }) {

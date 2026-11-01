@@ -25,7 +25,7 @@ Do this once for each extra copy, one at a time:
 2. Click **Sign in** and finish in the browser.
 3. When the browser asks to open Claude, allow it. The login goes to the copy you opened.
 
-The first time, macOS asks whether "Claude Notch" may control "Claude". Click **Allow**: that's how the sign-in link reaches the right copy.
+The first time, macOS asks whether "Claude Notch" may control "Claude". Click **Allow**: that's how the sign-in link reaches the right copy. If it was refused, a peek under the notch says the copy didn't get the link, and System Settings opens at Privacy & Security → Automation, where you can turn on Claude under Claude Notch.
 
 > **Warning:** Don't click into another Claude between steps 2 and 3. Sign-in links go to the copy you used last, so that one would receive the login instead. The panel's footer says which copy links go to.
 

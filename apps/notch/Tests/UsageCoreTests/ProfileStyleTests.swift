@@ -44,6 +44,18 @@ import Testing
         #expect(ProfileStyle.parse(Data("[]".utf8)) == nil)
     }
 
+    @Test func aReloadOfABrokenFileSaysSo() throws {
+        let missing = FileManager.default.temporaryDirectory.appending(path: "no-such-\(UUID()).json")
+        #expect(ProfileStyle.reload(from: missing) == ProfileStyle.defaults)
+        let file = FileManager.default.temporaryDirectory.appending(path: "profiles-\(UUID()).json")
+        defer { try? FileManager.default.removeItem(at: file) }
+        // A comma left out between two profiles.
+        try Data(#"[{ "letter": "A" } { "letter": "B" }]"#.utf8).write(to: file)
+        #expect(ProfileStyle.reload(from: file) == nil)
+        try Data(#"[{ "letter": "D" }]"#.utf8).write(to: file)
+        #expect(ProfileStyle.reload(from: file)?.map(\.letter) == ["D"])
+    }
+
     @Test func anUnlistedLetterIsPlainGrey() {
         #expect(ProfileStyle.of("B", in: ProfileStyle.defaults).color == "#F5822F")
         #expect(ProfileStyle.of("Q", in: ProfileStyle.defaults) == ProfileStyle(letter: "Q", label: "Claude Q", color: "#B3B3B3", hotkey: nil))

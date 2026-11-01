@@ -24,6 +24,14 @@ public enum PollPlan {
         let doublings = Double(min(max(failures, 1) - 1, 16))
         return now.addingTimeInterval(min(interval * pow(2, doublings), maxBackoff))
     }
+
+    /// When to try again after the `failures`th network failure in a row: 30 seconds, then
+    /// a minute, two … up to the usual interval. Just after waking, the network is often
+    /// a few seconds behind, and the numbers shown are from before the sleep.
+    public static func retryAfterNetworkError(failures: Int, now: Date) -> Date {
+        let doublings = Double(min(max(failures, 1) - 1, 16))
+        return now.addingTimeInterval(min(30 * pow(2, doublings), interval))
+    }
 }
 
 /// Short, human durations shared by the CLI and the app.

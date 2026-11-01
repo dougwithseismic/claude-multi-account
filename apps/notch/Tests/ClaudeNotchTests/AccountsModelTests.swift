@@ -152,3 +152,57 @@ private func model() -> AccountsModel {
     model.apply([snapshot(team, at: t0, .success(report))])
     #expect(model.isSettled)
 }
+
+@MainActor @Test func aNetworkFailureIsTriedAgainSoon() {
+    let model = model()
+    _ = model.sync(read([login(team, active: true)]), now: t0)
+    model.apply([snapshot(team, at: t0, .success(report))])
+    // Just after waking, before the network is back.
+    let woke = t0.addingTimeInterval(8 * 3600)
+    model.apply([snapshot(team, at: woke, .failure(.network("offline")))])
+    #expect(model.copies[0].active?.nextPoll == woke.addingTimeInterval(30))
+    model.apply([snapshot(team, at: woke.addingTimeInterval(30), .failure(.network("offline")))])
+    #expect(model.copies[0].active?.nextPoll == woke.addingTimeInterval(90))
+    // A good read goes back to the usual interval.
+    model.apply([snapshot(team, at: woke.addingTimeInterval(90), .success(report))])
+    #expect(model.copies[0].active?.networkFailures == 0)
+    #expect(model.copies[0].active?.nextPoll == woke.addingTimeInterval(90 + PollPlan.interval))
+}
+
+@MainActor @Test func numbersFromBeforeASleepAreDatedAndDimmed() {
+    let model = model()
+    _ = model.sync(read([login(team, active: true)]), now: t0)
+    model.apply([snapshot(team, at: t0, .success(report))])
+    let account = try! #require(model.copies[0].active)
+    #expect(account.status(now: t0.addingTimeInterval(240)) == nil)
+    #expect(!account.isOld(now: t0.addingTimeInterval(240)))
+    // Waking eight hours later, before the first read after it has landed.
+    #expect(account.status(now: t0.addingTimeInterval(8 * 3600)) == "8h 0m ago")
+    #expect(account.isOld(now: t0.addingTimeInterval(8 * 3600)))
+}
+
+@MainActor @Test func copiesAppearAndGoWhileRunning() throws {
+    let root = FileManager.default.temporaryDirectory.appending(path: "notch-profiles-\(UUID())")
+    defer { try? FileManager.default.removeItem(at: root) }
+    try FileManager.default.createDirectory(at: root.appending(path: "Claude"), withIntermediateDirectories: true)
+    try Data("{}".utf8).write(to: root.appending(path: "Claude/config.json"))
+    let model = AccountsModel(reader: AccountReader())
+    model.profilesRoot = root
+    var changes = 0
+    model.onChange = { changes += 1 }
+    model.discover()
+    #expect(model.profiles.map(\.letter) == ["A"])
+    model.discover()
+    #expect(changes == 1)
+    // Claude D opened for the first time makes its config.json.
+    try FileManager.default.createDirectory(at: root.appending(path: "Claude-D"), withIntermediateDirectories: true)
+    model.discover()
+    #expect(model.profiles.map(\.letter) == ["A"])
+    try Data("{}".utf8).write(to: root.appending(path: "Claude-D/config.json"))
+    model.discover()
+    #expect(model.profiles.map(\.letter) == ["A", "D"])
+    #expect(changes == 2)
+    try FileManager.default.removeItem(at: root.appending(path: "Claude-D"))
+    model.discover()
+    #expect(model.profiles.map(\.letter) == ["A"])
+}

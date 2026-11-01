@@ -25,12 +25,12 @@ When another app is in front, the next `claude://` link goes to the Claude you u
 | | Shared between copies | Separate per copy |
 | --- | --- | --- |
 | **Login, conversations, settings** | | Each copy's own data folder |
-| **Claude in Chrome** | One Chrome, one extension, tied to your Mac user | |
+| **Claude in Chrome** | One Chrome profile for every copy, [through the relay](/docs/chrome) | Without it, only copies on the extension's account |
 | **Built-in browser pane** | | Each copy has its own site logins |
 | **Code tab** | MCP servers, skills, transcripts and memory in `~/.claude` | |
 | **Logs** | `~/Library/Logs/Claude/main.log` | |
 
-- **Claude in Chrome:** every copy can use the same Chrome. Just don't have two driving it at the same time.
+- **Claude in Chrome:** the extension serves the claude.ai account it's signed in to, so on its own only the copies on that account can use it. [`install.sh --chrome`](/docs/chrome) gives every copy's Code sessions the same tools through your usual Chrome profile, each session in its own tab group.
 - **Code tab:** sharing `~/.claude` is useful, since every account sees the same skills and memory. But don't run two accounts in the same git worktree at once.
 
 ## Updates to Claude

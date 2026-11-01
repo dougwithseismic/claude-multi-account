@@ -32,7 +32,7 @@ Each command starts Claude Code with `CLAUDE_CONFIG_DIR` set to its folder, wher
 
 Its login, history and projects are its own. One of these that's already in the folder stays as it is and is never replaced, and you can remove a link to give that copy something different.
 
-MCP servers you add for yourself are kept beside the login, so add them to each one: `claude-b mcp add …`.
+MCP servers you add for yourself are kept beside the login, so add them to each one: `claude-b mcp add …`. [`install.sh --chrome`](/docs/chrome) does that for the Chrome relay, in every folder.
 
 ## The one with the most room
 

@@ -18,8 +18,8 @@ export const nav = {
 export const hero = {
   /** The latest release, linked to its notes. */
   badge: {
-    label: 'New in 0.5: pace, most room, Claude Code per account',
-    href: `${site.changelog}#0-5`,
+    label: 'New in 1.0: Claude in Chrome for every copy',
+    href: `${site.changelog}#1-0`,
   } satisfies Link,
   // The word wrapped in * is set in the serif italic.
   title: 'Sign in once. Run every Claude account *side by side.*',
@@ -37,6 +37,8 @@ export const platforms = {
     { icon: 'laptop', label: 'macOS 26' },
     { icon: 'notch', label: 'MacBook notch' },
     { icon: 'display', label: 'Any display' },
+    { icon: 'code', label: 'Claude Code' },
+    { icon: 'chrome', label: 'Claude in Chrome' },
   ],
 } as const
 
@@ -111,6 +113,15 @@ export const walkthrough = [
     cta: { label: 'Install', href: site.install },
     scene: 'peek',
   },
+  {
+    id: 'chrome',
+    tint: 'purple',
+    tag: 'Chrome',
+    title: 'Claude in Chrome, in every copy',
+    body: 'One command gives every copy’s Code sessions the browser tools, in your usual Chrome profile with its logins. Each session works in its own tab group, named after its copy, and one switch in settings turns it off for all of them.',
+    cta: { label: 'Set it up', href: site.chrome },
+    scene: 'chrome',
+  },
 ] as const
 
 export const grid = {
@@ -145,6 +156,16 @@ export const grid = {
       icon: 'shield',
       title: 'Read only',
       body: 'It only reads: it never refreshes a login or writes to Claude’s files, so no copy is ever signed out because of it.',
+    },
+    {
+      icon: 'code',
+      title: 'Claude Code per account',
+      body: 'claude-a, claude-b and claude-c run Claude Code in the terminal with each copy’s own login, sharing your settings, skills and plugins.',
+    },
+    {
+      icon: 'doctor',
+      title: 'Checks itself',
+      body: 'install.sh --doctor checks the whole setup, from each copy’s sign-in to the Chrome relay, changes nothing, and says how to fix each problem.',
     },
   ],
 } as const
@@ -270,6 +291,10 @@ export const faq = {
       a: 'Yes. One command makes claude-a, claude-b and claude-c, each Claude Code with that copy’s own login, and the status line under Claude Code’s prompt shows every copy’s limits.',
     },
     {
+      q: 'Can every copy use Claude in Chrome?',
+      a: 'On its own, the extension only works with copies on the account it’s signed in to. install.sh --chrome adds claude-chrome-relay, which gives every copy’s Code sessions the same browser tools through your usual Chrome profile, each in its own tab group. Anthropic doesn’t support it, and a switch in settings turns it off.',
+    },
+    {
       q: 'How many accounts can I run at once?',
       a: 'A, B and C come set up, and you can add D, E and more in profiles.json. Each copy is a full Claude app, so expect roughly 0.5 to 1 GB of memory for each one you have open.',
     },
@@ -308,6 +333,7 @@ export const footer = {
       links: [
         { label: 'Install', href: site.install },
         { label: 'Sign in to each copy', href: site.signIn },
+        { label: 'Claude in Chrome', href: site.chrome },
         { label: 'Troubleshooting', href: to('/docs/troubleshooting/') },
         { label: 'claude-usage', href: site.cli },
       ],

@@ -10,6 +10,17 @@ enum RelayError: Error, CustomStringConvertible {
     case closed
     case timedOut
 
+    /// What went wrong, without the details, for the system log.
+    var kind: String {
+        switch self {
+        case .noHost: "no native host"
+        case .unsafe: "unsafe socket folder"
+        case .io: "socket error"
+        case .closed: "host closed the connection"
+        case .timedOut: "timed out"
+        }
+    }
+
     var description: String {
         switch self {
         case .noHost:

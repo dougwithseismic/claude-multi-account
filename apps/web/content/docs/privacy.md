@@ -2,7 +2,7 @@
 title: Privacy and security
 description: What Claude Notch reads, what it sends, what it stores, and what it never touches.
 section: Help
-order: 11
+order: 12
 ---
 
 Claude Notch reads each copy's login to check that account's usage. That's sensitive, so it follows strict rules.
@@ -27,6 +27,8 @@ There's no analytics, no crash reporting, no update check and no server of ours.
 After each read, `~/Library/Caches/claude-multi-account/usage.json`, for [`claude-usage --cached`](/docs/claude-usage), `--best` and [the status line](/docs/status-line). It holds each copy's letter, name, colour and plan, whether it's in front, how its last read went, and each window's percent and reset time, for the organization the copy is working in. Never a login, an email, an organization's name or an ID; a profile name that's an email is written as "Claude B" instead. Only you can read it (the folder is 0700, the file 0600), and `install.sh --uninstall` deletes it.
 
 [`install.sh --claude-code`](/docs/claude-code), if you run it, adds `claude-a`, `claude-b`… to `~/.local/bin` and makes a folder per copy for Claude Code, `~/.claude-B` and so on (0700), with links to your settings in `~/.claude`. It doesn't change anything in `~/.claude`.
+
+[`install.sh --chrome`](/docs/chrome), if you run it, adds `claude-chrome-relay` to Claude Code's MCP servers. The relay talks only to the Claude extension's helper on your Mac, over a socket only your user can open, and sends nothing over the network itself. It logs which tool failed and why, never a page's content or what was typed. While it's set up, any copy's Code session can drive your Chrome profile, so **Chrome access** in settings turns it off for every copy at once.
 
 ## What it never does
 

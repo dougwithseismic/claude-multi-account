@@ -1,12 +1,17 @@
-import { BellRing, CircleDot, PanelTopOpen } from 'lucide-react'
+import { BellRing, CircleDot, Globe, PanelTopOpen } from 'lucide-react'
 import { type CSSProperties, useCallback, useEffect, useRef, useState } from 'react'
 import { walkthrough } from '../content'
 import { Scene } from './notch/Scenes'
 import { Button } from './ui'
 import { clamp01, useInViewOnce, useScrollFrame } from './useScrollProgress'
 
-const tags = { Collapsed: CircleDot, Open: PanelTopOpen, Peeks: BellRing }
-const tints = { orange: 'var(--tint-orange)', blue: 'var(--tint-blue)', green: 'var(--tint-green)' }
+const tags = { Collapsed: CircleDot, Open: PanelTopOpen, Peeks: BellRing, Chrome: Globe }
+const tints = {
+  orange: 'var(--tint-orange)',
+  blue: 'var(--tint-blue)',
+  green: 'var(--tint-green)',
+  purple: 'var(--tint-purple)',
+}
 
 /** On a phone each step carries its own scene, revealed as it comes into view. */
 function InlineScene({ item }: { item: (typeof walkthrough)[number] }) {

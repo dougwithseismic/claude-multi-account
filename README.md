@@ -1,28 +1,30 @@
-# Several Claude accounts side by side on a Mac
+# Claude Notch
 
-Run the Claude desktop app two or more times, each copy signed in to a different account, and always know which one you're in. It sets up three (A, B and C) unless you ask for more.
+**Run every Claude account side by side on your Mac, and see every limit beside the notch.**
 
-When you're done you have:
+Each account gets its own copy of the Claude desktop app, signed in for good. Switch with a key, and know at a glance how much of each 5-hour and weekly limit is left. Free, for macOS 26. [Website and guides](https://dougwithseismic.github.io/claude-multi-account/) · [What's new in 1.0](CHANGELOG.md#10--2026-11-01)
 
-- **Claude A**: your normal Claude, using the usual data folder.
-- **Claude B** and **Claude C**: extra copies, each with its own data folder (`Claude-B`, `Claude-C`), so each has its own login and settings.
-- **Claude Notch**, a small app of ours that:
-  - shows every account's 5-hour and weekly limits at the MacBook notch, and when one will run out at the pace it's going;
-  - switches to A, B or C with **⌥⌘1 / ⌥⌘2 / ⌥⌘3**, starting it if it's closed, and to whichever has the most room with **⌥⌘0**;
-  - draws an outline in that account's colour (blue, orange or green) round the window of whichever Claude is in front;
-  - sends `claude://` links, including sign-in, to the Claude you used last instead of always to A.
-
-Claude.app itself is never modified, so it stays signed and keeps updating as normal.
-
-## Install
-
-You need macOS 26 or later, the [Claude desktop app](https://claude.ai/download) in `/Applications`, and Apple's Command Line Tools (`xcode-select --install`) or Xcode. Paste this into Terminal:
+![The Claude Notch panel open under the MacBook notch, showing three accounts' 5-hour and weekly limits](apps/web/public/video/notch-film-poster.jpg)
 
 ```bash
 curl -fsSL https://dougwithseismic.github.io/claude-multi-account/install.sh | zsh
 ```
 
-It runs [`bootstrap.sh`](bootstrap.sh): it checks those three, clones this repository into `~/claude-multi-account` (or pulls, if it's there and unchanged), and runs `install.sh`. Or do that by hand:
+## What you get
+
+- **A copy of Claude per account.** Claude A is your normal Claude. Claude B, C and more each have their own data folder, so each keeps its own login, settings and window. For personal, work and client accounts, without signing in and out. Claude.app itself is never modified, so it stays signed and keeps updating as normal.
+- **Every limit at a glance.** One ring per copy beside the notch: the 5-hour window outside, the fullest weekly one inside. Rest the pointer on the notch for every account's bars, resets, and when one will run out at the pace it's going.
+- **Switching by key.** ⌥⌘1, ⌥⌘2, ⌥⌘3 bring a copy to the front, starting it if it's closed. ⌥⌘0 picks whichever has the most room. The window in front gets an outline in its copy's colour.
+- **Sign-in that goes to the right copy.** `claude://` links go to the Claude you used last, not always to A.
+- **Claude Code too.** Every copy's usage in Claude Code's status line, and `claude-a`, `claude-b`… for Claude Code in the terminal with each copy's own login.
+- **Claude in Chrome in every copy.** One command gives every copy's Code sessions the browser tools, in your usual Chrome profile, each session in its own tab group.
+- **Checks itself.** `install.sh --doctor` checks the whole setup and says how to fix what's wrong.
+
+It sets up three copies (A, B and C) unless you ask for more. What macOS keeps for a person (the Keychain prompt, signing in to each copy) is listed when it finishes.
+
+## Install
+
+You need macOS 26 or later, the [Claude desktop app](https://claude.ai/download) in `/Applications`, and Apple's Command Line Tools (`xcode-select --install`) or Xcode, with Swift 6.2 or later. Paste the line above into Terminal. It runs [`bootstrap.sh`](bootstrap.sh): it checks those, clones this repository into `~/claude-multi-account` (or pulls, if it's there and unchanged), and runs `install.sh`. Or do that by hand:
 
 ```bash
 git clone https://github.com/dougwithseismic/claude-multi-account.git ~/claude-multi-account
@@ -34,7 +36,7 @@ git clone https://github.com/dougwithseismic/claude-multi-account.git ~/claude-m
 
 Or point your coding agent at this repository and tell it to install it.
 
-> **For AI agents:** run `./install.sh` from the repository root. It takes no input and is safe to run again. When it finishes, pass on the list it prints at the end: the Keychain prompt and signing in need the person at the keyboard.
+> **For AI agents:** run `./install.sh` from the repository root. It takes no input and is safe to run again. When it finishes, pass on the list it prints at the end: the Keychain prompt and signing in need the person at the keyboard. `./install.sh --doctor` checks the setup and changes nothing; `--chrome` adds Claude in Chrome for every copy.
 
 `install.sh` does five things, and prints what it's doing:
 
@@ -44,7 +46,16 @@ Or point your coding agent at this repository and tell it to install it.
 4. **Claude Notch:** builds it, installs it as `~/Applications/Claude Notch.app` and opens it. It has no Dock icon; quit it from its panel.
 5. **`claude-usage`:** links the [command](#claude-usage) into `~/.local/bin` if you have that folder and nothing else there is called `claude-usage`.
 
-To put every copy's usage in Claude Code's status line as well, run `./install.sh --statusline` (see [below](#claude-codes-status-line)). For Claude Code in the terminal with each copy's own login, run `./install.sh --claude-code` ([below](#claude-code-in-the-terminal)).
+The extras are one flag each:
+
+| Command | Adds |
+| --- | --- |
+| `./install.sh 4` | A fourth copy, D ([more](#add-more-copies)) |
+| `./install.sh --statusline` | Every copy's usage in Claude Code's status line ([more](#claude-codes-status-line)) |
+| `./install.sh --claude-code` | `claude-a`, `claude-b`…: Claude Code in the terminal with each copy's login ([more](#claude-code-in-the-terminal)) |
+| `./install.sh --chrome` | Claude in Chrome for every copy's Code sessions ([more](#claude-in-chrome-in-every-copy)) |
+| `./install.sh --doctor` | Nothing: checks the setup and says how to fix each problem |
+| `./install.sh --uninstall` | Nothing: takes it all out ([more](#uninstall)) |
 
 Run it again after a `git pull` to update. It keeps your profiles.json, settings and logins.
 
@@ -62,7 +73,7 @@ Do this once for each extra copy, one at a time:
 
 1. Open it (⌥⌘2 for B, ⌥⌘3 for C). Its window gets that copy's outline.
 2. Click sign in and finish in the browser.
-3. When the browser asks to open Claude, allow it. The login goes to the copy you opened. The first time, macOS asks whether "Claude Notch" may control "Claude": click **Allow**.
+3. When the browser asks to open Claude, allow it. The login goes to the copy you opened. The first time, macOS asks whether "Claude Notch" may control "Claude": click **Allow**. If that was refused, a peek under the notch says the copy didn't get the link and System Settings opens at Privacy & Security → Automation, where you can turn it on.
 
 Don't click into another Claude between steps 2 and 3, or that one becomes "last used" and receives the login. The notch panel's footer says which copy links go to.
 
@@ -78,7 +89,7 @@ On its first run the panel opens by itself on a welcome page: how to read the ri
 - **⌥⌘0** switches to the copy with the most room: of those read in the last 15 minutes and not out of any limit, the one whose fullest window (5-hour or weekly) is lowest. A tie goes to the earlier letter. When every copy is out, the peek says "No copy has room" and which copy is back first, and nothing switches. The panel's footer names the copy ("Most room: Claude C") when you have more than one. A profile whose own hotkey is `0` keeps it, and the switch in settings turns this off.
 - Closing a Claude window doesn't quit that copy: it keeps running with no window, as Mac apps do. Switching handles this by sending it the same "reopen" message a Dock click sends, so a new window appears. To really quit a copy, press ⌘Q in it.
 - The outline shows which Claude you're typing into. When another app is in front, the next `claude://` link goes to the Claude you used last ("Links go to Claude B" in the panel).
-- **Claude in Chrome:** only the copies on the account the extension is signed in to can use it; see [Claude in Chrome in every copy](#claude-in-chrome-in-every-copy-experimental).
+- **Claude in Chrome:** on its own, only the copies on the account the extension is signed in to can use it; [`install.sh --chrome`](#claude-in-chrome-in-every-copy) gives it to every copy's Code sessions.
 - **Built-in browser pane:** this is separate per copy, so each copy has its own site logins there.
 - **Code tab:** the MCP servers and skills it uses live in `~/.claude`, which every copy shares. Transcripts and memory are shared too, which is useful, but don't run two accounts in the same git worktree at once.
 - All copies write to the same log, `~/Library/Logs/Claude/main.log`.
@@ -181,27 +192,28 @@ The desktop copies each keep their own login, but Claude Code in the terminal ha
 
 `~/.claude-B` links to `~/.claude`'s `settings.json`, `CLAUDE.md`, `skills`, `agents`, `commands` and `plugins`, so every login has the same setup; anything the folder already has stays as it is. With the status line set, a `claude-b` session's own limits read "Code B". It only changes commands it made, `./install.sh` updates them once they're there, and `--uninstall` removes them and leaves the folders, printing the line that deletes them.
 
-## Claude in Chrome in every copy (experimental)
-
-Claude in Chrome reaches Claude through Anthropic's servers, by account: the extension in a Chrome profile is signed in to one claude.ai account, and only copies on that account can use it. `claude-chrome-relay` works round that for the Code tab. It's an MCP server that sends the same browser tools to the extension through its helper on your Mac, which doesn't check the account. So every copy can work in your usual Chrome profile, with its logins, at the same time.
-
-`install.sh` builds it into `apps/notch/build/claude-chrome-relay`. Add it once and every copy's Code tab gets it, since they share `~/.claude`:
+## Claude in Chrome in every copy
 
 ```bash
-claude mcp add --scope user chrome-relay -- ~/claude-multi-account/apps/notch/build/claude-chrome-relay
+~/claude-multi-account/install.sh --chrome
 ```
 
-New Code sessions then have its tools (`mcp__chrome-relay__navigate` and the rest). Each session gets its own tab group in Chrome, named after its copy ("Claude B"), and sees only its own tabs.
+Claude in Chrome reaches Claude through Anthropic's servers, by account: the extension in a Chrome profile is signed in to one claude.ai account, and only copies on that account can use it. `claude-chrome-relay` gives every copy's Code sessions the same browser tools anyway. It's an MCP server that sends them to the extension through the small helper the extension runs on your Mac, which doesn't look at the account. So every copy can work in your usual Chrome profile, with its logins, at the same time.
+
+`--chrome` adds it to Claude Code as a user-wide MCP server called `chrome-relay`: once in `~/.claude`, which every desktop copy's Code tab reads, and once in each `claude-b`… folder from `--claude-code`. A `chrome-relay` that runs an older checkout's relay is moved to this one; a different server with that name is left alone. Once it's set up, a plain `./install.sh` keeps it up to date, and `--uninstall` takes it out again.
+
+New Code sessions then have its tools (`mcp__chrome-relay__navigate` and the rest); sessions already open need restarting. Each session gets its own tab group in Chrome, named after its copy ("Claude B"), and sees only its own tabs. If a group goes away (its last tab closed, or Chrome restarted), the next call that doesn't name a tab makes a new one.
 
 **Chrome access for every copy** in Claude Notch's settings switches it on or off for all copies at once: off, the relay refuses every call and nothing reaches Chrome. The switch is the file `~/.config/claude-multi-account/chrome-off`, so from a shell `touch` it to turn access off and `rm` it to turn it back on. While access is on, a globe beside a copy's name in the panel shows it used Chrome in the last minute.
 
-- Chrome must be open with the Claude extension installed. If several Chrome profiles have the extension, it uses the one whose helper started last; `--socket` picks another (the sockets are in `/tmp/claude-mcp-browser-bridge-<you>/`).
+- Chrome must be open with the Claude extension installed. `apps/notch/build/claude-chrome-relay --check` says whether its helper is running and whether access is on; `install.sh --doctor` does too.
+- If several Chrome profiles have the extension, it uses the one whose helper started last; `--socket` picks another (the sockets are in `/tmp/claude-mcp-browser-bridge-<you>/`).
 - The copy whose account the extension is signed in to has both the built-in Claude in Chrome tools and these.
 - It leaves out picking between browsers, uploading files or images from the chat, GIF recording and shortcuts.
-- The `claude-b`… commands from `--claude-code` each have their own settings folder, so add it to each one the same way (`claude-b mcp add --scope user …`). Their tab groups are called "Claude"; pass `--label` after the path to name them.
-- Only the Code tab is tested. A copy's chat could use it from that copy's `claude_desktop_config.json`; `--label` names its tab group something else.
+- Only the Code tab is tested. A copy's chat could use it from that copy's `claude_desktop_config.json`; `--label` names its tab group.
+- By hand: `claude mcp add --scope user chrome-relay -- ~/claude-multi-account/apps/notch/build/claude-chrome-relay`, and `claude mcp remove --scope user chrome-relay` to take it out.
 
-Anthropic doesn't support this. It relies on how the extension and its helper work today: the extension already refuses these local commands when a company manages it, and an update could do the same for everyone. Any copy that has it can drive your Chrome profile, signed-in sites included. Remove it with `claude mcp remove --scope user chrome-relay`.
+Anthropic doesn't support this. It relies on how the extension and its helper work today: the extension already refuses these local commands when a company manages it, and an update could do the same for everyone. Any copy that has it can drive your Chrome profile, signed-in sites included, so turn access off when you don't want that. [The guide](https://dougwithseismic.github.io/claude-multi-account/docs/chrome/) has more.
 
 ## How it works
 
@@ -230,7 +242,7 @@ apps/notch/build/"Claude Notch.app"/Contents/MacOS/ClaudeNotch --demo --pin
 
 Without `--demo` or `--snapshot`, a second copy quits at once if Claude Notch is already running. `apps/notch/scripts/build-app.sh` builds the app, `claude-usage` and `claude-chrome-relay` on their own; add `--install` to install and open the app, or `--uninstall` to quit and remove it.
 
-What went wrong, if anything, is in the system log:
+What went wrong, if anything, is in the system log, the relay's under the category `chrome-relay`:
 
 ```bash
 log show --predicate 'subsystem == "com.godzillaaa.claude-notch"' --last 1h --info
@@ -260,15 +272,21 @@ Then open Claude Notch again so it takes the links back. If Hammerspoon has noth
 ~/claude-multi-account/install.sh --uninstall
 ```
 
-This quits Claude Notch, takes it out of your login items and deletes it, deletes the launchers, profiles.json, the app's settings and its usage file, and hands `claude://` links back to Claude. It removes the `~/.local/bin/claude-usage` link, Claude Code's status line and the `claude-a`, `claude-b`… commands only if they're the ones `install.sh` added. It leaves each extra copy's data folder, so those copies stay signed in if you install again, and prints the command that deletes them (which signs them out and deletes their settings).
+This quits Claude Notch, takes it out of your login items and deletes it, deletes the launchers, profiles.json, the app's settings and its usage file, and hands `claude://` links back to Claude. It removes the `~/.local/bin/claude-usage` link, Claude Code's status line, `claude-chrome-relay` (stopping any still running) and the `claude-a`, `claude-b`… commands only if they're the ones `install.sh` added. It leaves each extra copy's data folder, so those copies stay signed in if you install again, and prints the command that deletes them (which signs them out and deletes their settings).
 
 ## Files
 
 | File | Goes to | Does |
 | --- | --- | --- |
 | `bootstrap.sh` | served as the site's `/install.sh` | The one-line install: checks the Mac, clones or pulls this repository, runs `install.sh` |
-| `install.sh` | | Sets everything up, adds copies, the status line or `claude-a`, `claude-b`…, or takes it all out; `--doctor` checks it all |
+| `install.sh` | | Sets everything up, adds copies, the status line, `claude-a`, `claude-b`… or Claude in Chrome, or takes it all out; `--doctor` checks it all |
 | `scripts/doctor.sh` | | `install.sh --doctor` |
 | `files/claude-profile.sh` | inside each launcher app | Brings a copy to the front, or starts it |
 | `files/profiles.json` | `~/.config/claude-multi-account/profiles.json` | Each copy's label, colour and hotkey |
 | `apps/notch/` | `~/Applications/Claude Notch.app` | The app (limits, hotkeys, outline, links), the `claude-usage` command and `claude-chrome-relay` |
+
+## More
+
+The [website](https://dougwithseismic.github.io/claude-multi-account/) has all of this as [docs](https://dougwithseismic.github.io/claude-multi-account/docs/), plus [guides to Claude's limits](https://dougwithseismic.github.io/claude-multi-account/learn/), a [pace calculator and setup planner](https://dougwithseismic.github.io/claude-multi-account/tools/), and how Claude Notch [compares](https://dougwithseismic.github.io/claude-multi-account/compare/) with other trackers and switchers. What changed is in the [changelog](CHANGELOG.md).
+
+Claude Notch isn't made by or affiliated with Anthropic. Claude is a trademark of Anthropic.

@@ -60,6 +60,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let outline = Outline()
     private(set) var controller: NotchController!
     private var observers: [NSObjectProtocol] = []
+    private var automationShown = Date.distantPast
 
     init(options: Options) {
         self.options = options
@@ -150,8 +151,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// launch finishes, when a link started the app.
     func application(_ application: NSApplication, open urls: [URL]) {
         for url in urls where url.scheme == Links.scheme {
-            Links.open(url, copies: copies)
+            Links.open(url, copies: copies) { [weak self] letter in self?.linkBlocked(letter) }
         }
+    }
+
+    /// macOS refused to let a link through, most likely a sign-in: say so, and open the
+    /// setting that allows it (Privacy & Security → Automation), at most once a minute.
+    private func linkBlocked(_ letter: String) {
+        controller.peek(Peek(letter: letter, kind: .linkBlocked))
+        let now = Date()
+        guard now.timeIntervalSince(automationShown) > 60,
+              let settings = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation")
+        else { return }
+        automationShown = now
+        NSWorkspace.shared.open(settings)
     }
 
     private var isAlreadyRunning: Bool {
@@ -234,10 +247,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !NSWorkspace.shared.open(file) { NSWorkspace.shared.activateFileViewerSelecting([file]) }
     }
 
-    /// Reads profiles.json again: names, colours and hotkeys.
-    private func reloadProfiles() {
-        AccountStyle.styles = ProfileStyle.load()
+    /// Reads profiles.json again: names, colours and hotkeys. A file that doesn't read
+    /// leaves the ones in use, and says so.
+    private func reloadProfiles() -> String? {
+        guard let styles = ProfileStyle.reload() else {
+            complain("\(ProfileStyle.file.path(percentEncoded: false)) isn't a JSON list of profiles; kept the ones in use")
+            return "profiles.json isn't a JSON list of profiles, so the ones in use stay. Fix it and reload."
+        }
+        AccountStyle.styles = styles
         registerHotkeys()
         controller.reload()
+        return nil
     }
 }

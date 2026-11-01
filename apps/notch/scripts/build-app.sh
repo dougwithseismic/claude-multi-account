@@ -14,7 +14,7 @@ DEST="$HOME/Applications/Claude Notch.app"
 LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
 
 if [[ ${1:-} == --uninstall ]]; then
-  pkill -x ClaudeNotch && sleep 1 || true
+  pkill -U $UID -x ClaudeNotch && sleep 1 || true
   # Only the app can take itself out of login items.
   if [[ -x "$DEST/Contents/MacOS/ClaudeNotch" ]]; then "$DEST/Contents/MacOS/ClaudeNotch" --remove-login-item; fi
   # With it gone, macOS hands claude:// links back to Claude.
@@ -26,6 +26,11 @@ if [[ ${1:-} == --uninstall ]]; then
 fi
 
 swift build -c release
+
+# The release, from the one place every part of Claude Notch reads it.
+VERSION=$(sed -n 's/.*static let current = "\(.*\)".*/\1/p' Sources/UsageCore/Version.swift)
+BUILD=$(sed -n 's/.*static let build = "\(.*\)".*/\1/p' Sources/UsageCore/Version.swift)
+[[ -n $VERSION && -n $BUILD ]] || { echo "Couldn't read the version from Sources/UsageCore/Version.swift" >&2; exit 1; }
 
 APP="build/Claude Notch.app"
 rm -rf "$APP"
@@ -40,8 +45,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleName</key><string>Claude Notch</string>
   <key>CFBundleExecutable</key><string>ClaudeNotch</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>0.5</string>
-  <key>CFBundleVersion</key><string>5</string>
+  <key>CFBundleShortVersionString</key><string>$VERSION</string>
+  <key>CFBundleVersion</key><string>$BUILD</string>
   <key>LSMinimumSystemVersion</key><string>26.0</string>
   <key>LSUIElement</key><true/>
   <key>NSHighResolutionCapable</key><true/>
@@ -63,7 +68,15 @@ if [[ -z $IDENTITY ]]; then
   echo "No code-signing certificate found; signing ad hoc. macOS will ask for Keychain access after every build." >&2
   IDENTITY=-
 fi
-codesign --force --sign "$IDENTITY" --identifier com.godzillaaa.claude-notch "$APP"
+# A certificate whose key is locked away (an SSH or agent session with the login Keychain
+# locked) fails to sign; sign ad hoc rather than stop the install.
+if ! codesign --force --sign "$IDENTITY" --identifier com.godzillaaa.claude-notch "$APP" 2>/dev/null; then
+  if [[ $IDENTITY != - ]]; then
+    echo "Couldn't sign with $IDENTITY (is the login Keychain locked?); signing ad hoc. macOS will ask for Keychain access again." >&2
+    IDENTITY=-
+  fi
+  codesign --force --sign - --identifier com.godzillaaa.claude-notch "$APP"
+fi
 codesign --verify --strict "$APP"
 for tool in claude-usage claude-chrome-relay; do
   # A new file rather than an overwrite: sessions running the old one keep it.
@@ -74,7 +87,7 @@ done
 echo "Built $PWD/$APP, $PWD/build/claude-usage and $PWD/build/claude-chrome-relay"
 
 if [[ ${1:-} == --install ]]; then
-  pkill -x ClaudeNotch && sleep 1 || true
+  pkill -U $UID -x ClaudeNotch && sleep 1 || true
   mkdir -p "$HOME/Applications"
   rm -rf "$DEST"
   ditto "$APP" "$DEST"

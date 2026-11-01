@@ -291,15 +291,25 @@ private struct LoginItemRow: View {
 
 private struct ProfilesRow: View {
     let edit: () -> Void
-    let reload: () -> Void
+    let reload: () -> String?
+    @State private var problem: String?
 
     var body: some View {
-        SettingLabel(title: "Profiles", detail: "Names, colours and ⌥⌘ keys, in ~/.config/claude-multi-account/profiles.json.") {
-            HStack(spacing: 6) {
-                Button("Edit", action: edit)
-                Button("Reload", action: reload)
+        VStack(alignment: .leading, spacing: 6) {
+            SettingLabel(title: "Profiles", detail: "Names, colours and ⌥⌘ keys, in ~/.config/claude-multi-account/profiles.json.") {
+                HStack(spacing: 6) {
+                    Button("Edit", action: edit)
+                    Button("Reload") { withAnimation(.smooth(duration: 0.2)) { problem = reload() } }
+                }
+                .buttonStyle(PillButtonStyle())
             }
-            .buttonStyle(PillButtonStyle())
+            if let problem {
+                Label(problem, systemImage: "exclamationmark.triangle.fill")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .transition(.opacity)
+            }
         }
     }
 }

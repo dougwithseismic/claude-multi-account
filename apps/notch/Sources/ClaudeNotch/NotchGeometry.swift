@@ -65,10 +65,12 @@ struct NotchLayout: Equatable {
             )
             return NotchLayout(notch: notch, hasNotch: true, rings: rings, screenFrame: screen.frame)
         }
-        // No notch: a pill at the top centre of the menu bar, with the rings inside it.
+        // No notch: a pill at the top centre of the menu bar, with the rings inside it,
+        // wider than usual when there are more than six.
+        let width = max(pillSize.width, ringsWidth + 2 * (ringPadding + flare))
         let pill = CGRect(
-            x: screen.frame.midX - pillSize.width / 2, y: screen.frame.maxY - pillSize.height,
-            width: pillSize.width, height: pillSize.height
+            x: screen.frame.midX - width / 2, y: screen.frame.maxY - pillSize.height,
+            width: width, height: pillSize.height
         )
         return NotchLayout(notch: pill, hasNotch: false, rings: pill, screenFrame: screen.frame)
     }

@@ -131,6 +131,26 @@ final class StubProtocol: URLProtocol {
         #expect(asks.withLock { $0 } == 2)
     }
 
+    @Test func readsTheKeyAgainWhenTheKeptOneNoLongerFits() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: "reader-\(UUID())")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let profiles = try [Self.profile("B", in: root, cache: Self.cache(token: "200", expiresIn: 9000))]
+        // The first read gets an old password, as if Claude had since made a new key.
+        let asks = Mutex(0)
+        let reader = AccountReader(client: UsageClient(session: StubProtocol.session)) {
+            asks.withLock { $0 += 1; return $0 == 1 ? Data("old-password".utf8) : Self.password }
+        }
+
+        // A key read just now that doesn't fit isn't read again in the same call.
+        #expect(await reader.snapshots(of: profiles).first?.usage == .failure(.unreadableTokenCache))
+        #expect(asks.withLock { $0 } == 1)
+        // The kept key fails the next time, so a fresh one is read, once.
+        #expect(await reader.snapshots(of: profiles).first?.usage.map(\.fiveHour?.percentUsed) == .success(12))
+        #expect(asks.withLock { $0 } == 2)
+        _ = await reader.snapshots(of: profiles)
+        #expect(asks.withLock { $0 } == 2)
+    }
+
     @Test func readsEachProfilesState() async throws {
         let root = FileManager.default.temporaryDirectory.appending(path: "reader-\(UUID())")
         defer { try? FileManager.default.removeItem(at: root) }
