@@ -2,15 +2,42 @@
 
 What changed for people who use Claude Notch, newest first. To update, paste the install line again, or `git pull` and run `./install.sh`.
 
-## Unreleased
+## 1.0 — 2026-11-01
+
+### Claude in Chrome for every copy
+
+- `./install.sh --chrome` gives every copy's Code sessions the Claude in Chrome tools, through your usual Chrome profile. It adds `claude-chrome-relay` to Claude Code in `~/.claude`, which every desktop copy's Code tab reads, and in each `claude-b`… folder. Each session works in its own tab group, named after its copy. Once it's set up, a plain `./install.sh` keeps it up to date, and `--uninstall` takes it out again. [The guide](https://dougwithseismic.github.io/claude-multi-account/docs/chrome/) has the details.
+- **Chrome access for every copy**, a switch in settings: off, the relay refuses every call and nothing reaches Chrome. While it's on, a globe beside a copy's name shows it used Chrome in the last minute.
+- A session whose tab group went away (its last tab closed, or Chrome restarted) gets a new group on its next call, instead of "No tab available" until it's restarted.
+- `claude-chrome-relay --check` says whether Chrome's helper is running and access is on, without connecting. What goes wrong is in the system log, without pages or anything typed.
+- `./install.sh --doctor` says which folders have the relay, whether it's up to date, and whether Chrome's helper is running.
 
 ### App
 
-- **Chrome access for every copy**, a switch in settings: off, `claude-chrome-relay` refuses every call and nothing reaches Chrome. While it's on, a globe beside a copy's name shows it used Chrome in the last minute.
+- A copy opened for the first time shows up while Claude Notch runs, and a deleted one goes, without a restart.
+- After a sleep, a read that fails because the network isn't back yet is tried again in 30 seconds, not 5 minutes. Until then, numbers older than 15 minutes are dimmed and say how old they are.
+- While every account is waiting (on a rate limit, or the Keychain), the status line keeps showing each copy's last numbers, dimmed, instead of saying Claude Notch stopped.
+- More copies than fit on the screen scroll. On a screen without a notch, the pill widens for more than six.
+- If macOS won't let Claude Notch pass a sign-in link to a copy, a peek says so and Privacy & Security → Automation opens, where you can allow it. Before, the link was dropped with a beep.
+- Reloading a profiles.json with a mistake in it keeps the names and colours in use and says what's wrong, instead of going back to A, B and C.
+- If Claude makes a new Keychain key, Claude Notch reads it again instead of showing "Can't decrypt Claude's login" until it's restarted.
+- Signing a copy in to another account in the same Team no longer hides that account for up to 12 hours.
 
-### Command line
+### Install
 
-- `claude-chrome-relay` (experimental): the Claude in Chrome tools for every copy's Code sessions through one Chrome profile, each session in its own tab group named after its copy. The README's "Claude in Chrome in every copy" has the setup.
+- `install.sh` checks for Swift 6.2 up front, and says what to do when the Command Line Tools are there but Swift won't run (usually a licence to accept).
+- Two `./install.sh` runs at once: the second stops and says so.
+- An app of your own called `Claude B.app` in `~/Applications` is left alone.
+- With fast user switching, another user's Claude no longer counts as yours: launchers, the doctor and the installer only look at your own.
+- When the signing certificate can't be used (the login Keychain locked, say over SSH), the build signs ad hoc and says so instead of stopping.
+- The install line carries on with what's in `~/claude-multi-account` when git can't fast-forward it (a branch of your own, say), instead of stopping.
+- `--uninstall` takes the relay out and stops it before removing the Chrome switch, and says how to remove the status line by hand if `claude-usage` isn't built.
+- `claude-usage --version` and `claude-chrome-relay --version`.
+
+### Site
+
+- A Claude in Chrome guide, and Chrome in the walkthrough, the features and the FAQ.
+- The README is now the repository's front page: what it does, the install line, and links to the guides.
 
 ## 0.5 — 2026-10-19
 
