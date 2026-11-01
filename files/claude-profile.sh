@@ -1,12 +1,13 @@
 #!/bin/zsh
 # Focus the Claude instance for a profile letter, starting it if it isn't running.
-# A uses Claude's normal data folder; any other letter X uses "Claude-X".
+# A uses Claude's normal data folder; any other letter X uses "Claude-X". Only this user's
+# processes count: with fast user switching, another user's Claude isn't ours to focus.
 BIN=/Applications/Claude.app/Contents/MacOS/Claude
 case "$1" in
-  A) pid=$(pgrep -fx "$BIN" | head -1); args=() ;;
+  A) pid=$(pgrep -U $UID -fx "$BIN" | head -1); args=() ;;
   [B-Z]) dir="$HOME/Library/Application Support/Claude-$1"
      mkdir -p "$dir" && chmod 700 "$dir"
-     pid=$(pgrep -fx "$BIN --user-data-dir=$dir" | head -1); args=(--args "--user-data-dir=$dir") ;;
+     pid=$(pgrep -U $UID -fx "$BIN --user-data-dir=$dir" | head -1); args=(--args "--user-data-dir=$dir") ;;
   *) echo "usage: $0 A|B|C|…" >&2; exit 2 ;;
 esac
 if [[ -n $pid ]]; then

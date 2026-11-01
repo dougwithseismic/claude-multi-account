@@ -17,7 +17,7 @@ SNAPSHOT="$HOME/Library/Caches/claude-multi-account/usage.json"
 # The one this checkout built, else one on the PATH.
 CLI=apps/notch/build/claude-usage
 [[ -x $CLI ]] || CLI=${commands[claude-usage]:-$CLI}
-here=${PWD/#$HOME/~}
+here=${PWD/#$HOME/\~}
 
 problems=0
 section() { print "\n\e[1m==> $*\e[0m" }
@@ -33,10 +33,14 @@ macos=$(sw_vers -productVersion)
 if (( ${macos%%.*} >= 26 )); then ok "macOS $macos"; else bad "macOS $macos" "Claude Notch needs macOS 26 or later."; fi
 if [[ -d $CLAUDE ]]; then ok "Claude.app $(version $CLAUDE)"
 else bad "Claude.app isn't in /Applications" "Install it from https://claude.ai/download"; fi
-if xcode-select -p >/dev/null 2>&1 && xcrun --find swift >/dev/null 2>&1; then
-  ok "Swift, from Apple's Command Line Tools"
-else
+if ! xcode-select -p >/dev/null 2>&1; then
   bad "No Swift, so Claude Notch can't be built" "Install Apple's Command Line Tools: xcode-select --install"
+elif ! swift=$(xcrun swift -version 2>&1); then
+  bad "The Command Line Tools are there but Swift won't run: ${swift%%$'\n'*}" "If it mentions a licence: sudo xcodebuild -license accept. Otherwise: sudo xcode-select --reset"
+else
+  swift=${${swift#*Swift version }%% *}
+  if is-at-least 6.2 $swift; then ok "Swift $swift"
+  else bad "Swift $swift; Claude Notch needs 6.2 or later" "Update the Command Line Tools in System Settings → General → Software Update."; fi
 fi
 
 # profiles.json, read the way the app reads it: an entry without a single capital letter
@@ -80,7 +84,7 @@ JS
     if [[ $line == '! '* ]]; then bad "profiles.json: ${line#! }"
     else hotkey[${line%% *}]=${line#* }; letters+=${line%% *}; fi
   done
-  (( problems > before )) && print "      Fix it in ${CONFIG/#$HOME/~}, or move it aside and run ./install.sh for a fresh one."
+  (( problems > before )) && print "      Fix it in ${CONFIG/#$HOME/\~}, or move it aside and run ./install.sh for a fresh one."
   (( $#letters )) && ok "profiles.json: $(list $letters)"
 fi
 
@@ -111,7 +115,7 @@ done
 
 # Each running copy, by the data folder it was started on. Two on one folder fight over it.
 typeset -A open
-for args in ${(f)"$(ps -axwwo args=)"}; do
+for args in ${(f)"$(ps -U $UID -wwo args=)"}; do
   [[ $args == "$BIN" || $args == "$BIN "* ]] || continue
   folder=Claude
   [[ $args == *--user-data-dir=* ]] && folder=${${${args#*--user-data-dir=}%% --*}:t}
@@ -126,14 +130,14 @@ elif (( $#running )); then ok "Open: Claude $(list $running), once each"
 else note "No copy of Claude is open"; fi
 
 section "Claude Notch"
-want=$(sed -n 's/.*CFBundleShortVersionString<\/key><string>\([^<]*\)<.*/\1/p' apps/notch/scripts/build-app.sh)
+want=$(sed -n 's/.*static let current = "\(.*\)".*/\1/p' apps/notch/Sources/UsageCore/Version.swift)
 have=$(version $NOTCH)
 if [[ -z $have ]]; then
   bad "Not installed in ~/Applications" "Run ./install.sh."
 else
   if [[ $have == $want ]]; then ok "$have, in ~/Applications"
   else bad "$have is installed; this copy of the code ($here) is $want" "Run ./install.sh to update it."; fi
-  if pgrep -qx ClaudeNotch; then ok "Running"
+  if pgrep -U $UID -qx ClaudeNotch; then ok "Running"
   else bad "Not running" "Open it: open ~/Applications/Claude\\ Notch.app"; fi
 
   # Older builds don't know --login-item and would start instead of answering.
@@ -160,7 +164,7 @@ JS
       if (( age <= 15 * 60 )); then ok "Usage last read $(ago $age) ago"
       else bad "Usage last read $(ago $age) ago" "Claude Notch reads it every 5 minutes while it's open and online."; fi
     else
-      bad "No usage read yet" "Claude Notch writes ${SNAPSHOT/#$HOME/~} after its first read; check it's open."
+      bad "No usage read yet" "Claude Notch writes ${SNAPSHOT/#$HOME/\~} after its first read; check it's open."
     fi
   fi
 fi
@@ -190,19 +194,75 @@ if (( $#wrappers || $+commands[claude] )); then
     dir="$HOME/.claude-$X"
     [[ $X == A ]] && dir="$HOME/.claude"
     if [[ ! -d $dir ]]; then
-      bad "claude-$x's folder, ${dir/#$HOME/~}, isn't there" "Run ./install.sh --claude-code to make it again, then claude-$x to sign in."
+      bad "claude-$x's folder, ${dir/#$HOME/\~}, isn't there" "Run ./install.sh --claude-code to make it again, then claude-$x to sign in."
       continue
     fi
     # A link to something ~/.claude no longer has.
     broken=("$dir"/*(N-@))
     if (( $#broken )); then
-      bad "${dir/#$HOME/~} has links to what ~/.claude no longer has: $(list ${broken:t})" "Put them back in ~/.claude, or remove the links."
+      bad "${dir/#$HOME/\~} has links to what ~/.claude no longer has: $(list ${broken:t})" "Put them back in ~/.claude, or remove the links."
     else
-      ok "claude-$x: Claude Code on ${dir/#$HOME/~}"
+      ok "claude-$x: Claude Code on ${dir/#$HOME/\~}"
     fi
-    (( ! $#letters || ${letters[(Ie)$X]} )) || note "claude-$x is for Claude $X, which isn't in profiles.json" "Remove ${cmd/#$HOME/~} if you don't use it."
+    (( ! $#letters || ${letters[(Ie)$X]} )) || note "claude-$x is for Claude $X, which isn't in profiles.json" "Remove ${cmd/#$HOME/\~} if you don't use it."
   done
   (( $#wrappers > 1 )) && note "To see which account each one is signed in to: claude-b auth status, and so on"
+fi
+
+# claude-chrome-relay, from ./install.sh --chrome, in ~/.claude and each claude-b…'s folder.
+# Read from each .claude.json, as `claude mcp get` would start the server to check it.
+relay_in() {
+  local file=${1:-$HOME}/.claude.json
+  [[ -f $file ]] || return 0
+  osascript -l JavaScript - "$file" <<'JS'
+ObjC.import('Foundation')
+function run([path]) {
+  try {
+    const config = JSON.parse(ObjC.unwrap($.NSString.stringWithContentsOfFileEncodingError(path, $.NSUTF8StringEncoding, null)))
+    const server = config && config.mcpServers && config.mcpServers['chrome-relay']
+    return server ? String(server.command || '?') : ''
+  } catch (e) { return '' }
+}
+JS
+}
+dirs=("")
+for cmd in $wrappers; do
+  X=${(U)${cmd:t}#claude-}
+  [[ $X != A && -d $HOME/.claude-$X ]] && dirs+=$HOME/.claude-$X
+done
+typeset -A relays
+for dir in "${dirs[@]}"; do relays[x$dir]=$(relay_in "$dir"); done
+found=(${(v)relays:#})
+if (( ! $#found )); then
+  if [[ -d "/Applications/Google Chrome.app" ]]; then
+    section "Claude in Chrome"
+    note "Not set up for every copy" "For the Claude in Chrome tools in every copy's Code sessions, through one Chrome profile: ./install.sh --chrome"
+  fi
+else
+  section "Claude in Chrome"
+  usable=
+  for dir in "${dirs[@]}"; do
+    name=${${dir:-~/.claude}/#$HOME/\~}
+    cmd=${relays[x$dir]}
+    if [[ -z $cmd ]]; then note "$name has no chrome-relay" "./install.sh --chrome adds it to every folder."
+    elif [[ $cmd != */claude-chrome-relay ]]; then note "$name's chrome-relay is another MCP server: $cmd"
+    elif [[ ! -x $cmd ]]; then bad "$name's chrome-relay runs ${cmd/#$HOME/\~}, which isn't there" "Run ./install.sh --chrome from this checkout."
+    else
+      v=$("$cmd" --version 2>/dev/null)
+      if [[ $v == "claude-chrome-relay $want" ]]; then ok "$name: chrome-relay $want"
+      else bad "$name's chrome-relay (${cmd/#$HOME/\~}) is ${${v#claude-chrome-relay }:-older than 1.0}; this code is $want" "Run ./install.sh to rebuild it, or ./install.sh --chrome to use this checkout's."; fi
+      : ${usable:=$cmd}
+    fi
+  done
+  if [[ -n $usable ]]; then
+    out=$("$usable" --check 2>/dev/null); code=$?
+    case $code in
+      0) ok "${out%%$'\n'*}" ;;
+      3) note "Chrome access is off in Claude Notch's settings, so the relay refuses every call" "Turn it on there, or: rm ~/.config/claude-multi-account/chrome-off" ;;
+      1) note "${out%%$'\n'*}" ;;
+    esac
+  fi
+  if (( $+commands[claude] == 0 )); then note "Claude Code isn't on your PATH, so only the desktop copies' Code tabs can use it"; fi
 fi
 
 if (( problems )); then
