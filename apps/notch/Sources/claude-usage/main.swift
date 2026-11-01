@@ -15,6 +15,7 @@ usage: claude-usage [--json] [--verbose] [--only A,B,…] [--signed-in]
        claude-usage --cached [--json] [--only A,B,…]
        claude-usage --statusline [--only A,B,…]
        claude-usage --best [--only A,B,…]
+       claude-usage --version
 """
 
 let help = """
@@ -74,6 +75,9 @@ while let argument = arguments.popFirst() {
     switch argument {
     case "-h", "--help":
         print(help)
+        exit(0)
+    case "--version":
+        print("claude-usage \(NotchVersion.current)")
         exit(0)
     case "--json":
         json = true

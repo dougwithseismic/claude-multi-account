@@ -3,13 +3,19 @@ import Foundation
 import UsageCore
 
 // claude-chrome-relay [--label "Claude B"] [--socket <path>]
+// claude-chrome-relay --check | --version
 // An MCP server (stdio) with the Claude in Chrome tools, for any copy of Claude; see Relay.
 // --label names the tab group (default: the copy's name). --socket picks a native host
 // when several browsers run the extension (default: the newest). Claude Notch's Chrome
 // switch (ChromeAccess) refuses every call while it's off, and the notch marks the copy
-// that made each call.
+// that made each call. --check says whether Chrome can be reached and access is on, for
+// install.sh --doctor: exit 0 when both, 1 when Chrome can't be reached, 3 when it's off.
 
-let usageLine = "usage: claude-chrome-relay [--label <name>] [--socket <path>]"
+let usageLine = """
+usage: claude-chrome-relay [--label <name>] [--socket <path>]
+       claude-chrome-relay --check [--socket <path>]
+       claude-chrome-relay --version
+"""
 
 func badArguments(_ message: String) -> Never {
     FileHandle.standardError.write(Data("claude-chrome-relay: \(message)\n\(usageLine)\n".utf8))
@@ -18,12 +24,18 @@ func badArguments(_ message: String) -> Never {
 
 var label: String?
 var socketPath: String?
+var checking = false
 var arguments = CommandLine.arguments.dropFirst()
 while let argument = arguments.popFirst() {
     switch argument {
     case "-h", "--help":
         print(usageLine)
         exit(0)
+    case "--version":
+        print("claude-chrome-relay \(NotchVersion.current)")
+        exit(0)
+    case "--check":
+        checking = true
     case "--label":
         guard let value = arguments.popFirst(), !value.isEmpty else { badArguments("--label takes a name") }
         label = value
@@ -35,13 +47,25 @@ while let argument = arguments.popFirst() {
     }
 }
 
+let access = ChromeAccess()
+
+if checking {
+    let host = HostCheck.run(socketPath: socketPath)
+    print(host.message)
+    if !access.isOn {
+        print("Chrome access is switched off in Claude Notch's settings, so the relay refuses every call.")
+        exit(3)
+    }
+    exit(host.ready ? 0 : 1)
+}
+
 // A Code tab session passes its id down, so each conversation gets its own tab group.
 let environment = ProcessInfo.processInfo.environment
 let sessionID = environment["CLAUDE_CODE_SESSION_ID"].flatMap(UUID.init(uuidString:)) ?? UUID()
-let copy = ClaudeProcess.copy()
+// A Code tab session runs below its copy of Claude; claude-b in a terminal runs on ~/.claude-B.
+let copy = ClaudeProcess.copy() ?? StatusLine.letter(configDir: environment["CLAUDE_CONFIG_DIR"])
 let name = label ?? copy.map { ProfileStyle.of($0, in: ProfileStyle.load()).label } ?? "Claude"
 let relay = Relay(sessionID: sessionID.uuidString.lowercased(), displayName: name, socketPath: socketPath)
-let access = ChromeAccess()
 
 /// Answers request `id` with `body`: ["result": …] or ["error": …].
 func reply(_ id: Any, _ body: [String: Any]) {
@@ -74,7 +98,7 @@ while let line = readLine() {
         reply(id, ["result": [
             "protocolVersion": params["protocolVersion"] as? String ?? "2025-06-18",
             "capabilities": ["tools": [:]],
-            "serverInfo": ["name": "claude-chrome-relay", "version": "0.1.0"],
+            "serverInfo": ["name": "claude-chrome-relay", "version": NotchVersion.current],
             "instructions": "Browser tools for the Chrome on this Mac, through the Claude in Chrome extension. Start with tabs_context_mcp (createIfEmpty: true) to get this session's tab group, and work only in its tabs.",
         ]])
     case "ping":
