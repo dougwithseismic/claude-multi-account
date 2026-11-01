@@ -33,6 +33,8 @@ final class NotchState {
     /// The peek's size, and the notch in its coordinates.
     var peekSize = CGSize.zero
     var notchInPeek = CGRect.zero
+    /// The tallest the copies' rows can be before they scroll, so the panel stays on screen.
+    var rowsLimit = CGFloat.infinity
 
     /// Called when the panel's content changes size, so the window can follow.
     @ObservationIgnored var onResize: ((CGSize) -> Void)?
@@ -48,6 +50,9 @@ struct Peek: Equatable {
         case alert(LimitAlert)
         /// ⌥⌘0 found no copy with room, so nothing switched; the copy back first, if known.
         case noRoom(BestCopy.Back?)
+        /// macOS wouldn't let the app pass a claude:// link (a sign-in) on to this copy:
+        /// Claude Notch isn't allowed to control Claude in Automation.
+        case linkBlocked
     }
 
     let letter: String
@@ -60,6 +65,7 @@ struct Peek: Equatable {
         case .switched: 1.8
         case .noRoom: 3
         case .alert: 5
+        case .linkBlocked: 8
         }
     }
 }

@@ -70,6 +70,9 @@ private struct Board: View {
                 if case .noRoom(let back) = allOut.mostRoom() {
                     tile("Peek after ⌥⌘0, every copy out") { peek(Peek(letter: back?.letter ?? "", kind: .noRoom(back))) }
                 }
+                if let letter = model.lastUsed ?? model.copies.first?.id {
+                    tile("Peek when macOS blocks a sign-in link") { peek(Peek(letter: letter, kind: .linkBlocked)) }
+                }
                 tile("Open") { panel(state()) }
             }
             if showDetails {

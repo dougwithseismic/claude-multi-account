@@ -20,7 +20,10 @@ public struct SharedSnapshot: Codable, Sendable, Equatable {
     public static let freshFor: TimeInterval = 15 * 60
 
     public let version: Int
-    /// When the app last read usage. Writes in between (a different copy in front) keep it.
+    /// When the app last read usage, or, while every account waits (a 429's back-off, the
+    /// Keychain), last said it's still running: at least every 5 minutes while it runs.
+    /// Writes in between (a different copy in front) keep it. Each copy's `readAt` is when
+    /// its numbers are from.
     public let updatedAt: Date
     /// In profile order.
     public let copies: [Copy]

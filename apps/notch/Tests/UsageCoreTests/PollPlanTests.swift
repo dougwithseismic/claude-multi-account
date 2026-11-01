@@ -17,6 +17,11 @@ private let now = Date(timeIntervalSince1970: 1_800_000_000)
     #expect(PollPlan.retryAfterRateLimit(failures: 500, retryAfter: nil, now: now).timeIntervalSince(now) == 21600)
 }
 
+@Test func networkFailuresAreTriedAgainSoonThenEveryFiveMinutes() {
+    let waits = (1...6).map { PollPlan.retryAfterNetworkError(failures: $0, now: now).timeIntervalSince(now) }
+    #expect(waits == [30, 60, 120, 240, 300, 300])
+}
+
 @Test func realRetryAfterIsHonouredWithinLimits() {
     let in20m = now.addingTimeInterval(1200)
     #expect(PollPlan.retryAfterRateLimit(failures: 1, retryAfter: in20m, now: now) == in20m)

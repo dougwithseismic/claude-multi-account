@@ -70,6 +70,7 @@ struct PeekLine: View {
         case .alert(.out(let window)): "\(style.safeLabel) · \(shortLabel(window)) used up"
         case .alert(.back(let window)): "\(style.safeLabel) · \(shortLabel(window)) reset"
         case .noRoom: "No copy has room"
+        case .linkBlocked: "\(style.safeLabel) didn't get the link"
         }
     }
 
@@ -106,6 +107,11 @@ struct PeekLine: View {
                 .font(.system(size: 11, design: .rounded))
                 .fixedSize()
             }
+        case .linkBlocked:
+            Label("allow it in Automation", systemImage: "hand.raised.fill")
+                .font(.system(size: 11)).foregroundStyle(.orange)
+                .lineLimit(1)
+                .fixedSize()
         }
     }
 }

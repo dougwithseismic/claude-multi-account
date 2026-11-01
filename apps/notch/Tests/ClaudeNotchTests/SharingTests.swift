@@ -101,6 +101,23 @@ private func readModel(sharingTo file: URL?) -> AccountsModel {
         #expect(snapshot.updatedAt == now)
     }
 
+    @MainActor @Test func whileNothingIsReadTheSnapshotStillSaysTheAppIsRunning() throws {
+        let file = temporaryFile()
+        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent().deletingLastPathComponent()) }
+        let model = readModel(sharingTo: file)
+        model.heartbeat(now: now.addingTimeInterval(60))
+        #expect(SharedSnapshot.read(from: file)?.updatedAt == now)
+        // Every account waiting, say on a 429's back-off.
+        model.heartbeat(now: now.addingTimeInterval(PollPlan.interval))
+        let snapshot = try #require(SharedSnapshot.read(from: file))
+        #expect(snapshot.updatedAt == now.addingTimeInterval(PollPlan.interval))
+        // The numbers keep the time they were read.
+        #expect(snapshot.copies[0].readAt == now)
+        model.paused = true
+        model.heartbeat(now: now.addingTimeInterval(3 * PollPlan.interval))
+        #expect(SharedSnapshot.read(from: file)?.updatedAt == now.addingTimeInterval(PollPlan.interval))
+    }
+
     @MainActor @Test func nothingIsWrittenBeforeTheFirstReadOrWithoutAFile() {
         let file = temporaryFile()
         defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent().deletingLastPathComponent()) }

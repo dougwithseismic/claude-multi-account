@@ -39,6 +39,15 @@ public struct ProfileStyle: Sendable, Equatable {
         return parse(data) ?? defaults
     }
 
+    /// The file's entries, or the defaults when there's no file. Nil when it's there but
+    /// isn't a JSON list with a profile in it, so a reload after a typo can keep what's in
+    /// use rather than fall back to A, B and C.
+    public static func reload(from url: URL = file) -> [ProfileStyle]? {
+        guard FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) else { return defaults }
+        guard let data = try? Data(contentsOf: url) else { return nil }
+        return parse(data)
+    }
+
     static func parse(_ data: Data) -> [ProfileStyle]? {
         struct Entry: Decodable {
             let letter: String?

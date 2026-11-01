@@ -98,15 +98,20 @@ public enum StatusLineSetting {
         let manager = FileManager.default
         try manager.createDirectory(at: folder, withIntermediateDirectories: true)
         let mode = (try? manager.attributesOfItem(atPath: target.path(percentEncoded: false))[.posixPermissions] as? Int) ?? 0o644
-        let temporary = folder.appending(path: ".\(target.lastPathComponent).\(UUID().uuidString)")
-        do {
-            try Data(text.utf8).write(to: temporary)
-            try manager.setAttributes([.posixPermissions: mode], ofItemAtPath: temporary.path(percentEncoded: false))
-            guard rename(temporary.path(percentEncoded: false), target.path(percentEncoded: false)) == 0 else {
-                throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
-            }
-        } catch {
-            try? manager.removeItem(at: temporary)
+        let temporary = folder.appending(path: ".\(target.lastPathComponent).\(UUID().uuidString)").path(percentEncoded: false)
+        func failure() -> POSIXError { POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+        // With the file's own permissions from the moment it exists: settings can hold keys
+        // in "env", and a 0600 file shouldn't be readable by others even briefly.
+        let fd = open(temporary, O_WRONLY | O_CREAT | O_EXCL, mode_t(mode & 0o777))
+        guard fd >= 0 else { throw failure() }
+        let data = Data(text.utf8)
+        let written = data.withUnsafeBytes { Darwin.write(fd, $0.baseAddress, $0.count) }
+        // The umask may have taken bits off the mode open was given.
+        let restored = fchmod(fd, mode_t(mode & 0o777)) == 0
+        close(fd)
+        guard written == data.count, restored, rename(temporary, target.path(percentEncoded: false)) == 0 else {
+            let error = failure()
+            unlink(temporary)
             throw error
         }
     }

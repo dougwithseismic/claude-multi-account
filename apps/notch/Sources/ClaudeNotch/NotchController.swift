@@ -133,6 +133,8 @@ final class NotchController {
         rings.setFrame(layout.ringsWindow, display: true)
         rings.orderFrontRegardless()
 
+        // Room for the top bar, the footer and the shadow under the rows.
+        state.rowsLimit = max(240, layout.screenFrame.height - layout.notch.height - 160)
         state.peekSize = layout.peek.size
         state.notchInPeek = NotchLayout.local(layout.notch, in: layout.peek)
         let peek = NSHostingView(rootView: PeekStage(model: model, state: state))
@@ -303,13 +305,13 @@ final class NotchController {
     // MARK: Peeks
 
     /// Shows a peek for a few seconds, unless the panel is open, the setting for its kind
-    /// is off, or the app in front is in full screen. ⌥⌘0 finding no room always says so:
-    /// otherwise the key would seem to do nothing.
+    /// is off, or the app in front is in full screen. ⌥⌘0 finding no room and a link that
+    /// didn't get through always say so: otherwise nothing would seem to happen.
     func peek(_ peek: Peek) {
         switch peek.kind {
         case .switched: guard preferences.switchPeeks else { return }
         case .alert: guard preferences.limitAlerts else { return }
-        case .noRoom: break
+        case .noRoom, .linkBlocked: break
         }
         guard let layout, !pinned, !state.isOpen, !frontIsFullScreen else { return }
         peekTask?.cancel()

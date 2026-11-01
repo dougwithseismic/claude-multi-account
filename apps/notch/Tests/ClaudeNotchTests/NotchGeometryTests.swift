@@ -61,6 +61,18 @@ let macBook = ScreenShape(
     #expect(layout.rings == layout.notch)
 }
 
+@Test func aPillWidensForMoreThanSixRings() {
+    let external = ScreenShape(
+        frame: CGRect(x: 0, y: 0, width: 1920, height: 1080),
+        safeAreaTop: 0, auxiliaryTopLeft: nil, auxiliaryTopRight: nil
+    )
+    #expect(NotchLayout.make(external, ringCount: 6).notch.width == 168)
+    let nine = NotchLayout.make(external, ringCount: 9)
+    // Nine 16pt rings with 6pt gaps, padding and the flare on both sides.
+    #expect(nine.notch.width == 9 * 16 + 8 * 6 + 2 * (8 + NotchLayout.flare))
+    #expect(nine.notch.midX == 960)
+}
+
 @Test func aPeekIsCentredOnTheNotchAndReachesPastTheRings() {
     let layout = NotchLayout.make(macBook, ringCount: 3)
     #expect(layout.peek.midX == layout.notch.midX)

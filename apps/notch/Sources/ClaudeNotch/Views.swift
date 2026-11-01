@@ -71,7 +71,7 @@ struct RingView: View {
             fiveHour: wait ?? (report?.fiveHour?.percentUsed ?? 0) / 100,
             fiveHourOut: wait != nil,
             weekly: (report?.weeklyPeak?.percentUsed ?? 0) / 100,
-            dim: report == nil || account?.isStale == true
+            dim: report == nil || account?.isStale == true || account?.isOld(now: now) == true
         )
     }
 }
@@ -365,9 +365,15 @@ extension AccountsModel.Account {
         }
     }
 
+    /// The last good read is older than 15 minutes: after a sleep, before the first read
+    /// after it, or while reads keep failing. The numbers say little about now.
+    func isOld(now: Date) -> Bool {
+        reportAt.map { now.timeIntervalSince($0) > SharedSnapshot.freshFor } ?? false
+    }
+
     /// Small text at the right of the header: how old the numbers are when they aren't fresh.
     func status(now: Date) -> String? {
-        guard error != nil, let reportAt else { return nil }
+        guard let reportAt, error != nil || isOld(now: now) else { return nil }
         if case .rateLimited = error {
             return "retrying in \(UsageFormat.duration(nextPoll.timeIntervalSince(now))) · \(age(reportAt, now: now))"
         }

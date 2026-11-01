@@ -74,6 +74,9 @@ public actor AccountReader {
     /// A failed Keychain read, kept for the rest of one `logins` call so a refused prompt
     /// isn't shown again for every profile.
     var keyFailure: Error?
+    /// The key was read from the Keychain during this `logins` call, so a login it can't
+    /// decrypt isn't down to a key kept from before.
+    var keyReadThisCall = false
     /// Each login's email and organization, which rarely change, so the profile call isn't
     /// made on every poll.
     var profiles: [String: (profile: AccountProfile, at: Date)] = [:]
@@ -113,6 +116,7 @@ public actor AccountReader {
     /// Each profile's logins, from disk only.
     public func logins(of profiles: [Profile]) -> [ProfileLogins] {
         keyFailure = nil
+        keyReadThisCall = false
         return profiles.map { profile in
             switch logins(in: profile) {
             case .success(let (logins, source)): ProfileLogins(profile: profile, logins: .success(logins), activeSource: source)
@@ -133,7 +137,9 @@ public actor AccountReader {
         case .success(let token):
             accessToken = token
         }
-        let cacheKey = "\(login.profile.letter)|\(login.organization)"
+        // With the account: another account signed in to the same copy and organization
+        // (a Team's) is a different profile, not a login left over from the last one.
+        let cacheKey = "\(login.profile.letter)|\(login.organization)|\(login.accountUUID ?? "")"
         let cached = profiles[cacheKey].flatMap { Date().timeIntervalSince($0.at) < Self.profileLifetime ? $0.profile : nil }
         let client = self.client
         async let usage = Self.usageResult(client, accessToken.token)
@@ -158,9 +164,22 @@ public actor AccountReader {
         do {
             let config = try ProfileConfig.read(profile)
             guard let encrypted = config.encryptedTokenCache else { return .failure(.notSignedIn) }
-            let key = try safeStorageKey()
-            let decrypted = try SafeStorage.decrypt(base64: encrypted, key: key)
-            let found = try TokenCache.logins(decrypted: decrypted, accountUUID: config.accountUUID).filter {
+            func open(_ key: Data) throws -> (Data, [OrganizationLogin]) {
+                let decrypted = try SafeStorage.decrypt(base64: encrypted, key: key)
+                return (decrypted, try TokenCache.logins(decrypted: decrypted, accountUUID: config.accountUUID))
+            }
+            var key = try safeStorageKey()
+            let decrypted: Data, all: [OrganizationLogin]
+            do {
+                (decrypted, all) = try open(key)
+            } catch UsageError.unreadableTokenCache where !keyReadThisCall {
+                // Claude makes a new key when its Keychain item is made again: the one kept
+                // from an earlier read is replaced by a fresh one, once.
+                self.key = nil
+                key = try safeStorageKey()
+                (decrypted, all) = try open(key)
+            }
+            let found = all.filter {
                 guard case .usable(let token) = $0.selection else { return true }
                 return !otherAccounts.contains(Self.loginKey(profile, token))
             }
@@ -207,6 +226,7 @@ public actor AccountReader {
         do {
             let derived = SafeStorage.deriveKey(password: try readPassword())
             key = derived
+            keyReadThisCall = true
             return derived
         } catch {
             keyFailure = error

@@ -33,7 +33,12 @@ enum Links {
         return running.sorted().first
     }
 
-    static func open(_ url: URL, copies: ClaudeCopies) {
+    /// macOS's answer when this app isn't allowed to control Claude (errAEEventNotPermitted).
+    nonisolated static let notPermitted: OSStatus = -1743
+
+    /// Passes `url` on to the copy it's for. `blocked` hears which copy, when macOS refused
+    /// to let the link through, so the user can be told where to allow it.
+    static func open(_ url: URL, copies: ClaudeCopies, blocked: @escaping @MainActor @Sendable (String) -> Void = { _ in }) {
         guard let letter = target(lastUsed: copies.lastUsed, running: copies.runningLetters),
               let app = copies.running(letter)
         else {
@@ -58,6 +63,7 @@ enum Links {
             DispatchQueue.main.async {
                 complain("couldn't pass a link to Claude \(letter) (error \(status))")
                 NSSound.beep()
+                if status == notPermitted { MainActor.assumeIsolated { blocked(letter) } }
             }
         }
         app.activate(options: .activateAllWindows)

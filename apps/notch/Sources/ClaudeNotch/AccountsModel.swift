@@ -26,6 +26,9 @@ final class AccountsModel {
         var lastAttempt: Date?
         var nextPoll = Date.distantPast
         var rateLimits = 0
+        /// Network failures in a row: tried again sooner than the usual interval, as just
+        /// after waking the network is often a few seconds behind.
+        var networkFailures = 0
 
         init(profile: Profile, organization: String?) {
             self.profile = profile
@@ -63,10 +66,12 @@ final class AccountsModel {
     /// Where to share what was read, for `claude-usage --cached` and the status line. Nil
     /// shares nothing: the demo, the film and tests leave it so.
     @ObservationIgnored var snapshotFile: URL?
-    /// When usage was last read: the shared snapshot's `updatedAt`.
+    /// When usage was last read, or the heartbeat last ran: the shared snapshot's `updatedAt`.
     @ObservationIgnored private(set) var readAt: Date?
     @ObservationIgnored private var shareError: String?
 
+    /// Where the copies' data folders are; tests point it elsewhere.
+    @ObservationIgnored var profilesRoot = Profile.applicationSupport
     @ObservationIgnored private let reader: AccountReader?
     @ObservationIgnored private var timer: Timer?
 
@@ -85,7 +90,14 @@ final class AccountsModel {
 
     func start() {
         discover()
-        let timer = Timer(timeInterval: 5, repeats: true) { _ in MainActor.assumeIsolated { self.pollDue() } }
+        let timer = Timer(timeInterval: 5, repeats: true) { _ in
+            MainActor.assumeIsolated {
+                // A copy opened for the first time makes its config.json while the app runs.
+                self.discover()
+                self.pollDue()
+                self.heartbeat()
+            }
+        }
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
         pollDue()
@@ -95,8 +107,20 @@ final class AccountsModel {
     /// model without a reader (the demo, tests) keeps the profiles it was shown.
     func discover() {
         guard reader != nil else { return }
-        profiles = Profile.discover()
+        let found = Profile.discover(in: profilesRoot)
+        guard found != profiles else { return }
+        profiles = found
         accounts.removeAll { account in !profiles.contains(account.profile) }
+        onChange?()
+    }
+
+    /// While every account waits (a 429's back-off, the Keychain), nothing is read, so the
+    /// snapshot is written again every few minutes to show the app is still running. Each
+    /// copy keeps the time of its own last good read.
+    func heartbeat(now: Date = Date()) {
+        guard !paused, let readAt, now.timeIntervalSince(readAt) >= PollPlan.interval else { return }
+        self.readAt = now
+        share()
     }
 
     /// Reads, together, every copy with an account that's due: its logins from disk, then
@@ -220,16 +244,24 @@ final class AccountsModel {
                 account.reportAt = at
                 account.error = nil
                 account.rateLimits = 0
+                account.networkFailures = 0
                 account.nextPoll = next
             case .failure(let error):
                 account.error = error
-                if case .rateLimited(let retryAfter) = error {
+                switch error {
+                case .rateLimited(let retryAfter):
                     account.rateLimits += 1
+                    account.networkFailures = 0
                     account.nextPoll = PollPlan.retryAfterRateLimit(
                         failures: account.rateLimits, retryAfter: retryAfter, now: at
                     )
-                } else {
+                case .network:
                     account.rateLimits = 0
+                    account.networkFailures += 1
+                    account.nextPoll = PollPlan.retryAfterNetworkError(failures: account.networkFailures, now: at)
+                default:
+                    account.rateLimits = 0
+                    account.networkFailures = 0
                     account.nextPoll = next
                 }
             }
