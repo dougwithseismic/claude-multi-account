@@ -15,6 +15,7 @@ Open the panel and click the **gear** at its top left. Settings are kept on your
 | **Switch peeks** | A peek naming the copy a <kbd>⌥⌘</kbd> hotkey switched to | On |
 | **⌥⌘0 switches to the most room** | <kbd>⌥⌘0</kbd> switches to the copy with the most room, as in [Day to day](/docs/day-to-day). Off frees the key for another app | On |
 | **Haptic feedback** | A tick on the trackpad as the panel opens by hover | On |
+| **Chrome access for every copy** | Whether [`claude-chrome-relay`](/docs/chrome) may use Chrome. Off, it refuses every call from every copy, including sessions already running | On |
 | **Open at login** | Starts Claude Notch with your Mac | On after the first run |
 
 ## Reading it

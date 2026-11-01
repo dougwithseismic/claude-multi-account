@@ -16,6 +16,7 @@ export const site = {
   addCopy: to('/docs/profiles/#add-more-copies'),
   undo: to('/docs/updating/#uninstall'),
   cli: to('/docs/claude-usage/'),
+  chrome: to('/docs/chrome/'),
   docs: to('/docs/'),
   learn: to('/learn/'),
   tools: to('/tools/'),

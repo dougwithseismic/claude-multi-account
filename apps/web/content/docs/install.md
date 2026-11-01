@@ -67,3 +67,4 @@ Don't open `/Applications/Claude.app` directly while a copy is running: it would
 
 - [Sign in to each copy](/docs/sign-in)
 - [Day to day](/docs/day-to-day)
+- [Claude in Chrome in every copy](/docs/chrome), if you use the browser tools

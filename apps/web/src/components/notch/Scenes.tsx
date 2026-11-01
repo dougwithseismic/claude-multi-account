@@ -23,7 +23,7 @@ function useFit<T extends HTMLElement>(stage: { width: number; height: number })
   return [ref, fit] as const
 }
 
-export type SceneName = 'rings' | 'panel' | 'peek' | 'terminal' | 'profiles'
+export type SceneName = 'rings' | 'panel' | 'peek' | 'terminal' | 'profiles' | 'chrome'
 export type Tint = 'orange' | 'blue' | 'green' | 'purple'
 
 /** A stand-in Claude window: one per account, the one in front outlined in its colour. */
@@ -190,6 +190,108 @@ function Profiles() {
   )
 }
 
+/** The globe the panel shows beside a copy that just used Chrome. */
+function Globe() {
+  return (
+    <svg className="sc-globe" viewBox="0 0 12 12" aria-hidden="true">
+      <circle cx="6" cy="6" r="5" />
+      <path d="M1 6h10M6 1c-2.6 2.8-2.6 7.2 0 10M6 1c2.6 2.8 2.6 7.2 0 10" />
+    </svg>
+  )
+}
+
+/** Chrome with a tab group for each Code session, named after its copy. */
+function Chrome() {
+  const groups: Array<{ letter: Letter; tabs: string[] }> = [
+    { letter: 'A', tabs: ['Pull request #42', 'Preview · acme.app'] },
+    { letter: 'B', tabs: ['Payments · Stripe'] },
+  ]
+  return (
+    <div className="sc-chrome">
+      <div className="sc-chrome__strip">
+        <span className="sc-window__lights">
+          <i />
+          <i />
+          <i />
+        </span>
+        {groups.map((group) => (
+          <span
+            key={group.letter}
+            className="sc-chrome__group"
+            style={{ '--c': colors[group.letter] } as CSSProperties}
+          >
+            <span className="sc-chrome__chip">Claude {group.letter}</span>
+            {group.tabs.map((tab, i) => (
+              <span
+                key={tab}
+                className="sc-chrome__tab"
+                data-active={group.letter === 'A' && i === 0 ? '' : undefined}
+              >
+                <i className="sc-chrome__favicon" />
+                {tab}
+              </span>
+            ))}
+          </span>
+        ))}
+      </div>
+      <div className="sc-chrome__toolbar">
+        <span className="sc-chrome__url">github.com/acme/app/pull/42</span>
+      </div>
+      <div className="sc-chrome__page">
+        <span className="sc-chrome__heading" />
+        <span className="sc-chrome__line" style={{ width: '88%' }} />
+        <span className="sc-chrome__line" style={{ width: '72%' }} />
+        <span className="sc-chrome__diff">
+          <i style={{ width: '64%' }} />
+          <i style={{ width: '48%' }} />
+          <i style={{ width: '56%' }} />
+        </span>
+      </div>
+    </div>
+  )
+}
+
+/** A copy's Code session, calling the relay's tools. */
+function CodeSession({
+  letter,
+  calls,
+  outlined = false,
+  style,
+}: {
+  letter: Letter
+  calls: Array<[tool: string, target: string]>
+  outlined?: boolean
+  style?: CSSProperties
+}) {
+  return (
+    <div
+      className="sc-window sc-code"
+      data-outlined={outlined ? '' : undefined}
+      style={{ ...style, '--c': colors[letter] } as CSSProperties}
+    >
+      <div className="sc-window__bar">
+        <span className="sc-window__lights">
+          <i />
+          <i />
+          <i />
+        </span>
+        <span className="sc-window__title">Claude {letter} · Code</span>
+      </div>
+      <div className="sc-window__chat">
+        <span className="sc-window__msg sc-window__msg--me" />
+        {calls.map(([tool, target]) => (
+          <span key={tool} className="sc-call">
+            <Globe />
+            <b>{tool}</b>
+            <span className="sc-call__target">{target}</span>
+          </span>
+        ))}
+        <span className="sc-window__msg" style={{ width: '76%' }} />
+      </div>
+    </div>
+  )
+}
+
 const withD: Copy[] = [
   ...sample,
   {
@@ -249,6 +351,28 @@ const scenes: Record<SceneName, () => ReactNode> = {
       <Profiles />
     </>
   ),
+  chrome: () => (
+    <>
+      <Chrome />
+      <CodeSession
+        letter="B"
+        calls={[
+          ['read_page', 'dashboard.stripe.com'],
+          ['find', '“Refund” button'],
+        ]}
+        style={{ left: 34, top: 318 }}
+      />
+      <CodeSession
+        letter="A"
+        outlined
+        calls={[
+          ['navigate', 'github.com/acme/app/pull/42'],
+          ['computer', 'screenshot'],
+        ]}
+        style={{ left: 252, top: 350 }}
+      />
+    </>
+  ),
 }
 
 const stages: Record<SceneName, { width: number; height: number }> = {
@@ -257,6 +381,7 @@ const stages: Record<SceneName, { width: number; height: number }> = {
   peek: { width: 586, height: 564 },
   terminal: { width: 564, height: 564 },
   profiles: { width: 564, height: 564 },
+  chrome: { width: 586, height: 564 },
 }
 
 /** A product scene on its tinted wallpaper, scaled to its box. */

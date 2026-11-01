@@ -611,3 +611,181 @@
     opacity: 0;
   }
 }
+
+/* Chrome, with a tab group per Code session, and those sessions calling the relay. */
+.sc-chrome {
+  position: absolute;
+  top: 30px;
+  left: 28px;
+  width: 530px;
+  height: 300px;
+  border-radius: 14px;
+  background: #35363a;
+  box-shadow:
+    0 0 0 0.5px rgb(255 255 255 / 0.14) inset,
+    0 30px 60px -16px rgb(0 0 0 / 0.5);
+  overflow: hidden;
+  font-family: var(--mac);
+}
+
+.sc-chrome__strip {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 40px;
+  padding: 0 12px;
+  background: #202124;
+}
+
+.sc-chrome__strip .sc-window__lights {
+  align-self: center;
+  margin-right: 4px;
+}
+
+.sc-chrome__group {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.sc-chrome__chip {
+  align-self: center;
+  margin-right: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--c);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sc-chrome__tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px 8px 0 0;
+  color: rgb(255 255 255 / 0.62);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+/* Chrome underlines a group's tabs in its colour. */
+.sc-chrome__tab::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--c);
+}
+
+.sc-chrome__tab[data-active] {
+  background: #35363a;
+  color: rgb(255 255 255 / 0.92);
+}
+
+.sc-chrome__favicon {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: rgb(255 255 255 / 0.3);
+}
+
+.sc-chrome__toolbar {
+  padding: 7px 12px;
+}
+
+.sc-chrome__url {
+  display: block;
+  padding: 6px 12px;
+  border-radius: 14px;
+  background: #202124;
+  color: rgb(255 255 255 / 0.7);
+  font-size: 10.5px;
+}
+
+.sc-chrome__page {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  height: 100%;
+  padding: 18px 22px;
+  background: #1b1b1d;
+}
+
+.sc-chrome__heading {
+  width: 46%;
+  height: 12px;
+  border-radius: 4px;
+  background: rgb(255 255 255 / 0.22);
+}
+
+.sc-chrome__line {
+  height: 7px;
+  border-radius: 4px;
+  background: rgb(255 255 255 / 0.1);
+}
+
+.sc-chrome__diff {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.04);
+  box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.08) inset;
+}
+
+.sc-chrome__diff i {
+  height: 7px;
+  border-radius: 4px;
+  background: rgb(50 215 75 / 0.32);
+}
+
+.sc-chrome__diff i:nth-child(2) {
+  background: rgb(255 69 58 / 0.32);
+}
+
+.sc-code {
+  height: 168px;
+}
+
+.sc-call {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.06);
+  color: rgb(255 255 255 / 0.82);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sc-call b {
+  font-weight: 700;
+}
+
+.sc-call__target {
+  overflow: hidden;
+  color: rgb(255 255 255 / 0.45);
+  text-overflow: ellipsis;
+}
+
+.sc-globe {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 1.2;
+}

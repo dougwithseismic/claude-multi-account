@@ -1,10 +1,12 @@
 import {
   AppWindow,
   BellRing,
+  Code,
   EyeOff,
   type LucideIcon,
   ShieldCheck,
   SquareTerminal,
+  Stethoscope,
   Users,
 } from 'lucide-react'
 import { grid } from '../content'
@@ -16,6 +18,8 @@ const icons: Record<(typeof grid.items)[number]['icon'], LucideIcon> = {
   frame: AppWindow,
   terminal: SquareTerminal,
   shield: ShieldCheck,
+  code: Code,
+  doctor: Stethoscope,
 }
 
 export function Grid() {
