@@ -8,8 +8,9 @@ import UsageCore
 struct NotchShape: Shape {
     var flare: CGFloat = NotchLayout.flare
     var bottomRadius: CGFloat = 18
-    /// Off for the rings' backing, whose left edge is hidden inside the notch.
+    /// Off on the rings' backing for the edge hidden inside the notch.
     var leftSide = true
+    var rightSide = true
 
     func path(in rect: CGRect) -> Path {
         let f = min(flare, rect.width / 4), b = max(min(bottomRadius, rect.height - f, rect.width / 2 - f), 0)
@@ -23,10 +24,15 @@ struct NotchShape: Shape {
             p.move(to: CGPoint(x: rect.minX, y: rect.minY))
             p.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
         }
-        p.addLine(to: CGPoint(x: rect.maxX - f - b, y: rect.maxY))
-        p.addQuadCurve(to: CGPoint(x: rect.maxX - f, y: rect.maxY - b), control: CGPoint(x: rect.maxX - f, y: rect.maxY))
-        p.addLine(to: CGPoint(x: rect.maxX - f, y: rect.minY + f))
-        p.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.minY), control: CGPoint(x: rect.maxX - f, y: rect.minY))
+        if rightSide {
+            p.addLine(to: CGPoint(x: rect.maxX - f - b, y: rect.maxY))
+            p.addQuadCurve(to: CGPoint(x: rect.maxX - f, y: rect.maxY - b), control: CGPoint(x: rect.maxX - f, y: rect.maxY))
+            p.addLine(to: CGPoint(x: rect.maxX - f, y: rect.minY + f))
+            p.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.minY), control: CGPoint(x: rect.maxX - f, y: rect.minY))
+        } else {
+            p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+            p.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        }
         p.closeSubpath()
         return p
     }
@@ -113,10 +119,11 @@ struct RingGlyph: View {
 
 /// The rings beside the notch, with a dot under the copy in front (or used last) that
 /// slides to the next one on a switch. When every copy is out, the one back first and how
-/// long it has left sit beside them, while the notch is closed.
+/// long it has left sit beside them, away from the notch, while the notch is closed.
 struct RingsView: View {
     let model: AccountsModel
     let hasNotch: Bool
+    var side = NotchLayout.Side.left
     /// Nil draws the notch closed.
     var state: NotchState?
     @Namespace private var namespace
@@ -131,7 +138,13 @@ struct RingsView: View {
     @ViewBuilder private func content(now: Date) -> some View {
         let closed = state.map { !$0.isOpen && !$0.peekShown } ?? true
         let back = closed ? model.soonestBack : nil
+        // The countdown goes on the far side of the rings from the notch.
+        let backFirst = hasNotch && side == .left
         let line = HStack(spacing: 8) {
+            if backFirst, let back {
+                SoonestBack(letter: back.letter, at: back.at, now: now)
+                    .transition(.opacity.combined(with: .offset(x: 6)))
+            }
             HStack(spacing: NotchLayout.ringSpacing) {
                 ForEach(model.copies) { copy in
                     RingView(letter: copy.id, account: copy.active, now: now)
@@ -147,19 +160,21 @@ struct RingsView: View {
                 }
             }
             .animation(.spring(response: 0.45, dampingFraction: 0.72), value: model.lastUsed)
-            if let back {
+            if !backFirst, let back {
                 SoonestBack(letter: back.letter, at: back.at, now: now)
                     .transition(.opacity.combined(with: .offset(x: -6)))
             }
         }
         .animation(.spring(response: 0.42, dampingFraction: 0.82), value: back?.letter)
         if hasNotch {
+            // The black reaches into the notch on its side, hiding the cutout's rounded corner.
+            let inner = NotchLayout.overlap + NotchLayout.ringPadding, outer = NotchLayout.ringPadding + NotchLayout.flare
             line
-                .padding(.leading, NotchLayout.overlap + NotchLayout.ringPadding)
-                .padding(.trailing, NotchLayout.ringPadding + NotchLayout.flare)
+                .padding(.leading, side == .right ? inner : outer)
+                .padding(.trailing, side == .right ? outer : inner)
                 .frame(maxHeight: .infinity)
-                .background(NotchShape(bottomRadius: 10, leftSide: false).fill(.black))
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(NotchShape(bottomRadius: 10, leftSide: side == .left, rightSide: side == .right).fill(.black))
+                .frame(maxWidth: .infinity, alignment: side == .right ? .leading : .trailing)
         } else {
             line
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

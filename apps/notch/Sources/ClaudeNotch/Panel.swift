@@ -6,8 +6,8 @@ struct PanelActions {
     var open: (String) -> Void = { _ in }
     var refresh: () -> Void = {}
     var editProfiles: () -> Void = {}
-    /// Nil once reloaded, or what's wrong with the file.
-    var reloadProfiles: () -> String? = { nil }
+    /// Opens the Copies window.
+    var manageCopies: () -> Void = {}
     var quit: () -> Void = {}
     /// The welcome page's Got it.
     var finishWelcome: () -> Void = {}
@@ -64,8 +64,14 @@ struct PanelContent: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 20)) { context in
             VStack(alignment: .leading, spacing: 0) {
-                TopBar(model: model, state: state, preferences: preferences, actions: actions)
-                    .frame(width: max(state.notchInPanel.minX, 0), height: state.notchInPanel.height, alignment: .leading)
+                // The buttons take the strip beside the notch that the rings don't.
+                let onRight = preferences.ringsSide == .left
+                TopBar(model: model, state: state, preferences: preferences, actions: actions, onRight: onRight)
+                    .frame(
+                        width: max(onRight ? Self.width - state.notchInPanel.maxX : state.notchInPanel.minX, 0),
+                        height: state.notchInPanel.height
+                    )
+                    .frame(width: Self.width, alignment: onRight ? .trailing : .leading)
                     .modifier(Reveal(index: 0))
                 ZStack(alignment: .top) {
                     switch state.page {
@@ -89,16 +95,20 @@ struct PanelContent: View {
     }
 }
 
-/// Buttons in the strip left of the notch, which would otherwise be empty black.
+/// Buttons in the strip beside the notch the rings don't use, which would otherwise be
+/// empty black.
 struct TopBar: View {
     let model: AccountsModel
     let state: NotchState
     let preferences: Preferences
     let actions: PanelActions
+    /// In the strip right of the notch, the rings being left of it.
+    var onRight = false
 
     var body: some View {
         let details = state.showsDetails(preferences)
         HStack(spacing: 2) {
+            if onRight { Spacer(minLength: 0) }
             IconButton(symbol: state.page == .settings ? "chevron.backward" : "gearshape.fill", active: state.page == .settings) {
                 withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) {
                     state.page = state.page == .settings ? .usage : .settings
@@ -108,9 +118,9 @@ struct TopBar: View {
                 withAnimation(.smooth(duration: 0.25)) { preferences.showDetails.toggle() }
             }
             IconButton(symbol: "arrow.clockwise", spinning: model.polling, action: actions.refresh)
-            Spacer(minLength: 0)
+            if !onRight { Spacer(minLength: 0) }
         }
-        .padding(.leading, NotchLayout.flare + 10)
+        .padding(onRight ? .trailing : .leading, NotchLayout.flare + 10)
     }
 }
 

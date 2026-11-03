@@ -17,13 +17,37 @@ let macBook = ScreenShape(
     #expect(layout.notch == CGRect(x: 664, y: 944, width: 185, height: 38))
 }
 
-@Test func ringsSitJustRightOfTheNotch() {
+@Test func ringsSitJustLeftOfTheNotchByDefault() {
     let layout = NotchLayout.make(macBook, ringCount: 3)
-    #expect(layout.rings.minX == layout.notch.maxX - NotchLayout.overlap)
+    #expect(layout.side == .left)
+    #expect(layout.rings.maxX == layout.notch.minX + NotchLayout.overlap)
     #expect(layout.rings.maxY == macBook.frame.maxY)
     #expect(layout.rings.height == 38)
     // Three 16pt rings with 6pt gaps, padding on both sides and the flare.
     #expect(layout.rings.width == NotchLayout.overlap + 8 + 3 * 16 + 2 * 6 + 8 + NotchLayout.flare)
+    // The countdown's room is on the far side, away from the notch.
+    #expect(layout.ringsWindow.maxX == layout.rings.maxX)
+    #expect(layout.ringsWindow.minX == layout.rings.minX - NotchLayout.countdownRoom)
+}
+
+@Test func ringsCanSitJustRightOfTheNotch() {
+    let layout = NotchLayout.make(macBook, ringCount: 3, side: .right)
+    #expect(layout.rings.minX == layout.notch.maxX - NotchLayout.overlap)
+    #expect(layout.rings.width == NotchLayout.make(macBook, ringCount: 3).rings.width)
+    #expect(layout.ringsWindow.minX == layout.rings.minX)
+    #expect(layout.ringsWindow.maxX == layout.rings.maxX + NotchLayout.countdownRoom)
+}
+
+@Test func theSideDoesntMoveThePillOrThePanel() {
+    let external = ScreenShape(
+        frame: CGRect(x: 0, y: 0, width: 1920, height: 1080),
+        safeAreaTop: 0, auxiliaryTopLeft: nil, auxiliaryTopRight: nil
+    )
+    let left = NotchLayout.make(external, ringCount: 3, side: .left), right = NotchLayout.make(external, ringCount: 3, side: .right)
+    #expect(left.rings == right.rings && left.ringsWindow == right.ringsWindow && left.peek == right.peek)
+    let size = CGSize(width: 460, height: 300)
+    #expect(NotchLayout.make(macBook, ringCount: 3, side: .left).panelFrame(contentSize: size)
+        == NotchLayout.make(macBook, ringCount: 3, side: .right).panelFrame(contentSize: size))
 }
 
 @Test func triggerIsTheCutoutAndTheTopEdge() {
@@ -73,15 +97,16 @@ let macBook = ScreenShape(
     #expect(nine.notch.midX == 960)
 }
 
-@Test func aPeekIsCentredOnTheNotchAndReachesPastTheRings() {
-    let layout = NotchLayout.make(macBook, ringCount: 3)
+@Test(arguments: NotchLayout.Side.allCases)
+func aPeekIsCentredOnTheNotchAndReachesPastTheRings(side: NotchLayout.Side) {
+    let layout = NotchLayout.make(macBook, ringCount: 3, side: side)
     #expect(layout.peek.midX == layout.notch.midX)
     #expect(layout.peek.maxY == 982)
     #expect(layout.peek.height == 38 + NotchLayout.peekLine)
-    #expect(layout.peek.maxX >= layout.rings.maxX)
+    #expect(layout.peek.minX <= layout.rings.minX && layout.peek.maxX >= layout.rings.maxX)
     // Six copies make the rings wider: the peek widens with them.
-    let six = NotchLayout.make(macBook, ringCount: 6)
-    #expect(six.peek.maxX >= six.rings.maxX && six.peek.width > layout.peek.width)
+    let six = NotchLayout.make(macBook, ringCount: 6, side: side)
+    #expect(six.peek.minX <= six.rings.minX && six.peek.maxX >= six.rings.maxX && six.peek.width > layout.peek.width)
 }
 
 @Test func theWindowLeavesRoomRoundThePanel() {

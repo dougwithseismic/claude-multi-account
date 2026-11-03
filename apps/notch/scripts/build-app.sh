@@ -36,6 +36,9 @@ APP="build/Claude Notch.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 cp .build/release/ClaudeNotch "$APP/Contents/MacOS/ClaudeNotch"
+# What the Copies window runs to make and remove copies, as install.sh does.
+mkdir -p "$APP/Contents/Resources"
+install -m 755 ../../files/claude-copy.sh ../../files/claude-profile.sh "$APP/Contents/Resources/"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

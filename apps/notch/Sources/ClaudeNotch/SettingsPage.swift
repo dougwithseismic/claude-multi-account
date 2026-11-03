@@ -24,7 +24,12 @@ struct SettingsPage: View {
                         ? "Rest the pointer on the notch. A click opens it at once."
                         : "Click the notch. It never opens by accident.",
                     selection: $preferences.openOn
-                )
+                ) { $0 == .hover ? "Hover" : "Click" }
+                ChoiceRow(
+                    title: "Rings",
+                    detail: "Which side of the notch the rings sit on.",
+                    selection: $preferences.ringsSide
+                ) { $0 == .left ? "Left" : "Right" }
                 SwitchRow(
                     title: "Alerts near limits",
                     detail: "Peeks out when a copy passes 90% of its 5-hour limit, runs out, or comes back.",
@@ -48,7 +53,7 @@ struct SettingsPage: View {
             }
             section("General") {
                 LoginItemRow()
-                ProfilesRow(edit: actions.editProfiles, reload: actions.reloadProfiles)
+                CopiesRow(manage: actions.manageCopies, edit: actions.editProfiles)
             }
             section("Reading it") {
                 Legend()
@@ -232,21 +237,22 @@ struct SwitchKnob: View {
     }
 }
 
-/// Hover or click, with the selection sliding between them.
-private struct ChoiceRow: View {
+/// Hover or click, left or right: the choices, with the selection sliding between them.
+private struct ChoiceRow<Option: Hashable & CaseIterable>: View where Option.AllCases: RandomAccessCollection {
     let title: String
     let detail: String
-    @Binding var selection: Preferences.OpenOn
+    @Binding var selection: Option
+    let label: (Option) -> String
     @Namespace private var namespace
 
     var body: some View {
         SettingLabel(title: title, detail: detail) {
             HStack(spacing: 0) {
-                ForEach(Preferences.OpenOn.allCases, id: \.self) { option in
+                ForEach(Option.allCases, id: \.self) { option in
                     Button {
                         withAnimation(.spring(response: 0.32, dampingFraction: 0.8)) { selection = option }
                     } label: {
-                        Text(option == .hover ? "Hover" : "Click")
+                        Text(label(option))
                             .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(selection == option ? .black : .white.opacity(0.65))
                             .padding(.horizontal, 11)
@@ -289,21 +295,21 @@ private struct LoginItemRow: View {
     }
 }
 
-private struct ProfilesRow: View {
+/// The Copies window, or profiles.json itself, which applies when it's saved.
+private struct CopiesRow: View {
+    let manage: () -> Void
     let edit: () -> Void
-    let reload: () -> String?
-    @State private var problem: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            SettingLabel(title: "Profiles", detail: "Names, colours and ⌥⌘ keys, in ~/.config/claude-multi-account/profiles.json.") {
+            SettingLabel(title: "Copies", detail: "Add and remove copies, and set each one's name, colour and ⌥⌘ key.") {
                 HStack(spacing: 6) {
-                    Button("Edit", action: edit)
-                    Button("Reload") { withAnimation(.smooth(duration: 0.2)) { problem = reload() } }
+                    Button("Manage…", action: manage)
+                    Button("Edit file", action: edit)
                 }
                 .buttonStyle(PillButtonStyle())
             }
-            if let problem {
+            if let problem = ProfilesFile.shared.problem {
                 Label(problem, systemImage: "exclamationmark.triangle.fill")
                     .font(.system(size: 10.5))
                     .foregroundStyle(.orange)

@@ -9,11 +9,11 @@ import Foundation
 ///     ]
 public struct ProfileStyle: Sendable, Equatable {
     public let letter: String
-    public let label: String
+    public var label: String
     /// "#2F7BF5".
-    public let color: String
+    public var color: String
     /// The key that switches to this copy with ⌥⌘, or nil for none.
-    public let hotkey: String?
+    public var hotkey: String?
 
     public init(letter: String, label: String, color: String, hotkey: String?) {
         self.letter = letter
@@ -31,6 +31,28 @@ public struct ProfileStyle: Sendable, Equatable {
         ProfileStyle(letter: "B", label: "Claude B", color: "#F5822F", hotkey: "2"),
         ProfileStyle(letter: "C", label: "Claude C", color: "#2FB36B", hotkey: "3"),
     ]
+
+    /// A new copy's colour, as install.sh picks it; grey after H.
+    public static let palette = [
+        "A": "#2F7BF5", "B": "#F5822F", "C": "#2FB36B", "D": "#B04FD6",
+        "E": "#E5487F", "F": "#1FB5C1", "G": "#E3B52B", "H": "#E5484D",
+    ]
+
+    /// The ⌥⌘ keys a copy can have: 1 to 9, then 0 (which is otherwise the most room's).
+    public static let keys = (1...9).map(String.init) + ["0"]
+
+    /// The copy to add next: the first free letter after A, its colour, and its own number
+    /// as its key (B is 2) or else the first free one, as install.sh does. Nil after Z.
+    public static func next(after styles: [ProfileStyle]) -> ProfileStyle? {
+        let used = Set(styles.map(\.letter))
+        guard let letter = (66...90).lazy.map({ String(UnicodeScalar(UInt8($0))) }).first(where: { !used.contains($0) }) else {
+            return nil
+        }
+        let taken = Set(styles.compactMap(\.hotkey))
+        let own = String(Int(letter.unicodeScalars.first!.value) - 64)
+        let hotkey = own.count == 1 && !taken.contains(own) ? own : (1...9).map(String.init).first { !taken.contains($0) }
+        return ProfileStyle(letter: letter, label: "Claude \(letter)", color: palette[letter] ?? plain(letter).color, hotkey: hotkey)
+    }
 
     /// The file's entries, or the defaults when it's missing or unreadable. Entries without
     /// a single capital letter are skipped; a missing label or colour gets a plain one.

@@ -25,6 +25,11 @@ struct ScreenShape: Equatable {
 
 /// Where the notch is and where our two windows go.
 struct NotchLayout: Equatable {
+    /// Which side of the notch the rings sit on.
+    enum Side: String, CaseIterable {
+        case left, right
+    }
+
     static let ringSize: CGFloat = 16
     static let ringSpacing: CGFloat = 6
     /// How far the rings' black backing reaches into the notch, hiding its rounded corner.
@@ -41,29 +46,33 @@ struct NotchLayout: Equatable {
     let hasNotch: Bool
     /// The rings' window: beside the notch, or the pill itself.
     let rings: CGRect
+    let side: Side
     let screenFrame: CGRect
 
-    /// The rings' window: the rings, and room beside them for the countdown when every
-    /// copy is out. The window takes no clicks, so the empty room is harmless.
+    /// The rings' window: the rings, and room beside them (away from the notch) for the
+    /// countdown when every copy is out. The window takes no clicks, so the empty room is harmless.
     var ringsWindow: CGRect {
-        hasNotch ? CGRect(x: rings.minX, y: rings.minY, width: rings.width + Self.countdownRoom, height: rings.height) : rings
+        guard hasNotch else { return rings }
+        let x = side == .left ? rings.minX - Self.countdownRoom : rings.minX
+        return CGRect(x: x, y: rings.minY, width: rings.width + Self.countdownRoom, height: rings.height)
     }
 
     /// Hovering here opens the panel: the cutout itself, not the strip below it. Reaches
     /// a point above the screen so the topmost row of pixels counts.
     var trigger: CGRect { CGRect(x: notch.minX, y: notch.minY, width: notch.width, height: notch.height + 2) }
 
-    static func make(_ screen: ScreenShape, ringCount: Int) -> NotchLayout {
+    static func make(_ screen: ScreenShape, ringCount: Int, side: Side = .left) -> NotchLayout {
         let ringsWidth = CGFloat(ringCount) * ringSize + CGFloat(max(ringCount - 1, 0)) * ringSpacing
         if screen.safeAreaTop > 0, let left = screen.auxiliaryTopLeft, let right = screen.auxiliaryTopRight {
             // The side areas aren't symmetric, so the notch is the gap between them.
             let height = screen.safeAreaTop
             let notch = CGRect(x: left.maxX, y: screen.frame.maxY - height, width: right.minX - left.maxX, height: height)
+            let width = overlap + ringPadding + ringsWidth + ringPadding + flare
             let rings = CGRect(
-                x: notch.maxX - overlap, y: notch.minY,
-                width: overlap + ringPadding + ringsWidth + ringPadding + flare, height: height
+                x: side == .left ? notch.minX + overlap - width : notch.maxX - overlap, y: notch.minY,
+                width: width, height: height
             )
-            return NotchLayout(notch: notch, hasNotch: true, rings: rings, screenFrame: screen.frame)
+            return NotchLayout(notch: notch, hasNotch: true, rings: rings, side: side, screenFrame: screen.frame)
         }
         // No notch: a pill at the top centre of the menu bar, with the rings inside it,
         // wider than usual when there are more than six.
@@ -72,7 +81,7 @@ struct NotchLayout: Equatable {
             x: screen.frame.midX - width / 2, y: screen.frame.maxY - pillSize.height,
             width: width, height: pillSize.height
         )
-        return NotchLayout(notch: pill, hasNotch: false, rings: pill, screenFrame: screen.frame)
+        return NotchLayout(notch: pill, hasNotch: false, rings: pill, side: side, screenFrame: screen.frame)
     }
 
     /// The open panel: hanging from the top of the screen, centred on the notch, kept on screen.
@@ -89,7 +98,9 @@ struct NotchLayout: Equatable {
 
     /// A peek: the notch widened evenly on both sides, past the rings, with a line under it.
     var peek: CGRect {
-        let wings = max(92, rings.maxX - notch.maxX + 8)
+        // How far the rings reach out of the notch, on whichever side; a pill holds its own.
+        let reach = hasNotch ? rings.width - Self.overlap : 0
+        let wings = max(92, reach + 8)
         return CGRect(
             x: notch.minX - wings, y: notch.minY - Self.peekLine,
             width: notch.width + 2 * wings, height: notch.height + Self.peekLine

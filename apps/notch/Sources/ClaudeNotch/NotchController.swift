@@ -86,6 +86,7 @@ final class NotchController {
         rings.level = NSWindow.Level(rawValue: panel.level.rawValue + 1)
         peekWindow.ignoresMouseEvents = true
         model.onChange = { [weak self] in self?.modelChanged() }
+        preferences.onRingsSideChange = { [weak self] in self?.ringsSideChanged() }
         state.onResize = { [weak self] size in
             // Measured during a SwiftUI update: resize the window after it.
             Task { @MainActor in self?.contentResized(size) }
@@ -123,15 +124,7 @@ final class NotchController {
     private func rebuild() {
         arrangement = NSScreen.arrangement
         ringCount = model.profiles.count
-        guard let screen = NSScreen.notchScreen else { return }
-        var shape = ScreenShape(screen)
-        if forcePill { shape.safeAreaTop = 0 }
-        let layout = NotchLayout.make(shape, ringCount: ringCount)
-        self.layout = layout
-
-        rings.contentView = FirstClickHostingView(rootView: RingsView(model: model, hasNotch: layout.hasNotch, state: state))
-        rings.setFrame(layout.ringsWindow, display: true)
-        rings.orderFrontRegardless()
+        guard let layout = placeRings() else { return }
 
         // Room for the top bar, the footer and the shadow under the rows.
         state.rowsLimit = max(240, layout.screenFrame.height - layout.notch.height - 160)
@@ -151,6 +144,26 @@ final class NotchController {
         panel.contentView = hosting
         fitPanel(allowShrink: true)
     }
+
+    /// Lays the notch out on the notch screen and puts the rings beside it.
+    @discardableResult private func placeRings() -> NotchLayout? {
+        guard let screen = NSScreen.notchScreen else { return nil }
+        var shape = ScreenShape(screen)
+        if forcePill { shape.safeAreaTop = 0 }
+        let layout = NotchLayout.make(shape, ringCount: ringCount, side: preferences.ringsSide)
+        self.layout = layout
+
+        rings.contentView = FirstClickHostingView(
+            rootView: RingsView(model: model, hasNotch: layout.hasNotch, side: layout.side, state: state)
+        )
+        rings.setFrame(layout.ringsWindow, display: true)
+        rings.orderFrontRegardless()
+        return layout
+    }
+
+    /// The rings moved to the other side: only their window changes, as the panel and the
+    /// peek are centred on the notch either way.
+    private func ringsSideChanged() { placeRings() }
 
     private func modelChanged() {
         // A profile appearing or going changes how wide the rings are (one ring per copy).

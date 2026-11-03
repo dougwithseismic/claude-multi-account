@@ -8,15 +8,17 @@ import UsageCore
 //
 // `--pin` keeps the panel open; `--snapshot <file.png>` renders it and quits; `--demo` shows
 // made-up accounts in every state; `--welcome` opens on the welcome page (and adds it to a
-// snapshot); `--no-notch` draws the pill used on screens without one; `--remove-login-item`
-// takes the app out of login items and quits, for `build-app.sh --uninstall`; `--login-item`
-// prints whether it opens at login and quits, for `install.sh --doctor`.
+// snapshot); `--copies` opens the Copies window; `--no-notch` draws the pill used on screens
+// without one; `--remove-login-item` takes the app out of login items and quits, for
+// `build-app.sh --uninstall`; `--login-item` prints whether it opens at login and quits, for
+// `install.sh --doctor`.
 
 struct Options {
     var pinned = false
     var demo = false
     var noNotch = false
     var welcome = false
+    var copies = false
     var snapshot: String?
 
     init(_ arguments: [String]) {
@@ -24,6 +26,7 @@ struct Options {
         demo = arguments.contains("--demo")
         noNotch = arguments.contains("--no-notch")
         welcome = arguments.contains("--welcome")
+        copies = arguments.contains("--copies")
         snapshot = Snapshot.path(in: arguments)
     }
 }
@@ -58,7 +61,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let copies = ClaudeCopies()
     let hotkeys = Hotkeys()
     let outline = Outline()
+    let profiles = ProfilesFile.shared
     private(set) var controller: NotchController!
+    private var copiesWindow: CopiesWindow?
     private var observers: [NSObjectProtocol] = []
     private var automationShown = Date.distantPast
 
@@ -76,7 +81,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 open: { [weak self] letter in self?.switchTo(letter) },
                 refresh: { [weak self] in self?.model.refresh() },
                 editProfiles: { Self.editProfiles() },
-                reloadProfiles: { [weak self] in self?.reloadProfiles() },
+                manageCopies: { [weak self] in self?.manageCopies() },
                 quit: { NSApp.terminate(nil) }
             )
         )
@@ -87,6 +92,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Shared for `claude-usage --cached` and the status line; the demo's numbers are made up.
         if !options.demo { model.snapshotFile = SharedSnapshot.file }
         preferences.onHotkeysChange = { [weak self] in self?.registerHotkeys() }
+        profiles.onChange = { [weak self] added in self?.profilesChanged(addedByHand: added) }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -120,6 +126,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else if options.demo {
             Demo.peeks(controller)
         }
+        if options.copies { manageCopies() }
 
         let center = NotificationCenter.default
         observers.append(center.addObserver(
@@ -141,6 +148,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         registerHotkeys()
         guard !options.demo else { return }
+        profiles.start()
         startCopies()
         model.chrome.start()
         Links.claim()
@@ -247,16 +255,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !NSWorkspace.shared.open(file) { NSWorkspace.shared.activateFileViewerSelecting([file]) }
     }
 
-    /// Reads profiles.json again: names, colours and hotkeys. A file that doesn't read
-    /// leaves the ones in use, and says so.
-    private func reloadProfiles() -> String? {
-        guard let styles = ProfileStyle.reload() else {
-            complain("\(ProfileStyle.file.path(percentEncoded: false)) isn't a JSON list of profiles; kept the ones in use")
-            return "profiles.json isn't a JSON list of profiles, so the ones in use stay. Fix it and reload."
-        }
-        AccountStyle.styles = styles
+    /// profiles.json changed, in the Copies window or saved by hand: names, colours and keys
+    /// apply at once, and a letter added by hand gets its copy made.
+    private func profilesChanged(addedByHand added: [String]) {
+        AccountStyle.styles = profiles.styles
         registerHotkeys()
+        model.discover()
         controller.reload()
-        return nil
+        let unmade = added.filter { !Launcher.exists($0) }
+        guard !unmade.isEmpty else { return }
+        Task {
+            for letter in unmade {
+                do {
+                    try await CopyScript.make(letter)
+                    log.notice("made Claude \(letter, privacy: .public), added to profiles.json by hand")
+                } catch {
+                    complain("couldn't make Claude \(letter): \(error.localizedDescription)")
+                }
+            }
+            model.discover()
+        }
+    }
+
+    /// The Copies window. The demo's copies are made up, so it has none.
+    private func manageCopies() {
+        guard !options.demo else { return NSSound.beep() }
+        let window = copiesWindow ?? CopiesWindow(
+            editor: CopiesEditor(file: profiles, model: model) { [weak self] letter in self?.switchTo(letter) }
+        )
+        copiesWindow = window
+        window.show()
     }
 }

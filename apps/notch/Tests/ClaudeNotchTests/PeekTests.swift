@@ -108,14 +108,17 @@ private func snapshot(_ org: String, active: Bool, _ percent: Double) -> Account
         let first = Preferences(defaults: defaults)
         #expect(!first.showDetails)
         #expect(first.openOn == .hover)
+        #expect(first.ringsSide == .left)
         #expect(first.limitAlerts && first.switchPeeks && first.haptics)
 
         first.showDetails = true
         first.openOn = .click
+        first.ringsSide = .right
         first.haptics = false
         let second = Preferences(defaults: defaults)
         #expect(second.showDetails)
         #expect(second.openOn == .click)
+        #expect(second.ringsSide == .right)
         #expect(!second.haptics)
         #expect(second.limitAlerts)
     }

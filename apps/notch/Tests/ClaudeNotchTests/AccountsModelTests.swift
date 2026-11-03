@@ -188,20 +188,25 @@ private func model() -> AccountsModel {
     try Data("{}".utf8).write(to: root.appending(path: "Claude/config.json"))
     let model = AccountsModel(reader: AccountReader())
     model.profilesRoot = root
+    var letters = ["A", "D"]
+    model.letters = { letters }
     var changes = 0
     model.onChange = { changes += 1 }
     model.discover()
     #expect(model.profiles.map(\.letter) == ["A"])
     model.discover()
     #expect(changes == 1)
-    // Claude D opened for the first time makes its config.json.
+    // Making Claude D makes its data folder: its ring shows before it's ever opened.
     try FileManager.default.createDirectory(at: root.appending(path: "Claude-D"), withIntermediateDirectories: true)
-    model.discover()
-    #expect(model.profiles.map(\.letter) == ["A"])
-    try Data("{}".utf8).write(to: root.appending(path: "Claude-D/config.json"))
     model.discover()
     #expect(model.profiles.map(\.letter) == ["A", "D"])
     #expect(changes == 2)
+    // Removed from profiles.json, its folder kept: it goes.
+    letters = ["A"]
+    model.discover()
+    #expect(model.profiles.map(\.letter) == ["A"])
+    letters = ["A", "D"]
+    model.discover()
     try FileManager.default.removeItem(at: root.appending(path: "Claude-D"))
     model.discover()
     #expect(model.profiles.map(\.letter) == ["A"])

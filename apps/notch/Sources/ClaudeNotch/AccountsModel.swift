@@ -72,6 +72,8 @@ final class AccountsModel {
 
     /// Where the copies' data folders are; tests point it elsewhere.
     @ObservationIgnored var profilesRoot = Profile.applicationSupport
+    /// The copies there are: profiles.json's letters.
+    @ObservationIgnored var letters: () -> [String] = { AccountStyle.styles.map(\.letter) }
     @ObservationIgnored private let reader: AccountReader?
     @ObservationIgnored private var timer: Timer?
 
@@ -92,7 +94,7 @@ final class AccountsModel {
         discover()
         let timer = Timer(timeInterval: 5, repeats: true) { _ in
             MainActor.assumeIsolated {
-                // A copy opened for the first time makes its config.json while the app runs.
+                // A copy's data folder can come and go while the app runs.
                 self.discover()
                 self.pollDue()
                 self.heartbeat()
@@ -107,7 +109,7 @@ final class AccountsModel {
     /// model without a reader (the demo, tests) keeps the profiles it was shown.
     func discover() {
         guard reader != nil else { return }
-        let found = Profile.discover(in: profilesRoot)
+        let found = Profile.discover(in: profilesRoot, letters: letters())
         guard found != profiles else { return }
         profiles = found
         accounts.removeAll { account in !profiles.contains(account.profile) }

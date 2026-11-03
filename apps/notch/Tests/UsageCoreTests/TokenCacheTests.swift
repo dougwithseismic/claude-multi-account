@@ -172,16 +172,27 @@ import Testing
         #expect(Profile.letter(forFolder: "ClaudeCode") == nil)
     }
 
-    @Test func discoversOnlyFoldersWithConfig() throws {
+    @Test func discoversTheListedCopiesWithAFolder() throws {
         let root = FileManager.default.temporaryDirectory.appending(path: "profiles-\(UUID())")
         defer { try? FileManager.default.removeItem(at: root) }
-        for name in ["Claude", "Claude-C", "Claude-B", "Claude-3p", "Claude-D"] {
+        for name in ["Claude", "Claude-C", "Claude-B", "Claude-3p", "Claude-D", "Claude-E"] {
             try FileManager.default.createDirectory(at: root.appending(path: name), withIntermediateDirectories: true)
         }
-        for name in ["Claude", "Claude-C", "Claude-B", "Claude-3p"] {
+        // D has never been opened, so it has no config.json: it's still a copy.
+        for name in ["Claude", "Claude-C", "Claude-B", "Claude-3p", "Claude-E"] {
             try Data("{}".utf8).write(to: root.appending(path: "\(name)/config.json"))
         }
-        #expect(Profile.discover(in: root).map(\.letter) == ["A", "B", "C"])
+        // E was removed (its folder stays), and F is listed but not made.
+        #expect(Profile.discover(in: root, letters: ["D", "A", "C", "B", "F"]).map(\.letter) == ["A", "B", "C", "D"])
+        #expect(Profile.discover(in: root, letters: ["A"]).first?.dataDirectory.lastPathComponent == "Claude")
+    }
+
+    @Test func aCopyNeverOpenedIsSignedOut() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: "profiles-\(UUID())")
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root.appending(path: "Claude-D"), withIntermediateDirectories: true)
+        let config = try ProfileConfig.read(Profile(letter: "D", dataDirectory: root.appending(path: "Claude-D")))
+        #expect(config.encryptedTokenCache == nil && config.accountUUID == nil)
     }
 
     @Test func anEmptyV2MeansSignedOut() throws {

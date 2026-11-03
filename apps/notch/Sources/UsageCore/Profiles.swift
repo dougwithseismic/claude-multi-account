@@ -17,19 +17,21 @@ public struct Profile: Sendable, Equatable {
         FileManager.default.homeDirectoryForCurrentUser.appending(path: "Library/Application Support")
     }
 
-    /// Every profile folder under `root`, sorted by letter.
-    public static func discover(in root: URL = applicationSupport) -> [Profile] {
-        let names = (try? FileManager.default.contentsOfDirectory(atPath: root.path(percentEncoded: false))) ?? []
-        return names.compactMap { name -> Profile? in
-            guard let letter = letter(forFolder: name) else { return nil }
-            let url = root.appending(path: name, directoryHint: .isDirectory)
-            guard FileManager.default.fileExists(atPath: url.appending(path: "config.json").path(percentEncoded: false)) else {
-                return nil
-            }
+    /// The copies profiles.json lists whose data folder is under `root`, opened yet or not,
+    /// sorted by letter. A folder it doesn't list is a copy that was removed.
+    public static func discover(in root: URL = applicationSupport, letters: [String]) -> [Profile] {
+        Set(letters).sorted().compactMap { letter -> Profile? in
+            let url = root.appending(path: folder(for: letter), directoryHint: .isDirectory)
+            var isDirectory: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: url.path(percentEncoded: false), isDirectory: &isDirectory),
+                  isDirectory.boolValue
+            else { return nil }
             return Profile(letter: letter, dataDirectory: url)
         }
-        .sorted { $0.letter < $1.letter }
     }
+
+    /// "Claude" for A, "Claude-B" for B.
+    public static func folder(for letter: String) -> String { letter == "A" ? "Claude" : "Claude-\(letter)" }
 
     public static func letter(forFolder name: String) -> String? {
         if name == "Claude" { return "A" }
@@ -50,7 +52,11 @@ public struct ProfileConfig: Sendable {
         self.accountUUID = accountUUID
     }
 
+    /// A copy that hasn't been opened yet has no config.json: it isn't signed in.
     public static func read(_ profile: Profile) throws -> ProfileConfig {
+        guard FileManager.default.fileExists(atPath: profile.configFile.path(percentEncoded: false)) else {
+            return ProfileConfig(encryptedTokenCache: nil, accountUUID: nil)
+        }
         let data = try Data(contentsOf: profile.configFile)
         return try parse(data)
     }

@@ -11,6 +11,11 @@ enum Launcher {
             .appending(path: "Applications/Claude \(letter).app/Contents/Resources/claude-profile.sh")
     }
 
+    /// The copy has its launcher, so it has been made.
+    static func exists(_ letter: String) -> Bool {
+        FileManager.default.isExecutableFile(atPath: script(for: letter).path(percentEncoded: false))
+    }
+
     static func switchTo(_ letter: String, copies: ClaudeCopies?) {
         let script = script(for: letter)
         guard FileManager.default.isExecutableFile(atPath: script.path(percentEncoded: false)) else {
