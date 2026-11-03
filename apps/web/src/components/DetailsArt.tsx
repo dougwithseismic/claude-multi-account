@@ -189,10 +189,10 @@ const arts: Record<DetailArt, () => ReactNode> = {
             <Switch />
           </div>
           <div className="da-settings__row">
-            <span className="da-settings__label">Profiles</span>
+            <span className="da-settings__label">Copies</span>
             <span className="da-settings__pills">
-              <span className="da-pill-button">Edit</span>
-              <span className="da-pill-button">Reload</span>
+              <span className="da-pill-button">Manage…</span>
+              <span className="da-pill-button">Edit file</span>
             </span>
           </div>
         </div>

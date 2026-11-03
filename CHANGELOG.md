@@ -2,6 +2,14 @@
 
 What changed for people who use Claude Notch, newest first. To update, paste the install line again, or `git pull` and run `./install.sh`.
 
+## 1.1 — 2026-11-03
+
+- The rings sit left of the notch, so they no longer cover menu bar icons. **Rings** in settings puts them back on the right; the gear, eye and refresh buttons move to the other side of the open panel.
+- **Copies** in settings: **Manage…** opens a window to add a copy in one click (its data folder, launcher, colour and ⌥⌘ key), rename it, change its colour or key, and remove it, keeping its login unless you choose to delete its data.
+- profiles.json applies when it's saved, without Reload, and a letter added to it by hand gets its copy made.
+- A new copy's ring shows as soon as it's made, dimmed with "Sign in to Claude D", instead of after its first start.
+- `install.sh` and the Copies window make copies with the same script, `files/claude-copy.sh`.
+
 ## 1.0 — 2026-11-01
 
 ### Claude in Chrome for every copy

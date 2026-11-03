@@ -11,6 +11,7 @@ Open the panel and click the **gear** at its top left. Settings are kept on your
 | --- | --- | --- |
 | **Show emails and team names** | Rows show each account's email and Team name instead of the profile's name. Holding <kbd>⌥</kbd> over the panel does the same for a moment | Off |
 | **Open on** | **Hover**: rest the pointer on the notch. **Click**: only a click opens it, and a second click closes it | Hover |
+| **Rings** | Which side of the notch the rings sit on. On the left they stay clear of the menu bar's icons; the gear, eye and refresh buttons move to the panel's other side | Left |
 | **Limit alerts** | A peek when the copy in use passes 90% of its 5-hour limit, runs out of a limit, or gets one back | On |
 | **Switch peeks** | A peek naming the copy a <kbd>⌥⌘</kbd> hotkey switched to | On |
 | **⌥⌘0 switches to the most room** | <kbd>⌥⌘0</kbd> switches to the copy with the most room, as in [Day to day](/docs/day-to-day). Off frees the key for another app | On |
@@ -22,9 +23,9 @@ Open the panel and click the **gear** at its top left. Settings are kept on your
 
 What the rings and bars mean, **Show the welcome page again** (the page the first run opens on), and links to [How limits work](/learn/how-limits-work) and [what's new](/changelog).
 
-## Profiles
+## Copies
 
-**Edit** opens `profiles.json`, which sets each copy's name, colour and hotkey. **Reload** applies your changes without restarting. See [Names, colours and keys](/docs/profiles).
+**Manage…** opens the Copies window, where you add a copy in one click, rename one, change its colour or <kbd>⌥⌘</kbd> key, and remove one. **Edit file** opens `profiles.json`, the same list as a file; a save applies on its own. See [Names, colours and keys](/docs/profiles).
 
 ## Quitting
 
