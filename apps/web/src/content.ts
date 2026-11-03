@@ -18,8 +18,8 @@ export const nav = {
 export const hero = {
   /** The latest release, linked to its notes. */
   badge: {
-    label: 'New in 1.0: Claude in Chrome for every copy',
-    href: `${site.changelog}#1-0`,
+    label: 'New in 1.1: add and edit copies in settings',
+    href: `${site.changelog}#1-1`,
   } satisfies Link,
   // The word wrapped in * is set in the serif italic.
   title: 'Sign in once. Run every Claude account *side by side.*',
@@ -200,7 +200,7 @@ export const facts = {
 
 export const copies = {
   title: 'One ring for every copy of Claude you run',
-  body: 'A, B and C come set up. Add D, E and more to profiles.json with a letter, label, colour and hotkey, then click Reload.',
+  body: 'A, B and C come set up. Add D, E and more in one click from settings, and give each a name, colour and hotkey.',
   cta: { label: 'Add a copy', href: site.addCopy } satisfies Link,
 }
 

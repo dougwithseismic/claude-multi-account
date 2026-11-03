@@ -192,7 +192,7 @@ exit(snapshots.contains { if case .success = $0.usage { true } else { false } } 
 enum Live {
     /// Every profile, or those `--only` names; with none, says so and exits 1.
     static func profiles(only: Set<String>?, failIfNone: Bool) -> [Profile] {
-        var profiles = Profile.discover()
+        var profiles = Profile.discover(letters: ProfileStyle.load().map(\.letter))
         if let only { profiles = profiles.filter { only.contains($0.letter) } }
         guard profiles.isEmpty, failIfNone else { return profiles }
         fail(only == nil

@@ -93,7 +93,9 @@ private struct Board: View {
         .environment(\.colorScheme, .dark)
     }
 
-    private var layout: NotchLayout { NotchLayout.make(hasNotch ? Self.macBook : Self.display, ringCount: model.profiles.count) }
+    private var layout: NotchLayout {
+        NotchLayout.make(hasNotch ? Self.macBook : Self.display, ringCount: model.profiles.count, side: preferences.ringsSide)
+    }
     /// Where the panel would sit; only its left edge matters here.
     private var panelRect: CGRect { layout.panelFrame(contentSize: CGSize(width: PanelContent.width, height: 100)) }
 
@@ -119,12 +121,12 @@ private struct Board: View {
     }
 
     private func rings(_ model: AccountsModel, state: NotchState? = nil) -> some View {
-        RingsView(model: model, hasNotch: layout.hasNotch, state: state)
+        RingsView(model: model, hasNotch: layout.hasNotch, side: layout.side, state: state)
             .frame(width: layout.ringsWindow.width, height: layout.ringsWindow.height)
     }
 
     private func closed(_ model: AccountsModel) -> some View {
-        let notch = NotchLayout.local(layout.notch, in: panelRect), ringsAt = NotchLayout.local(layout.rings, in: panelRect)
+        let notch = NotchLayout.local(layout.notch, in: panelRect), ringsAt = NotchLayout.local(layout.ringsWindow, in: panelRect)
         return ZStack(alignment: .topLeading) {
             if layout.hasNotch {
                 NotchShape(flare: 0, bottomRadius: 9).fill(.black).frame(width: notch.width, height: notch.height).offset(x: notch.minX)

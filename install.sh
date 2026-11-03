@@ -363,41 +363,8 @@ letters=(${(ko)hotkey})
 (( $#letters )) || fail "no profiles in $CONFIG"
 print "  copies: $(list $letters)"
 
-step "Data folders"
-for X in $letters; do
-  [[ $X == A ]] && continue
-  dir="$SUPPORT/Claude-$X"
-  if [[ -d $dir ]]; then print "  ${dir/#$HOME/\~} (already there)"; continue; fi
-  mkdir -p -m 700 "$dir"
-  # A new copy starts with A's app preferences, never A's login (that's config.json).
-  for file in claude_desktop_config.json developer_settings.json; do
-    if [[ -f "$SUPPORT/Claude/$file" ]]; then cp -p "$SUPPORT/Claude/$file" "$dir/"; fi
-  done
-  print "  ${dir/#$HOME/\~} (new)"
-done
-
-step "Launchers in ~/Applications"
-# Small apps that bring a copy to the front, or start it, so Spotlight, Raycast, the Dock
-# and Claude Notch never start a second copy on the same folder. LSUIElement keeps them
-# out of the Dock; editing Info.plist breaks osacompile's signature, hence the re-sign.
-icon=$(/usr/libexec/PlistBuddy -c "Print CFBundleIconFile" "$CLAUDE/Contents/Info.plist")
-icon="$CLAUDE/Contents/Resources/${icon%.icns}.icns"
-mkdir -p "$HOME/Applications"
-for X in $letters; do
-  app="$HOME/Applications/Claude $X.app"
-  if [[ -e $app && ! -f $app/Contents/Resources/claude-profile.sh ]]; then
-    print "  Claude $X.app is an app of your own, so it's left alone; ⌥⌘ and Claude Notch still work"
-    continue
-  fi
-  rm -rf "$app"
-  osacompile -o "$app" -e "do shell script quoted form of (POSIX path of (path to me)) & \"Contents/Resources/claude-profile.sh $X\"" 2>/dev/null \
-    || fail "couldn't build $app"
-  install -m 755 files/claude-profile.sh "$app/Contents/Resources/claude-profile.sh"
-  cp "$icon" "$app/Contents/Resources/applet.icns"
-  /usr/libexec/PlistBuddy -c "Add :LSUIElement bool true" "$app/Contents/Info.plist"
-  codesign --force --deep -s - "$app" 2>/dev/null || fail "couldn't sign $app"
-  print "  Claude $X.app"
-done
+step "Copies: data folders, and launchers in ~/Applications"
+for X in $letters; do files/claude-copy.sh make $X; done
 
 step "Building and installing Claude Notch (the first build takes a minute or two)"
 apps/notch/scripts/build-app.sh --install

@@ -7,7 +7,7 @@ order: 4
 
 ## The rings
 
-Collapsed, Claude Notch is one double ring per copy, just right of the notch, in that copy's colour.
+Collapsed, Claude Notch is one double ring per copy, just left of the notch, in that copy's colour. **Rings** in [settings](/docs/settings) puts them on the right.
 
 - The **outer ring** is the 5-hour window. It turns red at 90%.
 - The **inner ring** is the fullest weekly window: all models, or one model's own weekly limit, whichever is higher.

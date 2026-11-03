@@ -2,7 +2,7 @@
 
 **Run every Claude account side by side on your Mac, and see every limit beside the notch.**
 
-Each account gets its own copy of the Claude desktop app, signed in for good. Switch with a key, and know at a glance how much of each 5-hour and weekly limit is left. Free, for macOS 26. [Website and guides](https://dougwithseismic.github.io/claude-multi-account/) · [What's new in 1.0](CHANGELOG.md#10--2026-11-01)
+Each account gets its own copy of the Claude desktop app, signed in for good. Switch with a key, and know at a glance how much of each 5-hour and weekly limit is left. Free, for macOS 26. [Website and guides](https://dougwithseismic.github.io/claude-multi-account/) · [What's new in 1.1](CHANGELOG.md#11--2026-11-03)
 
 ![The Claude Notch panel open under the MacBook notch, showing three accounts' 5-hour and weekly limits](apps/web/public/video/notch-film-poster.jpg)
 
@@ -96,7 +96,7 @@ On its first run the panel opens by itself on a welcome page: how to read the ri
 
 ## What Claude Notch shows
 
-By default it stays collapsed: one double ring per Claude copy just right of the notch, in that copy's colour. The outer ring is the 5-hour window and the inner one the fullest weekly window. A red cross means that account is out for the week. A dot under a ring marks the copy in front. The rings never take clicks, so the menu bar icons under them still work. On a screen without a notch the rings sit in a small black pill at the top centre.
+By default it stays collapsed: one double ring per Claude copy just left of the notch, in that copy's colour (**Rings** in settings puts them on the right). The outer ring is the 5-hour window and the inner one the fullest weekly window. A red cross means that account is out for the week. A dot under a ring marks the copy in front. The rings never take clicks, so a menu under them still works. On a screen without a notch the rings sit in a small black pill at the top centre.
 
 Rest the pointer on the notch, or click it, and the panel grows out of it with one row per copy: its name, plan, each window's bar and when it resets. The white tick on a bar marks how far through its window it is, so a bar past its tick is going faster than an even pace. Click a row to switch to that Claude. Move away and the panel folds back into the notch.
 
@@ -104,7 +104,7 @@ Rest the pointer on the notch, or click it, and the panel grows out of it with o
 
 - **Privacy:** rows show the profile's name ("Claude B") and plan, not the email or a Team's name, so the panel can open in front of anyone. The eye at the top left shows them; holding ⌥ over the panel shows them until you let go.
 - **Peeks:** after a ⌥⌘ switch, a strip under the notch names the copy for a moment. When the copy in use passes 90% of its 5-hour limit, runs out of a limit, or gets one back, the strip says so for a few seconds. Peeks never take clicks and stay away while an app is full screen.
-- **Settings** (the gear): show emails and team names, open on hover or only on click, limit alerts, switch peeks, ⌥⌘0, haptic feedback, Chrome access for `claude-chrome-relay`, open at login, and editing profiles.json. Under "Reading it": what the rings and bars mean, the welcome page again, and links to [how limits work](https://dougwithseismic.github.io/claude-multi-account/learn/how-limits-work/) and [what's new](https://dougwithseismic.github.io/claude-multi-account/changelog/).
+- **Settings** (the gear): show emails and team names, open on hover or only on click, which side of the notch the rings sit on, limit alerts, switch peeks, ⌥⌘0, haptic feedback, Chrome access for `claude-chrome-relay`, open at login, and Copies: add, rename, recolour and remove copies, or edit profiles.json. Under "Reading it": what the rings and bars mean, the welcome page again, and links to [how limits work](https://dougwithseismic.github.io/claude-multi-account/learn/how-limits-work/) and [what's new](https://dougwithseismic.github.io/claude-multi-account/changelog/).
 
 **Teams and other organizations:** one login can belong to several organizations, for example a personal Max plan and a Team. Each has its own limits. The row shows the one that copy is working in (whichever you last picked in Claude's account menu), and any other organization below it, marked "not in use". Claude renews only the login of the organization it's working in. So if another one's numbers go stale, switch that Claude to it once to update them. An organization you've never used in that copy (a free personal plan, say) has no login and isn't shown.
 
@@ -124,17 +124,19 @@ After each read it shares what it read in `~/Library/Caches/claude-multi-account
 ]
 ```
 
-**Edit** under Profiles in Claude Notch's settings opens the file, and **Reload** applies your changes. `claude-usage` reads it too.
+It's the list of copies: **Copies** in Claude Notch's settings edits it for you (**Manage…**), or **Edit file** opens it, and a save applies at once. A letter added by hand gets its copy made, as Add does. `claude-usage` reads it too.
 
 ## Add more copies
 
-To go from three to four (A to D):
+In Claude Notch: the gear, then **Manage…** under Copies, then **Add Claude D**. It makes D's data folder and launcher, adds it to profiles.json (purple, ⌥⌘4) and puts its ring by the notch. Click **Sign in** beside it, or press ⌥⌘4, and sign in as above. The same window renames a copy, changes its colour or ⌥⌘ key, and removes it: its launcher and ring go, and its data folder stays, so it's still signed in if you add it again, unless you choose to delete that too.
+
+Or from the terminal, to go from three to four (A to D):
 
 ```bash
 ~/claude-multi-account/install.sh 4
 ```
 
-It adds D to profiles.json (purple, ⌥⌘4), makes its data folder and launcher, and restarts Claude Notch. Then open it with ⌥⌘4 and sign in as above. Its ring appears after its first start. Any number up to 26 works; copies after the ninth get no hotkey.
+Any number up to 26 works; copies after the ninth get no hotkey.
 
 Each copy is a full Electron app, so expect roughly 0.5–1 GB of memory per open copy.
 
@@ -282,6 +284,7 @@ This quits Claude Notch, takes it out of your login items and deletes it, delete
 | `install.sh` | | Sets everything up, adds copies, the status line, `claude-a`, `claude-b`… or Claude in Chrome, or takes it all out; `--doctor` checks it all |
 | `scripts/doctor.sh` | | `install.sh --doctor` |
 | `files/claude-profile.sh` | inside each launcher app | Brings a copy to the front, or starts it |
+| `files/claude-copy.sh` | inside Claude Notch | Makes or removes a copy's data folder and launcher, for `install.sh` and the Copies window |
 | `files/profiles.json` | `~/.config/claude-multi-account/profiles.json` | Each copy's label, colour and hotkey |
 | `apps/notch/` | `~/Applications/Claude Notch.app` | The app (limits, hotkeys, outline, links), the `claude-usage` command and `claude-chrome-relay` |
 

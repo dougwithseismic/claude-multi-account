@@ -87,4 +87,17 @@ import Testing
         ]
         #expect(ProfileStyle.parse(Data(ProfileStyle.template(styles).utf8)) == styles)
     }
+
+    @Test func theNextCopyIsTheFirstFreeLetterWithItsOwnKey() throws {
+        let next = try #require(ProfileStyle.next(after: ProfileStyle.defaults))
+        #expect(next == ProfileStyle(letter: "D", label: "Claude D", color: "#B04FD6", hotkey: "4"))
+        // A gap left by a removed copy is filled first; its own key is taken, so the first free one.
+        let gap = [ProfileStyle.defaults[0], ProfileStyle(letter: "C", label: "C", color: "#2FB36B", hotkey: "2")]
+        #expect(ProfileStyle.next(after: gap) == ProfileStyle(letter: "B", label: "Claude B", color: "#F5822F", hotkey: "3"))
+        // After H, grey; after I, no key of its own.
+        let nine = (65...73).map { ProfileStyle(letter: String(UnicodeScalar(UInt8($0))), label: "", color: "#000000", hotkey: nil) }
+        #expect(ProfileStyle.next(after: nine) == ProfileStyle(letter: "J", label: "Claude J", color: "#B3B3B3", hotkey: "1"))
+        let all = (65...90).map { ProfileStyle(letter: String(UnicodeScalar(UInt8($0))), label: "", color: "#000000", hotkey: nil) }
+        #expect(ProfileStyle.next(after: all) == nil)
+    }
 }

@@ -126,7 +126,7 @@ struct WelcomePage: View {
     /// "⌥⌘1 Claude A · ⌥⌘2 Claude B · ⌥⌘0 the most room".
     private var hotkeys: String {
         let plan = HotkeyPlan.bindings(AccountStyle.styles, mostRoom: preferences.mostRoomHotkey)
-        guard !plan.isEmpty else { return "None set; add them in profiles.json." }
+        guard !plan.isEmpty else { return "None set; add them under Copies in settings." }
         return plan.map { binding in
             switch binding.target {
             case .copy(let letter): "⌥⌘\(binding.key) \(AccountStyle.of(letter).safeLabel)"

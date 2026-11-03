@@ -61,9 +61,9 @@ If links keep going to A whatever you do, macOS has given them back to Claude, w
 
 ## A copy's ring is missing
 
-- The copy has never been started: open it once with its hotkey or launcher. Its ring appears a few seconds later.
-- Its letter isn't in `profiles.json`: run `install.sh` with the number of copies you want, or add it by hand and click **Reload** in settings. If Reload says the file isn't a JSON list of profiles, there's a typo (often a missing comma); the names in use stay until it's fixed.
-- The data folder is missing: `install.sh` makes it again.
+- It isn't in the Copies window (the gear, then **Manage…** under Copies): add it there. A letter you add to `profiles.json` by hand works too, once the file is saved.
+- Settings says profiles.json isn't a JSON list of profiles: there's a typo, often a missing comma. The copies in use stay until it's fixed and saved.
+- The window says **Not made yet**: click **Make**, or run `install.sh`, to make its data folder and launcher.
 
 ## The numbers look old
 

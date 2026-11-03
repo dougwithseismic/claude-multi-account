@@ -2,7 +2,7 @@
 /// it from here), `claude-usage --version`, `claude-chrome-relay --version` and the relay's
 /// MCP server info. `install.sh --doctor` compares the installed app against it.
 public enum NotchVersion {
-    public static let current = "1.0"
+    public static let current = "1.1"
     /// The app's CFBundleVersion: one more for every release.
-    public static let build = "6"
+    public static let build = "7"
 }

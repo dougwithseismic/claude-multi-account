@@ -14,6 +14,13 @@ final class Preferences {
     /// the panel can open in front of anyone.
     var showDetails: Bool { didSet { defaults.set(showDetails, forKey: Key.showDetails) } }
     var openOn: OpenOn { didSet { defaults.set(openOn.rawValue, forKey: Key.openOn) } }
+    /// Which side of the notch the rings sit on.
+    var ringsSide: NotchLayout.Side {
+        didSet {
+            defaults.set(ringsSide.rawValue, forKey: Key.ringsSide)
+            if ringsSide != oldValue { onRingsSideChange?() }
+        }
+    }
     /// A short peek when a copy nears or hits a limit, or comes back from one.
     var limitAlerts: Bool { didSet { defaults.set(limitAlerts, forKey: Key.limitAlerts) } }
     /// A short peek naming the copy a hotkey switched to.
@@ -35,12 +42,15 @@ final class Preferences {
 
     /// Called when a setting changes which hotkeys there are.
     @ObservationIgnored var onHotkeysChange: (() -> Void)?
+    /// Called when the rings move to the other side of the notch.
+    @ObservationIgnored var onRingsSideChange: (() -> Void)?
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let chrome: ChromeAccess
 
     enum Key {
         static let showDetails = "showDetails"
         static let openOn = "openOn"
+        static let ringsSide = "ringsSide"
         static let limitAlerts = "limitAlerts"
         static let switchPeeks = "switchPeeks"
         static let haptics = "haptics"
@@ -53,6 +63,7 @@ final class Preferences {
         self.chrome = chrome
         showDetails = defaults.bool(forKey: Key.showDetails)
         openOn = defaults.string(forKey: Key.openOn).flatMap(OpenOn.init) ?? .hover
+        ringsSide = defaults.string(forKey: Key.ringsSide).flatMap(NotchLayout.Side.init) ?? .left
         limitAlerts = defaults.object(forKey: Key.limitAlerts) as? Bool ?? true
         switchPeeks = defaults.object(forKey: Key.switchPeeks) as? Bool ?? true
         haptics = defaults.object(forKey: Key.haptics) as? Bool ?? true
